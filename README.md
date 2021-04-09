@@ -32,9 +32,11 @@ This was originally made for fun over the course of five days and hence sloppine
 * Flask creates a website interface for the stream,
 * tor makes the website accessible at an onion address
 
-## Explanation of `stream.sh`
+## Explanation of the FFmpeg command in `stream.sh`
 
 TODO
+
+See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` are based on that.
 
 ## Tutorial
 
