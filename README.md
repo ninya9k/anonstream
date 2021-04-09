@@ -6,6 +6,7 @@ This was originally made for fun over the course of five days and hence sloppine
 
 ## Dependencies
 * [Flask](https://github.com/pallets/flask)
+* [captcha](https://github.com/lepture/captcha)
 * [Flask-HTTPAuth](https://github.com/miguelgrinberg/Flask-HTTPAuth) (to identify the broadcaster in chat)
 * [Flask-Compress](https://github.com/colour-science/flask-compress) (should probably be optional)
 * Knowledge of FFmpeg and Tor
@@ -17,6 +18,7 @@ This was originally made for fun over the course of five days and hence sloppine
 * Stream on/off indicator (and with JavaScript, playback error messages with prompts to refresh)
 * Chat with custom names & tripcodes
 * Ban chatters / hide messages
+* Flood detection / liberal captcha
 * Almost works without JavaScript
 
 ## Issues
