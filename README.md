@@ -8,6 +8,7 @@ This was originally made for fun over the course of five days and hence sloppine
 * [Flask](https://github.com/pallets/flask)
 * [Flask-HTTPAuth](https://github.com/miguelgrinberg/Flask-HTTPAuth) (to identify the broadcaster in chat)
 * [Flask-Compress](https://github.com/colour-science/flask-compress) (should probably be optional)
+* Knowledge of FFmpeg and Tor
 
 ## Features
 * Twitch-looking web interface
