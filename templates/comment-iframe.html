@@ -1,0 +1,220 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link href="/static/pure-min.css" rel="stylesheet">
+        <style>
+        body {
+          margin-left:0.5em;
+          color: white;
+        }
+        input {
+          background-color: inherit;
+          color: white;
+        }
+        input#message {
+          border: 1px solid #999 !important;
+          box-shadow: inset 0 1px 3px #555 !important;
+          width: calc(100% - 0.5em);
+          margin-bottom: 0.5em;
+        }
+        input#captcha {
+          width: calc(100% - 14em);
+          vertical-align: top;
+          padding: 0.375em;
+          display: inline-block;
+          box-shadow: none;
+        }
+        button {
+          position:absolute;
+          right:0.5em;
+          padding: 0.375em 1em !important;
+        }
+        form {
+          margin: 0;
+        }
+        img {
+          margin-top: 0.125em;
+        }
+        .note-space {
+          display: inline-block;
+        }
+        input[type="checkbox"] {
+            display: none;
+        }
+        label[for="settings-toggle"] {
+          cursor: pointer;
+          font-size: 150%;
+          vertical-align: top;
+          margin-right: 0.125em;
+          display: inline;
+        }
+        {% with primary   = 'settings'    if show_settings else 'comment-box' %}
+        {% with secondary = 'comment-box' if show_settings else 'settings' %}
+        form#{{ secondary }} {
+            width:0;
+            height:0;
+            overflow:hidden;
+        }
+        form#{{ secondary }} button {
+            display: none;
+        }
+        input#settings-toggle:checked ~ form#{{ primary }} {
+            width:0;
+            height:0;
+            overflow:hidden;
+        }
+        input#settings-toggle:checked ~ form#{{ primary }} button {
+            display: none;
+        }
+        input#settings-toggle:checked ~ form#{{ secondary }} {
+            width:revert;
+            height:revert;
+            overflow:revert;
+        }
+        input#settings-toggle:checked ~ form#{{ secondary }} button {
+            display: revert;
+        }
+        {% endwith %}
+        {% endwith %}
+        input#nickname {
+          padding: 0.25em;
+          display: inline-block;
+          box-shadow: none;
+          border: 1px solid #999 !important;
+          margin-bottom: 0.5em;
+        }
+        {% if note %}
+        @keyframes hide {
+          to {
+            visibility: hidden;
+            overflow: hidden;
+          }
+        }
+        @keyframes unhide {
+          to {
+            visibility: visible;
+          }
+        }
+        #note {
+          font-weight: bold;
+          color: white;
+          animation: hide 0s forwards 2s;
+          position: absolute;
+          top: 2.75rem;
+          font-size: 110%;
+        }
+        .note-space {
+          visibility: hidden;
+          animation: unhide 0s forwards 2s;
+        }
+        {% endif %}
+        .smalltext {
+          font-size: 85%;
+        }
+
+        #password, #cancel-password {
+            display: none;
+        }
+        #password-toggle:checked ~ #password {
+            display: revert;
+        }
+        #password-toggle:checked ~ label[for="password-toggle"] #cancel-password {
+            display: revert;
+        }
+        #password-toggle:checked ~ label[for="password-toggle"] #tripcode-container {
+            display: none;
+        }
+        #password-toggle:checked ~ label[for="password-toggle"] #remove-tripcode {
+            display: none;
+        }
+        #password-toggle:checked ~ label[for="blank-tripcode-toggle"] {
+            display: none;
+        }
+
+        #undo-remove-tripcode {
+            display: none;
+        }
+        #blank-tripcode {
+            display: none;
+        }
+        #blank-tripcode-toggle:checked ~ #blank-tripcode {
+            display: revert;
+        }
+        #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #undo-remove-tripcode {
+            display: revert;
+        }
+        #blank-tripcode-toggle:checked ~ label[for="password-toggle"] {
+            display: none;
+        }
+        #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #remove-tripcode {
+            display: none;
+        }
+
+        #tripcode {
+            padding: 0 5px;
+            border-radius: 6px;
+            font-size: 90%;
+            font-family: monospace;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        .pseudolink {
+            color: #a0a0a0;
+            cursor: pointer;
+        }
+        .pseudolink:active, .pseudolink:hover {
+            color: #00b6f0;
+        }
+        </style>
+    </head>
+    <body>
+        <input type="checkbox" id="settings-toggle">
+        <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
+            {% if not hide_everything %}
+                <input required id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
+                <div class="note-space">
+                    <label for="settings-toggle">⚙️</label>
+                    {% if captcha %}
+                        <img src="{{ captcha['src'] }}">
+                        <input name="captcha-token" type="hidden" value="{{ captcha['token'] }}">
+                        <input required id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
+                    {% endif %}
+                </div>
+                <button style="height:30;font-weight:bold;" class="pure-button pure-button-primary">Chat</button>
+            {% endif %}
+        </form>
+        <form id="settings" action="{{ url_for('settings') }}" method="post">
+            <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ nickname }}">
+            <input type="checkbox" id="password-toggle" name="set-tripcode">
+            <input type="checkbox" id="blank-tripcode-toggle" name="remove-tripcode">
+            <input id="password" type="password" style="width:30%;" name="password" maxlength="256" placeholder="Password">
+            {% if viewer['tripcode']['string'] %}
+                <label for="password-toggle">
+                    <span id="tripcode-container">
+                        <span id="tripcode" style="background-color:#{{ viewer['tripcode']['background_colour'].hex() }};color:#{{ viewer['tripcode']['foreground_colour'].hex() }};">{{ viewer['tripcode']['string'] }}</span>
+                    </span>
+                </label>
+                <span id="blank-tripcode">(cleared)</span>
+                <label for="blank-tripcode-toggle">
+                    <span class="pseudolink" id="remove-tripcode">&times;</span>
+                    <span class="pseudolink" id="undo-remove-tripcode">undo</span>
+                </label>
+                <label for="password-toggle">
+                    <span class="pseudolink" id="cancel-password">&times;</span>
+                </label>
+            {% else %}
+                <label for="password-toggle">
+                    <span class="pseudolink" id="tripcode-container">(no tripcode)</span>
+                    <span class="pseudolink" id="cancel-password">&times;</span>
+                </label>
+            {% endif %}
+            <div>
+                <div class="note-space">
+                    <label for="settings-toggle">💬</label>
+                    <button style="padding: 0.5em;float:right;" class="pure-button pure-button-primary smalltext">Change appearance</button>
+                </div>
+            </div>
+        </form>
+        <div id="note">{{ note }}</div>
+    </body>
+</html>
