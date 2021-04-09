@@ -5,6 +5,8 @@ Recipe for livestreaming over the Tor network
 This was originally made for fun over the course of five days and hence sloppiness may pervade (especially in the CSS).
 
 ## Dependencies
+* Tor
+* FFmpeg
 * [Flask](https://github.com/pallets/flask)
 * [captcha](https://github.com/lepture/captcha)
 * [Flask-HTTPAuth](https://github.com/miguelgrinberg/Flask-HTTPAuth) (to identify the broadcaster in chat)
