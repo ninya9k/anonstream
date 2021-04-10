@@ -1,41 +1,47 @@
 <html>
     <head>
-        <noscript><meta http-equiv="refresh" content="20"></noscript>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="/static/video-js.css" rel="stylesheet">
         <link href="/static/pure-min.css" rel="stylesheet">
-        <style>
-            html {color: white;}            
-            #stream-title {display:inline-block;width:calc(100% - 20px - 2em);font-size:150%;font-weight: bold;}
-            #viewer-count-container {float:right;color:#ff8280;}
-            #stream-light {font-size: 200%;vertical-align: sub;margin-right:0.125em;}
-            #refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
-            svg {
-                vertical-align:text-bottom;
-                fill: #ff8280;
-            }
-            img {
-                vertical-align: text-bottom;
-            }
-        </style>
+        <link href="/static/grids-responsive-min.css" rel="stylesheet">
+        <link href="/static/platform.css" rel="stylesheet">
+        <script src="/static/video.js"></script>
+        <script src="/static/videojs-contrib-hls.js"></script>
+<!--    <script src="/static/dash.all.debug.js"></script>
+        <script src="/static/videojs-dash.js"></script>-->
+        <noscript><style>#videojs {display: none;}</style></noscript>
     </head>
-    <body>
-        <div style="margin: 0.5em;margin-bottom: 0;">
-            <div id="stream-title">{{ title }}</div>
-            <div id="viewer-count-container" class="red">
-                <div style="float:right;">
-                    <svg id="svg" style="display:none;" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg>
-                    <noscript><img src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC"></noscript>
-                    <span id="viewer-count">{{ viewer_count }}</span>
+    <body class="dark-theme">
+        <div class=pure-g>
+            <div class="pure-u-1 pure-u-md-2-3">
+                <div id="stream" class="border">
+                    <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
+                    <video style="width: 100%;height: 100%;" id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
+                        <source src="{{ url_for('playlist') }}" type="application/x-mpegURL">
+                    </video>
+                    <noscript>
+                        <video controls autoplay src="{{ url_for('stream') }}">
+                    </noscript>
+                </div>
+                <iframe id="stream-info" style="height:9em;" src="/stream-info"></iframe>
+                <div style="margin-left: 0.5em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
+            </div>
+            <div class="pure-u-1 pure-u-md-1-3">
+                <div class="border">
+                    <div class="banner" style="padding-bottom:0.5em;border-bottom:1px solid gray;padding-left: 1em;font-size:125%;">
+                        <span>Stream chat</span>
+                        <form target="chat" action="/chat" method="get" class="banner" style="float: right;margin: 0;width: 1em;">
+                            <input id="token" type="hidden" name="token" value="{{ token }}">
+                            <button style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;" type="submit" class="">🔄</button>
+                        </form>
+                    </div>
+                    <iframe id="chat" name="chat" style="transform: rotate(180deg);transform: scaleY(-1);" src="{{ url_for('chat_iframe', token=token) }}"></iframe>
+                    <iframe style="height:6em;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
                 </div>
             </div>
-            <div>
-                <span id="stream-light" style="color:{% if online %}green{% else %}red{% endif %};">•</span>
-                <span id="stream-status">{% if online %}The stream is online.{% else %}The stream has ended.{% endif %}</span>
-                <a id="refresh-button" class="pure-button pure-button-primary" style="display: none;">Refresh</a>
-            </div>
         </div>
-        <script>
-            /* ensure that the svg only appears when scripts are enabled */
-            document.getElementById("svg").style.display = "";
-        </script>
+    </div>
+    <script src="/static/platform.js"></script>
     </body>
 </html>
