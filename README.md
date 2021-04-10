@@ -23,10 +23,9 @@ This was originally made for fun over the course of five days and hence sloppine
 * Chat with custom names & tripcodes
 * Ban chatters / hide messages
 * Flood detection / liberal captcha
-* Almost works without JavaScript
+* Works without JavaScript
 
 ## Issues
-* JavaScript required for HLS playback (this is being worked on)
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * Fonts are hard-coded and you might not have them
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
@@ -43,7 +42,7 @@ This was originally made for fun over the course of five days and hence sloppine
 
 TODO
 
-See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` is based on that.
+See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ and https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` is based on those.
 
 ## Tutorial
 
