@@ -12,6 +12,11 @@
   fill: #ff8280;
 }
 
+video {
+  width:100%;
+  height:100%;
+}
+
 #stream {
   height: calc(100vw * 9 / 16);
 }
@@ -63,4 +68,10 @@ body.dark-theme {
 .dark-theme select,
 .dark-theme textarea {
   color: #232323;
+}
+
+/* workaround to make some custom user css work
+e.g. https://raw.githubusercontent.com/33kk/uso-archive/flomaster/data/usercss/2154.user.css */
+div[class="vjs-text-track-display"] {
+  display: none;
 }
