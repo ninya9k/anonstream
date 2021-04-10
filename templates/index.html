@@ -33,15 +33,16 @@
                     <div class="banner" style="padding-bottom:0.5em;border-bottom:1px solid gray;padding-left: 1em;font-size:125%;">
                         <span>Stream chat</span>
                         <form target="chat" action="/chat" method="get" class="banner" style="float: right;margin: 0;width: 1em;">
-                         <button style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;" type="submit" class="">🔄</button>
+                            <input id="token" type="hidden" name="token" value="{{ token }}">
+                            <button style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;" type="submit" class="">🔄</button>
                         </form>
                     </div>
-                    <iframe id="chat" name="chat" style="transform: rotate(180deg);transform: scaleY(-1);" src="{{ url_for('chat_iframe') }}"></iframe>
-                    <iframe style="height:6em;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe') }}"></iframe>
+                    <iframe id="chat" name="chat" style="transform: rotate(180deg);transform: scaleY(-1);" src="{{ url_for('chat_iframe', token=token) }}"></iframe>
+                    <iframe style="height:6em;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
                 </div>
             </div>
         </div>
-
+    </div>
     <script src="/static/platform.js"></script>
     </body>
 </html>
