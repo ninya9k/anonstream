@@ -21,7 +21,7 @@
                         <source src="{{ url_for('playlist') }}" type="application/x-mpegURL">
                     </video>
                     <noscript>
-                        <video controls autoplay src="{{ url_for('stream') }}">
+                        <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('stream') }}">
                     </noscript>
                 </div>
                 <iframe id="stream-info" style="height:9em;" src="/stream-info"></iframe>
