@@ -41,7 +41,7 @@ This was originally made for fun over the course of five days and hence sloppine
 
 TODO
 
-See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` are based on that.
+See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` is based on that.
 
 ## Tutorial
 
