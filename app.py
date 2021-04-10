@@ -14,6 +14,7 @@ import string
 import base64
 import io
 import math
+from datetime import datetime
 
 from pprint import pprint
 
@@ -53,9 +54,43 @@ CAPTCHA = ImageCaptcha(width=72, height=30, fonts=CAPTCHA_FONTS, font_sizes=(24,
 segment_views = {}
 
 broadcaster_pw = secrets.token_urlsafe(6)
-broadcaster_token = secrets.token_hex(6)
+broadcaster_token = secrets.token_hex(8)
 
 BACKGROUND_COLOUR = (0x23, 0x23, 0x23)
+
+# notes: messages that can appear in the comment box
+N_NONE            =  0
+N_TOKEN_EMPTY     =  1
+N_MESSAGE_EMPTY   =  2
+N_MESSAGE_LONG    =  3
+N_BANNED          =  4
+N_TOOFAST         =  5
+N_FLOOD           =  6
+N_CAPTCHA_MISSING =  7
+N_CAPTCHA_WRONG   =  8
+N_CAPTCHA_RANDOM  =  9
+N_APPEAR_OK       = 10
+N_APPEAR_FAIL     = 11
+
+NOTES = {N_NONE:            '',
+         N_TOKEN_EMPTY:     'illegal token',
+         N_MESSAGE_EMPTY:   'no message',
+         N_MESSAGE_LONG:    'message too long',
+         N_BANNED:          'you cannot chat',
+         N_TOOFAST:         'resend your message',
+         N_FLOOD:           'solve this captcha',
+         N_CAPTCHA_MISSING: 'please captcha',
+         N_CAPTCHA_WRONG:   'you got the captcha wrong',
+         N_CAPTCHA_RANDOM:  'a wild captcha appears',
+         N_APPEAR_OK:       'appearance got changed',
+         N_APPEAR_FAIL:     'name/pw too long; no change'}
+
+#When a viewer leaves a comment, they make a POST request to /comment; either
+#you can redirect back to /comment-box or you can respond there without
+#redirecting. In the second case viewers will get a confirmation dialogue when
+#they refresh the page; in the first case, you need to somehow give them the
+#note exactly once. That's what this dict is for.
+preset_comment_iframe = {}
 
 @auth.verify_password
 def verify_password(username, password):
@@ -82,11 +117,14 @@ def default_nickname(token):
 def default_tripcode():
     return {'string': None, 'background_colour': None, 'foreground_colour': None}
 
+def new_token(short=False):
+    return secrets.token_hex(4 if short else 8)
+
 @app.route('/')
 def index(token=None):
-    token = token or request.cookies.get('token') or secrets.token_hex(4)
+    token = token or request.args.get('token') or request.cookies.get('token') or new_token()
     set_default_viewer(token)
-    response = Response(render_template('index.html'))
+    response = Response(render_template('index.html', token=token))
     response.set_cookie('token', token)
     return response
 
@@ -99,20 +137,20 @@ def broadcaster():
 def playlist():
     # https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/
     # https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/
-    token = request.cookies.get('token') or secrets.token_hex(4)
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
     response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
     return response
 
-@app.route('/stream<int:n>.ts')
+@app.route('/stream<int:n>.ts') # TODO: <input> fallbacks for non cookie users; hh:mm timestamps
 def segment(n):
-    token = request.cookies.get('token')
+    token = request.args.get('token') or request.cookies.get('token')
     _view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.ts', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     if token == None:
-        token = secrets.token_hex(4)
+        token = new_token()
         response.set_cookie('token', token)
     return response
 
@@ -137,6 +175,7 @@ def _view_segment(n, token=None):
     with lock:
         now = int(time.time())
         segment_views.setdefault(n, []).append((now, token))
+        print(f'seg{n}: {token}')
         # remove old views
         for i in segment_views:
             for view in segment_views[i].copy():
@@ -155,11 +194,11 @@ def stream():
 
 @app.route('/chat')
 def chat_iframe():
-    token = request.cookies.get('token') or secrets.token_hex(4)
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
     messages = (message for message in reversed(chat) if not message['hidden'])
     messages = zip(messages, range(64))
     messages = (message for message, _ in messages)
-    return render_template('chat-iframe.html', messages=messages, broadcaster=token == broadcaster_token)
+    return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == broadcaster_token)
 
 def count_site_tokens():
     '''
@@ -185,11 +224,12 @@ def count_segment_views(exclude_token_views=True):
     streak = []
     for i in range(min(segment_views), max(segment_views)):
         _views = segment_views.get(i, [])
-        if exclude_token_views: _views = list(filter(lambda _view: _view[1] == None, _views))
+        if exclude_token_views:
+            _views = filter(lambda _view: _view[1] == None, _views)
+            _views = list(_views)
         if len(_views) == 0:
-            streaks.append(streak)
             streak = []
-        else:
+        elif streak != []:
             streak.append(len(_views))
 
     total_viewers = 0
@@ -201,9 +241,12 @@ def count_segment_views(exclude_token_views=True):
             n += max(_n_views - _previous_n_views, 0) 
         total_viewers += n
 
-    # this assumes every viewer views exactly VIEWS_PERIOD / HLS_TIME segments
-    average_viewers = sum(map(len, segment_views.values())) * HLS_TIME / VIEWS_PERIOD
+    print(f'{streaks=}')
 
+    # this assumes every viewer views exactly VIEWS_PERIOD / HLS_TIME segments
+    average_viewers = sum(sum(streak) for streak in streaks) * HLS_TIME / VIEWS_PERIOD
+
+    print(f'count_segment_views: {total_viewers=}, {average_viewers=}')
     return max(total_viewers, math.ceil(average_viewers))
 
 def count_segment_tokens():
@@ -215,7 +258,9 @@ def count_segment_tokens():
 
 def n_viewers():
     with lock:
-        return count_segment_views() + count_segment_tokens()
+        a, b = count_segment_tokens(), count_segment_views(exclude_token_views=True)
+        print(f'count_segment_tokens={a}; count_segment_views={b}')
+        return a + b
 
 def _is_segment(fn):
     return fn[6].isdigit()
@@ -251,7 +296,7 @@ def stream_title():
 @app.route('/heartbeat')
 def heartbeat():
     now = int(time.time())
-    token = request.cookies.get('token')
+    token = request.args.get('token') or request.cookies.get('token')
     if token in viewers:
         viewers[token]['heartbeat'] = int(time.time())
     return {'viewers': n_viewers(),
@@ -272,22 +317,27 @@ def gen_captcha():
     return _image_to_base64(im), answer
 
 @app.route('/comment-box')
-def comment_iframe(token=None, note='', message=''):
-    token = token or request.cookies.get('token') or secrets.token_hex(4)
-    updated = request.args.get('updated', type=int)
+def comment_iframe():
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
 
-    if 'updated' in request.args:
-        if updated:
-            note = 'appearance got changed'
-        else:
-            note = 'name/pw too long; no change'
+    try:
+        preset = preset_comment_iframe.pop(token)
+    except KeyError:
+        note = N_NONE
+        message = ''
+    else:
+        note = preset['note']
+        message = preset['message']
+
+    if note not in NOTES:
+        note = N_NONE
 
     captcha = None
     set_default_viewer(token)
 
     if not viewers[token]['verified']:
         c_src, c_answer = gen_captcha()
-        c_token = secrets.token_hex(4)
+        c_token = new_token()
         captchas[c_token] = c_answer
         captcha = {'src': c_src, 'token': c_token}
 
@@ -296,13 +346,14 @@ def comment_iframe(token=None, note='', message=''):
     nickname = nickname if nickname != default else ''
 
     response = Response(render_template('comment-iframe.html',
-                                        captcha=captcha,
-                                        note=note,
-                                        message=message,
-                                        default=default,
-                                        nickname=nickname,
-                                        viewer=viewers[token],
-                                        show_settings='updated' in request.args))
+                                         token=token,
+                                         captcha=captcha,
+                                         note=NOTES[note],
+                                         message=message,
+                                         default=default,
+                                         nickname=nickname,
+                                         viewer=viewers[token],
+                                         show_settings=note == N_APPEAR_OK or note == N_APPEAR_FAIL))
     response.set_cookie('token', token)
     return response
 
@@ -319,21 +370,20 @@ def behead_chat():
 
 @app.route('/comment', methods=['POST'])
 def comment():
-    token = request.cookies.get('token') or secrets.token_hex(4)
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
     message = request.form.get('message', '').replace('\r', '').replace('\n', ' ').strip()
     c_response = request.form.get('captcha')
     c_token = request.form.get('captcha-token')
 
-    failure_reason = ''
+    failure_reason = N_NONE
     with lock:
-        print(f'{viewers=}')
         now = int(time.time())
         if not token:
-            failure_reason = 'illegal token'
+            failure_reason = N_TOKEN_EMPTY
         elif not message:
-            failure_reason = 'no message'
+            failure_reason = N_MESSAGE_EMPTY
         elif len(message) >= 256:
-            failure_reason = 'message too long'
+            failure_reason = N_MESSAGE_LONG
         else:
             set_default_viewer(token)
             # remove record of old comments
@@ -342,26 +392,28 @@ def comment():
                     viewers[token]['recent_comments'].remove(t)
 
             pprint(viewers)
-
             if viewers[token]['banned']:
-                failure_reason = 'you cannot chat'
+                failure_reason = N_BANNED
             elif now < viewers[token]['comment'] + CHAT_TIMEOUT:
-                failure_reason = 'resend your message'
+                failure_reason = N_TOOFAST
             elif len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
-                failure_reason = 'solve this captcha'
+                failure_reason = N_FLOOD
                 viewers[token]['verified'] = False
             elif not viewers[token]['verified'] and c_token not in captchas:
-                failure_reason = 'please captcha'
+                failure_reason = N_CAPTCHA_MISSING
             elif not viewers[token]['verified'] and captchas[c_token] != c_response:
-                failure_reason = 'you got the captcha wrong'
+                failure_reason = N_CAPTCHA_WRONG
             elif secrets.randbelow(50) == 0:
-                failure_reason = 'a wild captcha appears'
+                failure_reason = N_CAPTCHA_RANDOM
                 viewers[token]['verified'] = False
             else:
+                dt = datetime.utcfromtimestamp(now)
                 chat.append({'text': message,
                               'viewer': viewers[token],
-                              'id': f'{token}-{secrets.token_hex(4)}',
-                              'hidden': False})
+                              'id': f'{token}-{new_token(short=True)}',
+                              'hidden': False,
+                              'time': dt.strftime('%H:%M'),
+                              'date': dt.strftime('%F %T')})
                 viewers[token]['comment'] = now
                 viewers[token]['recent_comments'].append(now)
                 viewers[token]['verified'] = True
@@ -369,25 +421,30 @@ def comment():
 
     set_default_viewer(broadcaster_token)
     viewers[broadcaster_token]['verified'] = True
-    return comment_iframe(token=token, note=failure_reason, message=message if failure_reason else '')
+
+
+    preset_comment_iframe[token] = {'note': failure_reason, 'message': message if failure_reason else ''}
+    return redirect(url_for('comment_iframe', token=token))
 
 @app.route('/settings', methods=['POST'])
 def settings():
-    token = request.cookies.get('token') or secrets.token_hex(4)
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
     set_default_viewer(token)
 
     nickname = request.form.get('nickname', '').strip()
     nickname = ''.join(char if unicodedata.category(char) != 'Cc' else ' ' for char in nickname).strip()
 
     if len(nickname) > 24:
-        return redirect(url_for('comment_iframe', updated=0))
+        preset_comment_iframe[token] = {'note': N_APPEAR_FAIL, 'message': message}
+        return redirect(url_for('comment_iframe', token=token))
 
     if request.form.get('remove-tripcode'):
         viewers[token]['tripcode'] = default_tripcode()
     elif request.form.get('set-tripcode'):
         password = request.form.get('password', '')
         if len(password) > 256:
-            return redirect(url_for('comment_iframe', updated=0))
+            preset_comment_iframe[token] = {'note': N_APPEAR_FAIL, 'message': message}
+            return redirect(url_for('comment_iframe', token=token))
         pwhash = werkzeug.security._hash_internal('pbkdf2:sha256', b'\0', password)[0]
         tripcode = bytes.fromhex(pwhash)[:6]
         viewers[token]['tripcode']['string'] = base64.b64encode(tripcode).decode()
@@ -396,7 +453,9 @@ def settings():
                                                               key=lambda c: _distance_sq(c, viewers[token]['tripcode']['background_colour']))
 
     viewers[token]['nickname'] = nickname or default_nickname(token)
-    return redirect(url_for('comment_iframe', updated=1))
+
+    preset_comment_iframe[token] = {'note': N_APPEAR_OK}
+    return redirect(url_for('comment_iframe', token=token))
 
 @app.route('/mod', methods=['POST'])
 @auth.login_required
@@ -428,4 +487,3 @@ def stream_info():
                            title=stream_title(),
                            viewer_count=n_viewers(),
                            online=stream_is_online())
-
