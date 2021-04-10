@@ -185,12 +185,6 @@ def _view_segment(n, token=None):
         now = int(time.time())
         segment_views.setdefault(n, []).append((now, token))
         print(f'seg{n}: {token}')
-        # remove old views
-        for i in segment_views:
-            for view in segment_views[i].copy():
-                view_timestamp, view_token = view
-                if view_timestamp < now - VIEWS_PERIOD:
-                    segment_views[i].remove(view)
 
 @app.route('/stream.mp4')
 def stream():
@@ -259,6 +253,14 @@ def count_segment_views(exclude_token_views=True):
     return max(total_viewers, math.ceil(average_viewers))
 
 def count_segment_tokens():
+    # remove old views
+    now = int(time.time())
+    for i in segment_views:
+        for view in segment_views[i].copy():
+            view_timestamp, view_token = view
+            if view_timestamp < now - VIEWS_PERIOD:
+                segment_views[i].remove(view)
+
     tokens = set()
     for i in segment_views:
         for view_timestamp, view_token in segment_views[i]:
