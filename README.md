@@ -14,7 +14,7 @@ This was originally made for fun over the course of five days and hence sloppine
 * Knowledge of FFmpeg and Tor
 
 ## Features
-* Twitch-looking web interface
+* Twitch-looking web interface (mobile friendly)
 * Change stream title as you're streaming
 * Viewer count
 * Stream on/off indicator (and with JavaScript, playback error messages with prompts to refresh)
