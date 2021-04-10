@@ -4,8 +4,8 @@ import time
 
 RE_SEGMENT = re.compile(r'stream(?P<number>\d+).m4s')
 SEGMENT_INIT = 'init.mp4'
-STREAM_TIMEOUT = 12 # stop looking for new segments and throw an error after this many seconds
-SEGMENT_OFFSET = 4  # start this many segments back from now (1 is most recent segment)
+STREAM_TIMEOUT = 12
+SEGMENT_OFFSET = 4 # start this many segments back from now (1 is most recent segment)
 
 def _segment_number(fn):
     if fn == SEGMENT_INIT: return None
@@ -60,6 +60,7 @@ class ConcatenatedSegments:
         self.segment = next(self.segments)
         self.segment_read_offset = 0
         self.segment_hook = segment_hook or (lambda n: None)
+        self._closed = False
     
     def _read(self, n):
         chunk = b''
@@ -89,11 +90,14 @@ class ConcatenatedSegments:
         return chunk
 
     def read(self, n):
+        if self._closed:
+            return b''
+
         try:
             return self._read(n)
         except FileNotFoundError:
-            print('StreamOffline in self.read')
-            raise StreamOffline
+            self._closed = True
+            return b''
 
     def close(self):
-        pass
+        self._closed = True
