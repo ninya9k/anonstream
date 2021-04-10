@@ -18,7 +18,7 @@ from datetime import datetime
 
 from pprint import pprint
 
-from transmux import ConcatenatedSegments
+from concatenate import ConcatenatedSegments, StreamOffline, _is_segment, _segment_number
 from colour import gen_colour, _contrast, _distance_sq
 
 # Override HTTP headers globally https://stackoverflow.com/a/46858238
@@ -144,43 +144,38 @@ def broadcaster():
 
 @app.route('/stream.m3u8')
 def playlist():
-    # https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/
-    # https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/
     token = request.args.get('token') or request.cookies.get('token') or new_token()
     response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
     return response
 
-@app.route('/stream<int:n>.ts') # TODO: <input> fallbacks for non cookie users; hh:mm timestamps
-def segment(n):
+@app.route('/init.mp4')
+def segment_init():
+    token = request.args.get('token') or request.cookies.get('token') or new_token()
+    response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+@app.route('/stream<int:n>.m4s')
+def segment_arbitrary(n):
     token = request.args.get('token') or request.cookies.get('token')
     _view_segment(n, token)
-    response = send_from_directory(SEGMENTS_DIR, f'stream{n}.ts', add_etags=False)
+    response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     if token == None:
         token = new_token()
         response.set_cookie('token', token)
     return response
 
-# DASH -- didn't work easily in Tor Browser; someone else can figure it out
-#
-#@app.route('/init-stream<int:sn>.m4s')
-#def segment_init(sn):
-#    _view_segment(0)
-#    return segment(f'init-stream{sn}.m4s')
-#
-#@app.route('/chunk-stream<int:sn>-<n>.m4s')
-#def segment_arbitrary(sn, n):
-#    _view_segment(int(n))
-#    return segment(f'chunk-stream{sn}-{n}.m4s')
-#
-#def segment(fn):
-#    response = send_from_directory(SEGMENTS_DIR, fn, add_etags=False)
-#    response.headers['Cache-Control'] = 'no-cache'
-#    return response
-
 def _view_segment(n, token=None):
+    # n is None if segment_hook is called in ConcatenatedSegments and the current segment is init.mp4
+    if n == None:
+        return
+
+    if not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
+        return
+
     with lock:
         now = int(time.time())
         segment_views.setdefault(n, []).append((now, token))
@@ -188,12 +183,14 @@ def _view_segment(n, token=None):
 
 @app.route('/stream.mp4')
 def stream():
+    token = request.cookies.get('token')
+    concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
     try:
-        file_wrapper = werkzeug.wrap_file(request.environ, ConcatenatedSegments())
+        file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     except StreamOffline:
         return abort(404)
     else:
-        return Response(file_wrapper, mimetype='video/MP2T')
+        return Response(file_wrapper, mimetype='video/mp4')
 
 @app.route('/chat')
 def chat_iframe():
@@ -273,12 +270,6 @@ def n_viewers():
         print(f'count_segment_tokens={a}; count_segment_views={b}')
         return a + b
 
-def _is_segment(fn):
-    return fn[6].isdigit()
-
-def _segment_index(fn):
-    return int(fn[6:].partition('.')[0])
-
 def current_segment():
     files = os.listdir(SEGMENTS_DIR)
 
@@ -290,8 +281,8 @@ def current_segment():
     files = filter(lambda fn: fn in m3u8, files)
 
     try:
-        last_segment = max(filter(_is_segment, files), key=_segment_index)
-        return _segment_index(last_segment)
+        last_segment = max(filter(_is_segment, files), key=_segment_number)
+        return _segment_number(last_segment)
     except ValueError:
         return None
 
