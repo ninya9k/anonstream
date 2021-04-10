@@ -18,7 +18,7 @@ from datetime import datetime
 
 from pprint import pprint
 
-from concatenate import ConcatenatedSegments, StreamOffline, _is_segment, _segment_number
+from concatenate import ConcatenatedSegments, _is_segment, _segment_number
 from colour import gen_colour, _contrast, _distance_sq
 
 # Override HTTP headers globally https://stackoverflow.com/a/46858238
@@ -178,18 +178,17 @@ def _view_segment(n, token=None):
 
     with lock:
         now = int(time.time())
-        segment_views.setdefault(n, []).append((now, token))
+        segment_views.setdefault(n, []).append({'time': now, 'token': token})
         print(f'seg{n}: {token}')
 
 @app.route('/stream.mp4')
 def stream():
     token = request.cookies.get('token')
-    try:
-        concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
-        file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
-        return Response(file_wrapper, mimetype='video/mp4')
-    except StreamOffline:
-        return abort(408)
+    # I believe this is incorrect; the exception gets thrown after this function returns the Response
+    # the file_wrapper should just stop
+    concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
+    file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
+    return Response(file_wrapper, mimetype='video/mp4')
 
 @app.route('/chat')
 def chat_iframe():
@@ -215,7 +214,7 @@ def count_segment_views(exclude_token_views=True):
     Estimate the number of viewers using only the number of views segments have had in the last 30 seconds
     If `exclude_token_views` is True then ignore views with associated tokens
     '''
-    if not segment_views:
+    if not segment_views: # what?
         return 0
 
     # create the list of streaks; a streak is a sequence of consequtive segments with non-zero views
@@ -224,9 +223,10 @@ def count_segment_views(exclude_token_views=True):
     for i in range(min(segment_views), max(segment_views)):
         _views = segment_views.get(i, [])
         if exclude_token_views:
-            _views = filter(lambda _view: _view[1] == None, _views)
+            _views = filter(lambda _view: _view['token'] == None, _views)
             _views = list(_views)
         if len(_views) == 0:
+            streaks.append(streak)
             streak = []
         elif streak != []:
             streak.append(len(_views))
