@@ -184,13 +184,12 @@ def _view_segment(n, token=None):
 @app.route('/stream.mp4')
 def stream():
     token = request.cookies.get('token')
-    concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
     try:
+        concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
         file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
-    except StreamOffline:
-        return abort(404)
-    else:
         return Response(file_wrapper, mimetype='video/mp4')
+    except StreamOffline:
+        return abort(408)
 
 @app.route('/chat')
 def chat_iframe():
