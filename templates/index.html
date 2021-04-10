@@ -17,11 +17,11 @@
             <div class="pure-u-1 pure-u-md-2-3">
                 <div id="stream" class="border">
                     <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
-                    <video id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
+                    <video style="width: 100%;height: 100%;" id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
                         <source src="{{ url_for('playlist') }}" type="application/x-mpegURL">
                     </video>
                     <noscript>
-                        <video controls autoplay src="{{ url_for('stream') }}">
+                        <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('stream') }}">
                     </noscript>
                 </div>
                 <iframe id="stream-info" style="height:9em;" src="/stream-info"></iframe>
