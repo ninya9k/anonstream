@@ -21,7 +21,16 @@ from pprint import pprint
 from transmux import ConcatenatedSegments
 from colour import gen_colour, _contrast, _distance_sq
 
-app = Flask(__name__)
+# Override HTTP headers globally https://stackoverflow.com/a/46858238
+class LocalFlask(Flask):
+    def process_response(self, response):
+        # Every response will be processed here first
+        super(localFlask, self).process_response(response)
+        response.headers['Server'] = 'Werkzeug'
+        return(response)
+
+
+app = LocalFlask(__name__)
 auth = HTTPBasicAuth()
 compress = Compress()
 compress.init_app(app)
@@ -326,8 +335,8 @@ def comment_iframe():
         note = N_NONE
         message = ''
     else:
-        note = preset['note']
-        message = preset['message']
+        note = preset.get('note', N_NONE)
+        message = preset.get('message', '')
 
     if note not in NOTES:
         note = N_NONE
