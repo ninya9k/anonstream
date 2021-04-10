@@ -184,12 +184,12 @@ def _view_segment(n, token=None):
 @app.route('/stream.mp4')
 def stream():
     token = request.cookies.get('token')
-    # I believe this is incorrect; the exception gets thrown after this function returns the Response
-    # the file_wrapper should just stop
+    # TODO: check what happens when /stream.mp4 gets very delayed
     concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     return Response(file_wrapper, mimetype='video/mp4')
 
+# TODO: make `chat` a object with O(1) time appending to the front
 @app.route('/chat')
 def chat_iframe():
     token = request.args.get('token') or request.cookies.get('token') or new_token()
@@ -218,7 +218,7 @@ def count_segment_views(exclude_token_views=True):
         return 0
 
     # create the list of streaks; a streak is a sequence of consequtive segments with non-zero views
-    streaks = []
+    streaks = [] # TODO: check this works
     streak = []
     for i in range(min(segment_views), max(segment_views)):
         _views = segment_views.get(i, [])
@@ -358,6 +358,7 @@ def comment_iframe():
     response.set_cookie('token', token)
     return response
 
+# TODO: make this better
 def gen_viewer_colour(seed, background=b'\x22\x22\x22'):
     for _ in range(16384): # in case we run out of colours
         colour = gen_colour(seed, background)
@@ -427,6 +428,7 @@ def comment():
     preset_comment_iframe[token] = {'note': failure_reason, 'message': message if failure_reason else ''}
     return redirect(url_for('comment_iframe', token=token))
 
+# TODO: make it so your message that you haven't sent yet stays there when you change your appearance
 @app.route('/settings', methods=['POST'])
 def settings():
     token = request.args.get('token') or request.cookies.get('token') or new_token()
@@ -436,7 +438,7 @@ def settings():
     nickname = ''.join(char if unicodedata.category(char) != 'Cc' else ' ' for char in nickname).strip()
 
     if len(nickname) > 24:
-        preset_comment_iframe[token] = {'note': N_APPEAR_FAIL, 'message': message}
+        preset_comment_iframe[token] = {'note': N_APPEAR_FAIL}
         return redirect(url_for('comment_iframe', token=token))
 
     if request.form.get('remove-tripcode'):
@@ -444,7 +446,7 @@ def settings():
     elif request.form.get('set-tripcode'):
         password = request.form.get('password', '')
         if len(password) > 256:
-            preset_comment_iframe[token] = {'note': N_APPEAR_FAIL, 'message': message}
+            preset_comment_iframe[token] = {'note': N_APPEAR_FAIL}
             return redirect(url_for('comment_iframe', token=token))
         pwhash = werkzeug.security._hash_internal('pbkdf2:sha256', b'\0', password)[0]
         tripcode = bytes.fromhex(pwhash)[:6]
