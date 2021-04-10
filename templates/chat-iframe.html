@@ -18,9 +18,9 @@
         }
           span.message {margin-left: 0.625em;word-wrap: break-word;}
           span.camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
-          span.time {font-size: 80%;color: gray;vertical-align:middle;}
+          span.time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.25em;}
           body {margin: 0.5em;min-height: calc(100vh - 1em);transform: scaleX(-1);}
-          input[type="submit"] {padding: 0;margin-bottom: 0.25em;}
+          input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
         </style>
     </head>
     <body>
@@ -40,10 +40,10 @@
                     {% if broadcaster %}
                         <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
                     {% endif %}
-                    <span class="time" title={{ message['date'] }}>{{ message['time'] }}</span>&#8288;<!--
+                    <span class="time" title="{{ message['date'] }}">{{ message['time'] }}</span>&#8288;<!--
                     {% if message['viewer']['broadcaster'] %}
                      --><span class="camera" title="Broadcaster">🎥</span>&#8288;<!--
-                 -->{% endif %}<span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</span>&#8288;<!--
+                    {% endif %}--><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</span>&#8288;<!--
                  -->{% if message['viewer']['tripcode']['string'] %}<span class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</span>&#8288;<!--
                  -->{% endif %}<span class="message">{{ message['text'] }}</span>
                 {% endif %}
