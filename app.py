@@ -25,7 +25,7 @@ from colour import gen_colour, _contrast, _distance_sq
 class LocalFlask(Flask):
     def process_response(self, response):
         # Every response will be processed here first
-        super(localFlask, self).process_response(response)
+        super(LocalFlask, self).process_response(response)
         response.headers['Server'] = 'Werkzeug'
         return(response)
 
