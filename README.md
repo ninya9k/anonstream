@@ -2,6 +2,8 @@
 
 Recipe for livestreaming over the Tor network
 
+![Screenshot of the livestream web interface](demo.png)
+
 This was originally made for fun over the course of five days and hence sloppiness may pervade (especially in the CSS).
 
 ## Dependencies
