@@ -424,7 +424,7 @@ def comment():
     set_default_viewer(broadcaster_token)
     viewers[broadcaster_token]['verified'] = True
 
-
+    # TODO: consider eliminating the POST->GET pattern for speed reasons
     preset_comment_iframe[token] = {'note': failure_reason, 'message': message if failure_reason else ''}
     return redirect(url_for('comment_iframe', token=token))
 
