@@ -54,7 +54,7 @@ function currentSegment() {
         if ( player == null ) {
             player = videojs.players.videojs;
         }
-        const tracks = videojs.players.vjs_video_3.textTracks();
+        const tracks = player.textTracks();
         const cues = tracks[0].cues;
         const uri = cues[cues.length - 1].value.uri;
         return parseInt(uri.split("/")[3].slice(6));
