@@ -1,3 +1,6 @@
+const t0 = Date.now() / 1000;
+const beginTimeout = 20.0; // seconds until playback should have begun
+
 const segmentDuration = 10.0; // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
@@ -7,7 +10,7 @@ let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton
 // ensure only one heartbeat is sent at a time
 let heartIsBeating = false;
 
-// https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/parseCookie.md
+/*// https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/parseCookie.md
 const parseCookie = str =>
   str
     .split(';')
@@ -15,7 +18,7 @@ const parseCookie = str =>
     .reduce((acc, v) => {
       acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
       return acc;
-    }, {});
+    }, {});*/
 
 let streamInfoFrame = window.frames['stream-info'];
 streamInfoFrame.addEventListener("load", function() {
@@ -32,7 +35,7 @@ streamInfoFrame.addEventListener("load", function() {
     refreshButton.onclick = function() { return window.location.reload(true); };
 
     // this viewer's token
-    token = parseCookie(document.cookie).token;
+    token = document.getElementById("token").value;
 
     // get stream info every 20 seconds
     setInterval(heartbeat, 20000);
@@ -69,7 +72,7 @@ function heartbeat() {
 
     // prepare a request to /heartbeat
     const xhr = new XMLHttpRequest();
-    xhr.open("GET", "/heartbeat");
+    xhr.open("GET", `/heartbeat?token=${token}`);
 
     xhr.timeout = 18000; // timeout in ms, 18 seconds
     xhr.onerror = function(e) {
@@ -110,6 +113,8 @@ function heartbeat() {
             } else if ( diff < 0 ) {
                 return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
             }
+        } else if (Date.now() / 1000 - t0 >= beginTimeout) {
+            updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", true);
         }
 
         // otherwise
