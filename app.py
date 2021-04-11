@@ -228,8 +228,11 @@ def count_segment_views(exclude_token_views=True):
             if streak:
                 streaks.append(streak)
             streak = []
-        elif streak != []:
+        else:
             streak.append(len(_views))
+    else:
+        if streak:
+            streaks.append(streak)
 
     total_viewers = 0
     for streak in streaks:
@@ -237,10 +240,9 @@ def count_segment_views(exclude_token_views=True):
         _previous_n_views = 0
         for _n_views in streak:
             # any increase in views from one segment to the next means there must be new viewer
-            n += max(_n_views - _previous_n_views, 0) 
+            n += max(_n_views - _previous_n_views, 0)
+            _previous_n_views = _n_views
         total_viewers += n
-
-    print(f'{streaks=}')
 
     # this assumes every viewer views exactly VIEWS_PERIOD / HLS_TIME segments
     average_viewers = sum(sum(streak) for streak in streaks) * HLS_TIME / VIEWS_PERIOD
@@ -251,15 +253,24 @@ def count_segment_views(exclude_token_views=True):
 def count_segment_tokens():
     # remove old views
     now = int(time.time())
-    for i in segment_views:
+    for i in set(segment_views):
         for view in segment_views[i].copy():
             if view['time'] < now - VIEWS_PERIOD:
                 segment_views[i].remove(view)
+        if len(segment_views[i]) == 0:
+            segment_views.pop(i)
 
     tokens = set()
     for i in segment_views:
         for view in segment_views[i]:
             tokens.add(view['token'])
+
+    # count only token views; token=None means there was no token
+    try:
+        tokens.remove(None)
+    except KeyError:
+        pass
+
     return len(tokens)
 
 def n_viewers():
