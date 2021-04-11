@@ -24,7 +24,7 @@ ffmpeg -thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate
     -c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
     -filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6" \
     -c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS \
-    -f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -threads 4 -lhls 1 \
+    -f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4 \
     -map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
     stream/stream.m3u8
 
@@ -73,6 +73,6 @@ ffmpeg -thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate
 #    -filter:v:0 scale=$VIDEO_WIDTH_0:$VIDEO_HEIGHT_0,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6" \
 #    -filter:v:1 scale=$VIDEO_WIDTH_1:$VIDEO_HEIGHT_1,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6" \
 #    -c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS \
-#    -f dash -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -threads 4 -adaptation_sets "id=0,streams=v  id=1,streams=a" -ldash 1 \
+#    -f dash -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -adaptation_sets "id=0,streams=v  id=1,streams=a" -ldash 1 \
 #    -map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
 #    stream/stream.mpd
