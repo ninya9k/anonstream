@@ -5,7 +5,7 @@ BOX_OFFSET_X=0         # pixels
 BOX_OFFSET_Y=0         # pixels
 
 VIDEO_HEIGHT=360       # pixels
-VIDEO_WIDTH=$(echo "$VIDEO_HEIGHT * 16 / 9 / 2 * 2" | bc) # ensures even width, required for yuv420p
+VIDEO_WIDTH=$(echo "$VIDEO_HEIGHT * $BOX_WIDTH / $BOX_HEIGHT / 2 * 2" | bc) # ensures even width, required for yuv420p
 
 VIDEO_BITRATE=200      # kbit/s
 AUDIO_BITRATE=64       # kbit/s
@@ -19,7 +19,7 @@ HLS_LIST_SIZE=$(echo $DELETION_THRESHOLD / $HLS_TIME | bc)
 
 mkdir -p stream
 
-ffmpeg -thread_queue_size 2048 -video_size "$BIX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y \
+ffmpeg -thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y \
     -thread_queue_size 2048 -f pulse -i default \
     -c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
     -filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6" \
