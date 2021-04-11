@@ -50,6 +50,10 @@ streamInfoFrame.addEventListener("load", function() {
 
 function currentSegment() {
     try {
+        let player = videojs.players.vjs_video_3;
+        if ( player == null ) {
+            player = videojs.players.videojs;
+        }
         const tracks = videojs.players.vjs_video_3.textTracks();
         const cues = tracks[0].cues;
         const uri = cues[cues.length - 1].value.uri;
