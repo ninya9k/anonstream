@@ -29,12 +29,19 @@ ffmpeg -thread_queue_size 2048 -video_size "$BIX_WIDTH"x"$BOX_HEIGHT" -framerate
     stream/stream.m3u8
 
 
+# TODO: low-latency HLS
+# https://stackoverflow.com/a/63229182/15580043
+# https://github.com/video-dev/hls.js/projects/7
+# https://www.ffmpeg.org/ffmpeg-formats.html#dash-2
+# https://github.com/video-dev/hls.js/issues/2861
+
+
 # software encoding
 #    -c:v libx264 -crf 31 -maxrate "$VIDEO_BITRATE"k -bufsize 1M -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
 #    -c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
 
 # example Nvidia hardware encoding; see https://trac.ffmpeg.org/wiki/HWAccelIntro
-#    -c:v h264_nvenc -rc vbr_hq -b:v "$VIDEO_BITRATE"k -preset ll -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
+#    -c:v h264_nvenc -rc cbr_ld_hq -b:v "$VIDEO_BITRATE"k -preset llhp -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
 
 
 # this is the deprecated version of the timestamp; it shows local time
@@ -49,8 +56,9 @@ ffmpeg -thread_queue_size 2048 -video_size "$BIX_WIDTH"x"$BOX_HEIGHT" -framerate
 
 # DASH
 # DASH can do multiple video/audio streams at different bandwidths
-# DASH uses fragmented MP4 which is easier to use for the JavaScriptless livestream
-# alas dashjs didn't work easily in Tor Browser, someone else can figure it out
+# dashjs didn't work easily in Tor Browser, someone else can figure it out
+# TODO: find DASH equivalent of -hls_flags delete_segments
+#
 #VIDEO_HEIGHT_0=420       # pixels
 #VIDEO_WIDTH_0=$(echo "$VIDEO_HEIGHT_0 * 16 / 9 / 2 * 2" | bc)
 #VIDEO_WIDTH_1=$(echo "$VIDEO_HEIGHT_1 * 16 / 9 / 2 * 2" | bc)
@@ -68,5 +76,3 @@ ffmpeg -thread_queue_size 2048 -video_size "$BIX_WIDTH"x"$BOX_HEIGHT" -framerate
 #    -f dash -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -threads 4 -adaptation_sets "id=0,streams=v  id=1,streams=a" -ldash 1 \
 #    -map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
 #    stream/stream.mpd
-#
-## -hls_flags delete_segments does nothing for DASH
