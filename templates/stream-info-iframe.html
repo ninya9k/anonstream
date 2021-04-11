@@ -4,8 +4,7 @@
         <link href="/static/pure-min.css" rel="stylesheet">
         <style>
             html {color: white;}            
-            #stream-title {display:inline-block;width:calc(100% - 20px - 2em);font-size:150%;font-weight: bold;}
-            #viewer-count-container {float:right;color:#ff8280;}
+            #stream-title {display:inline-block;width:calc(100% - 20px - 6.75em);font-size:150%;font-weight: bold;}
             #stream-light {font-size: 200%;vertical-align: sub;margin-right:0.125em;}
             #refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
             svg {
@@ -15,16 +14,131 @@
             img {
                 vertical-align: text-bottom;
             }
+
+            {% if stream_uptime != None %}
+            .digit {overflow: hidden;display:inline-block;height:2em;}
+            .digit div {height:2em;}
+
+            .seconds-ones {animation: count10 10s step-end -{{ stream_uptime }}s infinite;}
+            .seconds-tens {animation: count6  60s step-end -{{ stream_uptime }}s infinite;}
+            .minutes-ones {animation: count10 600s step-end -{{ stream_uptime }}s infinite;}
+            .minutes-tens {animation: count6  3600s step-end -{{ stream_uptime }}s infinite;}
+
+            .digit-hours-separator {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
+            .digit-hours-ones      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
+            .digit-hours-tens      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 36000 - stream_uptime }}s;}
+            .digit-hours-hundreds  {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 360000 - stream_uptime }}s;}
+
+            .timer {animation: hide 0s forwards {{ 3600000 - stream_uptime }}s;}
+            .timer-overflow {width: 0; overflow: hidden; animation: unhide 0s forwards {{ 3600000 - stream_uptime }}s;}
+
+            @keyframes hide {
+              to {width: 0;height:0;visibility:hidden;}
+            }
+            @keyframes unhide {
+              to {width: revert;}
+            }
+            @keyframes count10 {
+               0% {margin-top:  -0em;}
+              10% {margin-top:  -2em;}
+              20% {margin-top:  -4em;}
+              30% {margin-top:  -6em;}
+              40% {margin-top:  -8em;}
+              50% {margin-top: -10em;}
+              60% {margin-top: -12em;}
+              70% {margin-top: -14em;}
+              80% {margin-top: -16em;}
+              90% {margin-top: -18em;}
+            }
+            @keyframes count6 {
+               0.0000% {margin-top:  -0em;}
+              16.6667% {margin-top:  -2em;}
+              33.3333% {margin-top:  -4em;}
+              50.0000% {margin-top:  -6em;}
+              66.6667% {margin-top:  -8em;}
+              83.3333% {margin-top: -10em;}
+            }
+            {% endif %}
         </style>
     </head>
     <body>
         <div style="margin: 0.5em;margin-bottom: 0;">
             <div id="stream-title">{{ title }}</div>
-            <div id="viewer-count-container" class="red">
-                <div style="float:right;">
-                    <svg id="svg" style="display:none;" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg>
-                    <noscript><img src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC"></noscript>
-                    <span id="viewer-count">{{ viewer_count }}</span>
+            <div id="stream-stats" style="display:inline;">
+                <div id="uptime" style="float:right;color:lightgray;">
+                    {% if stream_uptime != None %}
+                        <noscript>
+                            <div class="timer">
+                                <span class="digit digit-hours-tens">
+                                    <div class="hours-tens">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                </span
+                                ><span class="digit digit-hours-ones">
+                                    <div class="hours-ones">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                    <div>6</div>
+                                    <div>7</div>
+                                    <div>8</div>
+                                    <div>9</div>
+                                </span
+                                ><span class="digit digit-hours-separator">:</span
+                                ><span class="digit digit-minutes-tens">
+                                    <div class="minutes-tens">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                </span
+                                ><span class="digit">
+                                    <div class="minutes-ones">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                    <div>6</div>
+                                    <div>7</div>
+                                    <div>8</div>
+                                    <div>9</div>
+                                </span
+                                ><span class="digit">:</span
+                                ><span class="digit">
+                                    <div class="seconds-tens">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                </span
+                                ><span class="digit">
+                                    <div class="seconds-ones">0</div>
+                                    <div>1</div>
+                                    <div>2</div>
+                                    <div>3</div>
+                                    <div>4</div>
+                                    <div>5</div>
+                                    <div>6</div>
+                                    <div>7</div>
+                                    <div>8</div>
+                                    <div>9</div>
+                                </span>
+                            </div>
+                            <div class="timer-overflow">1000+ hours</div>
+                        </noscript>
+                    {% endif %}
+                </div>
+                <div style="float:right;color:#ff8280;margin-right:0.5em;">
+                    <svg id="svg" style="display:none;" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg><noscript><img src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC"></noscript
+                    ><span id="viewer-count" style="margin-left: 0.125em;">{{ viewer_count }}</span>
                 </div>
             </div>
             <div>
@@ -36,6 +150,7 @@
         <script>
             /* ensure that the svg only appears when scripts are enabled */
             document.getElementById("svg").style.display = "";
+            var streamStart = {{ stream_start_json }};
         </script>
     </body>
 </html>
