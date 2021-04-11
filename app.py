@@ -263,13 +263,9 @@ def count_segment_tokens():
     tokens = set()
     for i in segment_views:
         for view in segment_views[i]:
-            tokens.add(view['token'])
-
-    # count only token views; token=None means there was no token
-    try:
-        tokens.remove(None)
-    except KeyError:
-        pass
+            # count only token views; token=None means there was no token
+            if token != None:
+                tokens.add(view['token'])
 
     return len(tokens)
 
