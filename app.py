@@ -517,7 +517,6 @@ def mod():
 
     return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform: scaleY(-1);">it is done</div>'
 
-# TODO: stream uptime
 @app.route('/stream-info')
 def stream_info():
     start, start_rel = stream_start(absolute=True, relative=True)
