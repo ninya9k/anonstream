@@ -41,8 +41,8 @@ SEGMENTS_DIR = os.path.join(ROOT, 'stream')
 SEGMENTS_M3U8 = os.path.join(SEGMENTS_DIR, 'stream.m3u8')
 STREAM_TITLE = os.path.join(ROOT, 'title.txt')
 
-HLS_TIME     = 10   # seconds per segment
-VIEWS_PERIOD = 30   # count views from the last 30 seconds
+HLS_TIME     = 8    # seconds per segment
+VIEWS_PERIOD = 30   # count views from the last VIEWS_PERIOD seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
 FLOOD_THRESHOLD = 3 # messages in FLOOD_PERIOD seconds
@@ -186,7 +186,10 @@ def _view_segment(n, token=None):
 @app.route('/stream.mp4')
 def stream():
     token = request.cookies.get('token')
-    concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
+    concatenated_segments = ConcatenatedSegments(segments_dir=SEGMENTS_DIR,
+                                                 segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
+                                                 stream_timeout=HLS_TIME * 2 + 4,
+                                                 segment_hook=lambda n: _view_segment(n, token))
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     return Response(file_wrapper, mimetype='video/mp4')
 
@@ -265,7 +268,7 @@ def count_segment_tokens():
     for i in segment_views:
         for view in segment_views[i]:
             # count only token views; token=None means there was no token
-            if token != None:
+            if view['token'] != None:
                 tokens.add(view['token'])
 
     return len(tokens)
