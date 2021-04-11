@@ -155,7 +155,7 @@ function heartbeat() {
                 return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
             }
         } else if (Date.now() / 1000 - t0 >= beginTimeout) {
-            updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", true);
+            return updateStreamStatus("The stream is online but you're receiving it. Try refreshing the page.", "yellow", true);
         }
 
         // otherwise
