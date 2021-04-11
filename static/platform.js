@@ -1,11 +1,12 @@
 const t0 = Date.now() / 1000;
 const beginTimeout = 20.0; // seconds until playback should have begun
 
-const segmentDuration = 10.0; // seconds per segment
+const segmentDuration = 8.0; // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
 
 let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton
+let streamStart, streamTimer;
 
 // ensure only one heartbeat is sent at a time
 let heartIsBeating = false;
@@ -34,11 +35,17 @@ streamInfoFrame.addEventListener("load", function() {
 
     refreshButton.onclick = function() { return window.location.reload(true); };
 
+    streamTimer = streamInfo.getElementById("uptime");
+    streamStart = streamInfoFrame.contentWindow.streamStart;
+
     // this viewer's token
     token = document.getElementById("token").value;
 
     // get stream info every 20 seconds
     setInterval(heartbeat, 20000);
+
+    // update stream timer every second
+    setInterval(updateStreamTimer, 1000);
 });
 
 function currentSegment() {
@@ -62,7 +69,38 @@ function updateStreamStatus(msg, color, showRefreshButton) {
     }
 }
 
-// get stream info from the server (viewer count, current segment, if stream is online)
+function updateStreamTimer() {
+    if ( streamTimer == null ) {
+        return;
+    }
+    const start = streamStart;
+    if ( Number.isInteger(start) ) {
+        const now = Math.floor(Date.now() / 1000);
+        diff = now - start;
+
+        const hours = Math.floor(diff / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        const seconds = diff % 60;
+
+        const hh = ("0" + hours).slice(-2);
+        const mm = ("0" + minutes).slice(-2);
+        const ss = ("0" + seconds).slice(-2);
+
+        if ( hours == 0 ) {
+            streamTimer.innerHTML = `${mm}:${ss}`;
+        } else if ( hours == 1 ) {
+            streamTimer.innerHTML = `${hours}:${mm}:${ss}`;
+        } else if ( hours >= 1000 ) {
+            streamTimer.innerHTML = "1000+ hours";
+        } else {
+            streamTimer.innerHTML = `${hh}:${mm}:${ss}`;
+        }
+    } else {
+        streamTimer.innerHTML = "";
+    }
+}
+
+// get stream info from the server (viewer count, current segment, if stream is online, etc.)
 function heartbeat() {
     if ( heartIsBeating ) {
         return;
@@ -93,6 +131,9 @@ function heartbeat() {
 
         // update stream title
         streamTitle.innerHTML = response.title;
+
+        // update stream start time (for the timer)
+        streamStart = response.started;
 
         // update stream status
         if ( !response.online ) {
