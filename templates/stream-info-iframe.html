@@ -19,10 +19,13 @@
             .digit {overflow: hidden;display:inline-block;height:2em;}
             .digit div {height:2em;}
 
-            .seconds-ones {animation: count10 10s step-end -{{ stream_uptime }}s infinite;}
-            .seconds-tens {animation: count6  60s step-end -{{ stream_uptime }}s infinite;}
-            .minutes-ones {animation: count10 600s step-end -{{ stream_uptime }}s infinite;}
-            .minutes-tens {animation: count6  3600s step-end -{{ stream_uptime }}s infinite;}
+            .seconds-ones   {animation: count10      10s step-end -{{ stream_uptime }}s infinite;}
+            .seconds-tens   {animation: count6       60s step-end -{{ stream_uptime }}s infinite;}
+            .minutes-ones   {animation: count10     600s step-end -{{ stream_uptime }}s infinite;}
+            .minutes-tens   {animation: count6     3600s step-end -{{ stream_uptime }}s infinite;}
+            .hours-ones     {animation: count10   36000s step-end -{{ stream_uptime }}s infinite;}
+            .hours-tens     {animation: count10  360000s step-end -{{ stream_uptime }}s infinite;}
+            .hours-hundreds {animation: count10 3600000s step-end -{{ stream_uptime }}s infinite;}
 
             .digit-hours-separator {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
             .digit-hours-ones      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
