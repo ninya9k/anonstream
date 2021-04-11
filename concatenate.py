@@ -134,6 +134,8 @@ class ConcatenatedSegments:
                 #return self._read(n)
 
                 # this is here so the video gets corrupted
+                # TODO: find a way to corrupt the video without erroneously
+                #       counting views as this does
                 self._reset(skip_init_segment=True)
                 return self._read(n)
 
