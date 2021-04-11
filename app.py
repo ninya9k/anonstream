@@ -428,6 +428,9 @@ def comment():
     return redirect(url_for('comment_iframe', token=token))
 
 # TODO: make it so your message that you haven't sent yet stays there when you change your appearance
+# ^ This is possible if you use only one form and change buttons to <input type="submit" formaction="/url">
+#   BUT then you won't be able to have `required` in any inputs since a message shouldn't be required
+#   for changing your appearance. So this is not done for now.
 @app.route('/settings', methods=['POST'])
 def settings():
     token = request.args.get('token') or request.cookies.get('token') or new_token()
