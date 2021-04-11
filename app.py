@@ -174,6 +174,7 @@ def _view_segment(n, token=None):
     if n == None:
         return
 
+    # technically this is a race condition
     if not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
         return
 
@@ -217,7 +218,7 @@ def count_segment_views(exclude_token_views=True):
         return 0
 
     # create the list of streaks; a streak is a sequence of consequtive segments with non-zero views
-    streaks = [] # TODO: check this works
+    streaks = []
     streak = []
     for i in range(min(segment_views), max(segment_views)):
         _views = segment_views.get(i, [])
