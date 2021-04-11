@@ -2,9 +2,9 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="conent-security-policy" content="default-src 'none'">
-        <meta http-equiv="refresh" content="10">
+        {% if not debug %}<meta http-equiv="refresh" content="5">{% endif %}
         <style>
-          div {color: white;margin-bottom:0.375em;}
+          div.comment {color: white;margin-bottom:0.375em;overflow:hidden;}
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
           span.name {font-weight: bold;}
@@ -19,8 +19,32 @@
           span.message {margin-left: 0.625em;word-wrap: break-word;}
           span.camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
           span.time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
-          body {margin: 0.5em;min-height: calc(100vh - 1em);transform: scaleX(-1);}
-          input[type="submit"] {padding: 0;margin-bottom: 0.625em;}
+          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);transform: scaleX(-1);}
+          input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
+          div#refresh {
+            color: white;
+            background-color: gray;
+            position: sticky;
+            top: 100vh;
+            padding: 1em;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 4px;
+            box-shadow: 0px 2px 4px black;
+          }
+          div#refresh {
+            animation: unhide 0s forwards 15s;
+            height: 0;
+            padding: 0;
+            visibility: hidden;
+          }
+        @keyframes unhide {
+          to {
+            height: revert;
+            padding: 1em;
+            visibility: visible;
+          }
+        }        }
         </style>
     </head>
     <body>
@@ -35,7 +59,7 @@
 {% endif %}
 
         {% for message in messages %}
-            <div class="rotate">
+            <div class="comment rotate">
                 {% if not message['hidden'] %}
                     {% if broadcaster %}
                         <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
@@ -49,6 +73,7 @@
                 {% endif %}
             </div>
         {% endfor %}
+        <div id="refresh" class="rotate">Manual refresh required</div>
 
 {% if broadcaster %}
     </form>
