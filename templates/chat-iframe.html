@@ -2,25 +2,28 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="conent-security-policy" content="default-src 'none'">
-        {% if not debug %}<meta http-equiv="refresh" content="5">{% endif %}
+        {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
         <style>
-          div.comment {color: white;margin-bottom:0.375em;overflow:hidden;}
+          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);transform: scaleX(-1);}
+          .inline-block {display: inline-block;}
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
-          .inline-block {display: inline-block;}
-          div.name {font-weight: bold;}
-        div.tripcode {
-            margin-left: 0.625em;
-            padding: 0 5px;
-            border-radius: 6px;
-            font-size: 90%;
-            font-family: monospace;
-            vertical-align: middle;
-        }
-          div.message {display: block;/*margin-left: 0.625em;*/overflow-wrap: break-word;}
-          div.camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
-          div.time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
-          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);transform: scaleX(-1);}
+
+          .comment {color: white;margin-bottom:0.375em;overflow:hidden;}
+
+          .name {font-weight: bold;unicode-bidi: isolate;}
+          .tripcode {
+              margin-left: 0.5em;
+              padding: 0 5px;
+              border-radius: 6px;
+              font-size: 90%;
+              font-family: monospace;
+              vertical-align: middle;
+          }
+          .message {margin-left: 0.5em;overflow-wrap: break-word;unicode-bidi: isolate;}
+          .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
+          .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
+
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
           div#refresh {
             color: white;
@@ -66,15 +69,15 @@
                 {% if broadcaster %}
                     <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
                 {% endif %}
-                <div class="inline-block time" title="{{ message['date'] }}">{{ message['time'] }}</div>
+                <span class="time" title="{{ message['date'] }}">{{ message['time'] }}</span
                 {% if message['viewer']['broadcaster'] %}
-                    <div class="inline-block camera" title="Broadcaster">🎥</div>
+                    ><span class="camera" title="Broadcaster">🎥</span
                 {% endif %}
-                    <div class="inline-block name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</div>
+                    ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</span
                 {% if message['viewer']['tripcode']['string'] %}
-                    <div class="inline-block tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div>
+                    ><span class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</span
                 {% endif %}
-                <div class="inline-block message">{{ message['text'] }}</div>
+                ><span class="message">{{ message['text'] }}</span>
             {% endif %}
         </div>
     {% endfor %}
