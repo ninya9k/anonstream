@@ -23,6 +23,7 @@ This was originally made for fun over the course of five days and hence sloppine
 * Chat with custom names & tripcodes
 * Ban chatters / hide messages
 * Flood detection / liberal captcha
+* Shows stream uptime
 * Works without JavaScript
 
 ## Issues
