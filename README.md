@@ -76,11 +76,11 @@ In your [torrc](https://support.torproject.org/tbb/tbb-editing-torrc/), add thes
 HiddenServiceDir $PROJECT_ROOT/hidden_service
 HiddenServicePort 80 127.0.0.1:5000
 ```
-where `$PROJECT_ROOT` is the root folder of this project. When you reload tor it will create the `hidden_service` directory and your website will be online. Your onion address is in `hidden_service/hostname`.
+where `$PROJECT_ROOT` is the root folder of this project. When you reload tor it will create the `hidden_service` directory and your website will be online. Your onion address is in `hidden_service/hostname`. You only need to do this once.
 
 ### While streaming
 
-To appear as the broadcaster in chat, go to `/broadcaster` and log in with the username `braodcaster` and the password printed in your terminal when you started Flask.
+To appear as the broadcaster in chat, go to `/broadcaster` and log in with the username `broadcaster` and the password printed in your terminal when you started Flask.
 
 You can change the stream title while streaming and it will update for all viewers. Edit `title.txt` to do that.
 
