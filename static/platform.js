@@ -86,18 +86,15 @@ function updateStreamTimer() {
         const minutes = Math.floor((diff % 3600) / 60);
         const seconds = diff % 60;
 
-        const hh = ("0" + hours).slice(-2);
         const mm = ("0" + minutes).slice(-2);
         const ss = ("0" + seconds).slice(-2);
 
         if ( hours == 0 ) {
             streamTimer.innerHTML = `${mm}:${ss}`;
-        } else if ( hours == 1 ) {
+        } else if ( hours < 1000 ) {
             streamTimer.innerHTML = `${hours}:${mm}:${ss}`;
-        } else if ( hours >= 1000 ) {
-            streamTimer.innerHTML = "1000+ hours";
         } else {
-            streamTimer.innerHTML = `${hh}:${mm}:${ss}`;
+            streamTimer.innerHTML = "1000+ hours";
         }
     } else {
         streamTimer.innerHTML = "";
