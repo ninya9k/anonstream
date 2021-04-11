@@ -7,8 +7,9 @@
           div.comment {color: white;margin-bottom:0.375em;overflow:hidden;}
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
-          span.name {font-weight: bold;}
-        span.tripcode {
+          .inline-block {display: inline-block;}
+          div.name {font-weight: bold;}
+        div.tripcode {
             margin-left: 0.625em;
             padding: 0 5px;
             border-radius: 6px;
@@ -16,16 +17,17 @@
             font-family: monospace;
             vertical-align: middle;
         }
-          span.message {margin-left: 0.625em;word-wrap: break-word;}
-          span.camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
-          span.time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
+          div.message {display: block;/*margin-left: 0.625em;*/overflow-wrap: break-word;}
+          div.camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #ff8280;cursor: help;margin-right:0.25em;}
+          div.time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
           body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);transform: scaleX(-1);}
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
           div#refresh {
             color: white;
             background-color: gray;
             position: sticky;
-            top: 100vh;
+          /*top: 100vh;*/ /* placement is correct with top when there is no scrollbar */
+            bottom: 0;    /* placement is correct with bottom when there is a scrollbar /*
             padding: 1em;
             text-align: center;
             font-weight: bold;
@@ -64,12 +66,15 @@
                 {% if broadcaster %}
                     <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
                 {% endif %}
-                <span class="time" title="{{ message['date'] }}">{{ message['time'] }}</span>&#8288;<!--
+                <div class="inline-block time" title="{{ message['date'] }}">{{ message['time'] }}</div>
                 {% if message['viewer']['broadcaster'] %}
-                 --><span class="camera" title="Broadcaster">🎥</span>&#8288;<!--
-                {% endif %}--><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</span>&#8288;<!--
-             -->{% if message['viewer']['tripcode']['string'] %}<span class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</span>&#8288;<!--
-             -->{% endif %}<span class="message">{{ message['text'] }}</span>
+                    <div class="inline-block camera" title="Broadcaster">🎥</div>
+                {% endif %}
+                    <div class="inline-block name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] }}</div>
+                {% if message['viewer']['tripcode']['string'] %}
+                    <div class="inline-block tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div>
+                {% endif %}
+                <div class="inline-block message">{{ message['text'] }}</div>
             {% endif %}
         </div>
     {% endfor %}
