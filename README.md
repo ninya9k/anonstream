@@ -31,11 +31,12 @@ This was originally made for fun over the course of five days and hence sloppine
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
 * Slow: stream delay of at least 40 seconds. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
 * Most of the code is in `app.py`; it should be split into several files with more narrow purposes.
+* Doesn't use low-latency HLS
 
 ## How it works
 
-* FFmpeg creates an HLS stream,
-* Flask creates a website interface for the stream,
+* FFmpeg creates an HLS stream
+* Flask creates a website interface for the stream
 * tor makes the website accessible at an onion address
 
 ## Explanation of the FFmpeg command in `stream.sh`
@@ -56,15 +57,16 @@ Lots of the stuff in `app.py` and `stream.sh` should at some point be moved into
 
 Assuming you've dealt with that, this is what you have to do.
 
-### FFmpeg
+### Start streaming
+
+#### FFmpeg
 
 Go to the project root and type `sh stream.sh`. This starts the livestream.
 
-### Flask
-
+#### Flask
 Go to the project root and type `flask run`. This starts the websever.
 
-### tor
+#### tor
 
 Now your webserver is running on port 5000 (or whichever port you set it to, if you did that). We need to tell tor to create a hidden service and to point it at port 5000.
 
@@ -74,3 +76,13 @@ HiddenServiceDir $PROJECT_ROOT/hidden_service
 HiddenServicePort 80 127.0.0.1:5000
 ```
 where `$PROJECT_ROOT` is the root folder of this project. When you reload tor it will create the `hidden_service` directory and your website will be online. Your onion address is in `hidden_service/hostname`.
+
+### While streaming
+
+You can change the stream title while streaming and it will update for all viewers. Edit `title.txt` to do that.
+
+If you restart FFmpeg while you're streaming, viewers will have to refresh the page. Viewers with JavaScript are prompted to refresh the page.
+
+### Stop streaming
+
+To stop streaming, stop FFmpeg and delete all the files in `stream/`. To start streaming again just run `stream.sh`.
