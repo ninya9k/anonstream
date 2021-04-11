@@ -4,8 +4,6 @@ import time
 
 RE_SEGMENT = re.compile(r'stream(?P<number>\d+).m4s')
 SEGMENT_INIT = 'init.mp4'
-STREAM_TIMEOUT = 24 # consider the stream offline after this many seconds without a new segment
-SEGMENT_OFFSET = 4  # start this many segments back from now (1 is most recent segment)
 
 # TODO: sometimes the stream will restart so StreamOffline will be raised, but you could just start appending the segments from the new stream instead of closing the connection
 def _segment_number(fn):
@@ -15,7 +13,7 @@ def _segment_number(fn):
 def _is_segment(fn):
     return bool(RE_SEGMENT.fullmatch(fn))
 
-def get_next_segment(after, segments_dir):
+def get_next_segment(after, segments_dir, segment_offset, stream_timeout):
     start = time.time()
     while True:
         time.sleep(1)
@@ -24,7 +22,7 @@ def get_next_segment(after, segments_dir):
             return SEGMENT_INIT
         elif after == SEGMENT_INIT:
             try:
-                return segments[-min(SEGMENT_OFFSET, len(segments))]
+                return segments[-min(segment_offset, len(segments))]
             except IndexError:
                 pass
         else:
@@ -32,7 +30,7 @@ def get_next_segment(after, segments_dir):
         try:
             return min(segments, key=_segment_number)
         except ValueError:
-            if time.time() - start >= STREAM_TIMEOUT:
+            if time.time() - start >= stream_timeout:
                 print(f'SegmentUnavailable in get_next_segment; {after=}')
                 raise SegmentUnavailable
 
@@ -47,7 +45,9 @@ class SegmentUnavailable(Exception):
 
 
 class SegmentsIterator:
-    def __init__(self, segments_dir, skip_init_segment=False):
+    def __init__(self, segments_dir, segment_offset, stream_timeout, skip_init_segment=False):
+        self.segment_offset = segment_offset
+        self.stream_timeout = stream_timeout
         self.segments_dir = segments_dir
         self.segment = SEGMENT_INIT if skip_init_segment else None
 
@@ -55,18 +55,23 @@ class SegmentsIterator:
         return self
 
     def __next__(self):
-        self.segment = get_next_segment(self.segment, self.segments_dir)
+        self.segment = get_next_segment(self.segment, self.segments_dir, self.segment_offset, self.stream_timeout)
         return self.segment
 
 class ConcatenatedSegments:
-    def __init__(self, segments_dir, segment_hook=None):
-        self.segment_hook = segment_hook or (lambda n: None)
+    def __init__(self, segments_dir, segment_offset=4, stream_timeout=24, segment_hook=None):
+        # start this many segments back from now (1 is most recent segment)
+        self.segment_offset = segment_offset
+        # consider the stream offline after this many seconds without a new segment
+        self.stream_timeout = stream_timeout
+
         self.segments_dir = segments_dir
+        self.segment_hook = segment_hook or (lambda n: None)
         self._reset()
     
     def _reset(self, skip_init_segment=False):
         print('ConcatenatedSegments._reset')
-        self.segments = SegmentsIterator(self.segments_dir, skip_init_segment=skip_init_segment)
+        self.segments = SegmentsIterator(self.segments_dir, segment_offset=self.segment_offset, stream_timeout=self.stream_timeout, skip_init_segment=skip_init_segment)
         self.segment = next(self.segments)
         self.segment_read_offset = 0
         self._closed = False
