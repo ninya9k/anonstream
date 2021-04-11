@@ -15,6 +15,7 @@ import base64
 import io
 import math
 from datetime import datetime
+from collections import deque
 
 from pprint import pprint
 
@@ -49,7 +50,7 @@ FLOOD_THRESHOLD = 3 # messages in FLOOD_PERIOD seconds
 viewers = {}
 lock = threading.Lock()
 
-chat = []
+chat = deque()
 captchas = {}
 
 CAPTCHA_CHARSET = '346qwertypagkxvbm'
@@ -189,14 +190,13 @@ def stream():
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     return Response(file_wrapper, mimetype='video/mp4')
 
-# TODO: make `chat` a object with O(1) time appending to the front
 @app.route('/chat')
 def chat_iframe():
     token = request.args.get('token') or request.cookies.get('token') or new_token()
-    messages = (message for message in reversed(chat) if not message['hidden'])
-    messages = zip(messages, range(64))
+    messages = (message for message in chat if not message['hidden'])
+    messages = zip(messages, range(64)) # show at most 64 messages
     messages = (message for message, _ in messages)
-    return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == broadcaster_token)
+    return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == broadcaster_token, debug=request.args.get('debug'))
 
 def count_site_tokens():
     '''
@@ -368,7 +368,7 @@ def gen_viewer_colour(seed, background=b'\x22\x22\x22'):
 
 def behead_chat():
     while len(chat) > 1024:
-        chat.pop(0)
+        chat.pop()
 
 @app.route('/comment', methods=['POST'])
 def comment():
@@ -410,12 +410,12 @@ def comment():
                 viewers[token]['verified'] = False
             else:
                 dt = datetime.utcfromtimestamp(now)
-                chat.append({'text': message,
-                              'viewer': viewers[token],
-                              'id': f'{token}-{new_token(short=True)}',
-                              'hidden': False,
-                              'time': dt.strftime('%H:%M'),
-                              'date': dt.strftime('%F %T')})
+                chat.appendleft({'text': message,
+                                 'viewer': viewers[token],
+                                 'id': f'{token}-{new_token(short=True)}',
+                                 'hidden': False,
+                                 'time': dt.strftime('%H:%M'),
+                                 'date': dt.strftime('%F %T')})
                 viewers[token]['comment'] = now
                 viewers[token]['recent_comments'].append(now)
                 viewers[token]['verified'] = True
@@ -484,9 +484,14 @@ def mod():
 
     return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform: scaleY(-1);">it is done</div>'
 
+# TODO: stream uptime
 @app.route('/stream-info')
 def stream_info():
     return render_template('stream-info-iframe.html',
                            title=stream_title(),
                            viewer_count=n_viewers(),
                            online=stream_is_online())
+
+@app.route('/teapot')
+def teapot():
+    return {'short': True, 'stout': True}, 418
