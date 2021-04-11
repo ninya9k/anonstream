@@ -7,6 +7,7 @@ SEGMENT_INIT = 'init.mp4'
 STREAM_TIMEOUT = 24 # consider the stream offline after this many seconds without a new segment
 SEGMENT_OFFSET = 4  # start this many segments back from now (1 is most recent segment)
 
+# TODO: sometimes the stream will restart so StreamOffline will be raised, but you could just start appending the segments from the new stream instead of closing the connection
 def _segment_number(fn):
     if fn == SEGMENT_INIT: return None
     return int(RE_SEGMENT.fullmatch(fn).group('number'))
@@ -107,14 +108,21 @@ class ConcatenatedSegments:
                 self.close()
                 return b''
             else:
-                # If this interrups a fragment and starts appending whole new
-                # fragments after, it will corrupt the video.
+                # If fragment gets interrupted and we start appending whole new
+                # fragments after it, the video will get corrupted.
                 # It appears this is very likely to happen if you become
                 # extremely delayed. At least it's clear that you need to
                 # refresh the page.
-                # If the reason for the discontinuity is the livestream
-                # restarting, this is unlikely to happen; it'll continue fine.
-                print('DISCONTINUITY in ConcatenatedSegments.read')
+                # It's also likely to happen if the reason for the
+                # discontinuity is the livestream restarting.
+
+                # TODO: find out how to repair a stream of fragmented mp4s
+                #print('DISCONTINUITY in ConcatenatedSegments.read')
+                #self._repair() # <-- create this function
+                #self._reset(skip_init_segment=True)
+                #return self._read(n)
+
+                # this is here so the video gets corrupted
                 self._reset(skip_init_segment=True)
                 return self._read(n)
 
