@@ -185,7 +185,6 @@ def _view_segment(n, token=None):
 @app.route('/stream.mp4')
 def stream():
     token = request.cookies.get('token')
-    # TODO: check what happens when /stream.mp4 gets very delayed
     concatenated_segments = ConcatenatedSegments(SEGMENTS_DIR, segment_hook=lambda n: _view_segment(n, token))
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     return Response(file_wrapper, mimetype='video/mp4')
@@ -226,7 +225,8 @@ def count_segment_views(exclude_token_views=True):
             _views = filter(lambda _view: _view['token'] == None, _views)
             _views = list(_views)
         if len(_views) == 0:
-            streaks.append(streak)
+            if streak:
+                streaks.append(streak)
             streak = []
         elif streak != []:
             streak.append(len(_views))
@@ -253,14 +253,13 @@ def count_segment_tokens():
     now = int(time.time())
     for i in segment_views:
         for view in segment_views[i].copy():
-            view_timestamp, view_token = view
-            if view_timestamp < now - VIEWS_PERIOD:
+            if view['time'] < now - VIEWS_PERIOD:
                 segment_views[i].remove(view)
 
     tokens = set()
     for i in segment_views:
-        for view_timestamp, view_token in segment_views[i]:
-            tokens.add(view_token)
+        for view in segment_views[i]:
+            tokens.add(view['token'])
     return len(tokens)
 
 def n_viewers():
