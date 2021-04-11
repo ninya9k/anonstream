@@ -80,6 +80,8 @@ where `$PROJECT_ROOT` is the root folder of this project. When you reload tor it
 
 ### While streaming
 
+To appear as the broadcaster in chat, go to `/broadcaster` and log in with the username `braodcaster` and the password printed in your terminal when you started Flask.
+
 You can change the stream title while streaming and it will update for all viewers. Edit `title.txt` to do that.
 
 If you restart FFmpeg while you're streaming, viewers will have to refresh the page. Viewers with JavaScript are prompted to refresh the page.
@@ -87,3 +89,5 @@ If you restart FFmpeg while you're streaming, viewers will have to refresh the p
 ### Stop streaming
 
 To stop streaming, stop FFmpeg and delete all the files in `stream/`. To start streaming again just run `stream.sh`.
+
+If you restart Flask, the chat will be cleared, you'll have to log in again, and everyone else will have to do the captcha again.
