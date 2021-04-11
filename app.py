@@ -16,6 +16,7 @@ import io
 import math
 from datetime import datetime
 from collections import deque
+import json
 
 from pprint import pprint
 
@@ -40,6 +41,7 @@ ROOT = os.path.split(app.instance_path)[0]
 SEGMENTS_DIR = os.path.join(ROOT, 'stream')
 SEGMENTS_M3U8 = os.path.join(SEGMENTS_DIR, 'stream.m3u8')
 STREAM_TITLE = os.path.join(ROOT, 'title.txt')
+STREAM_START = os.path.join(SEGMENTS_DIR, 'start.txt')
 
 HLS_TIME     = 8    # seconds per segment
 VIEWS_PERIOD = 30   # count views from the last VIEWS_PERIOD seconds
@@ -304,6 +306,22 @@ def stream_title():
     except FileNotFoundError:
         return 'onion livestream'
 
+def stream_start(absolute=True, relative=False):
+    try:
+        start = open(STREAM_START).read()
+        start = int(start)
+    except (FileNotFoundError, ValueError):
+        start = None
+
+    diff = None if start == None else int(time.time()) - start
+
+    if absolute and relative:
+        return start, diff
+    elif absolute:
+        return start
+    elif relative:
+        return diff
+
 @app.route('/heartbeat')
 def heartbeat():
     now = int(time.time())
@@ -313,7 +331,9 @@ def heartbeat():
     return {'viewers': n_viewers(),
             'online': stream_is_online(),
             'current_segment': current_segment(),
-            'title': stream_title()}
+            'title': stream_title(),
+            'started': stream_start()}
+
 
 def _image_to_base64(im):
     buffer = io.BytesIO()
@@ -500,9 +520,12 @@ def mod():
 # TODO: stream uptime
 @app.route('/stream-info')
 def stream_info():
+    start, start_rel = stream_start(absolute=True, relative=True)
     return render_template('stream-info-iframe.html',
                            title=stream_title(),
                            viewer_count=n_viewers(),
+                           stream_start_json=json.dumps(start),
+                           stream_uptime=start_rel,
                            online=stream_is_online())
 
 @app.route('/teapot')
