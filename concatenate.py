@@ -72,9 +72,14 @@ class ConcatenatedSegments:
     def _reset(self, skip_init_segment=False):
         print('ConcatenatedSegments._reset')
         self.segments = SegmentsIterator(self.segments_dir, segment_offset=self.segment_offset, stream_timeout=self.stream_timeout, skip_init_segment=skip_init_segment)
-        self.segment = next(self.segments)
         self.segment_read_offset = 0
-        self._closed = False
+        try:
+            self.segment = next(self.segments)
+        except SegmentUnavailable:
+            print('SegmentUnavailable in ConcatenatedSegments._reset')
+            self._closed = True
+        else:
+            self._closed = False
 
     def _read(self, n):
         chunk = b''
@@ -109,6 +114,7 @@ class ConcatenatedSegments:
         try:
             return self._read(n)
         except (FileNotFoundError, SegmentUnavailable):
+            print('SegmentUnavailable or in FileNotFoundError ConcatenatedSegments.read')
             if self.segment == SEGMENT_INIT:
                 self.close()
                 return b''
