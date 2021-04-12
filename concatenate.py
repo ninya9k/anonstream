@@ -229,9 +229,10 @@ class ConcatenatedSegments:
         print('Corrupting video')
         self.close()
         try:
-            return open(CORRUPTING_SEGMENT, 'rb').read(n)
+            return open(os.path.join(self.segments_dir, CORRUPTING_SEGMENT), 'rb').read(n)
         except FileNotFoundError:
-            pass # TODO: try to read the corrupting segment earlier
+            # TODO: try to read the corrupting segment earlier
+            return b''
 
     def close(self):
         self._closed = True
