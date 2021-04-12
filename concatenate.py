@@ -180,7 +180,7 @@ class ConcatenatedSegments:
         chunk = b''
         while True:
             #chunk_chunk = self.segments_cache.read(segment=self.segment, read_size=n - len(chunk), instance_id=self.instance_id)
-            with open(os.path.join(self.segments_dir, self.segment)) as fp:
+            with open(os.path.join(self.segments_dir, self.segment), 'rb') as fp:
                 fp.seek(self.segment_read_offset)
                 chunk_chunk = fp.read(n - len(chunk))
             self.segment_read_offset += len(chunk_chunk)
