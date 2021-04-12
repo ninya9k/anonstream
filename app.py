@@ -173,13 +173,13 @@ def segment_arbitrary(n):
         response.set_cookie('token', token)
     return response
 
-def _view_segment(n, token=None):
+def _view_segment(n, token=None, check_exists=True):
     # n is None if segment_hook is called in ConcatenatedSegments and the current segment is init.mp4
     if n == None:
         return
 
     # technically this is a race condition
-    if not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
+    if check_exists and not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
         return
 
     with lock:
@@ -194,7 +194,7 @@ def stream():
                                                  segments_cache=SEGMENTS_CACHE,
                                                  segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
                                                  stream_timeout=HLS_TIME + 2,
-                                                 segment_hook=lambda n: _view_segment(n, token))
+                                                 segment_hook=lambda n: _view_segment(n, token, check_exists=False))
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-cache'
