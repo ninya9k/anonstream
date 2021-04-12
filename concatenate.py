@@ -163,7 +163,7 @@ class ConcatenatedSegments:
         # run this function after sending each segment
         self.segment_hook = segment_hook or (lambda n: None)
         # run this function before reading files; if it returns True, then stop
-        self.should_close_connection = should_close_connection
+        self.should_close_connection = should_close_connection or (lambda: None)
 
         self.segments_dir = segments_dir
         self.segments = SegmentsIterator(self.segments_dir,
