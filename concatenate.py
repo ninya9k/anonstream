@@ -6,7 +6,7 @@ import secrets
 
 RE_SEGMENT = re.compile(r'stream(?P<number>\d+).m4s')
 SEGMENT_INIT = 'init.mp4'
-CACHE_TIMEOUT = 360 # remove segments from the cache if it is deleted and this many seconds have passed since it was first created
+CACHE_TIMEOUT = 0 # remove segments from the cache if it is deleted and this many seconds have passed since it was first created # it's zero because the cache is unnecessary at this point; we're only corrupting video streams, not repairing them
 CORRUPTING_SEGMENT = 'corrupt.m4s'
 
 # TODO: sometimes the stream will restart so StreamOffline will be raised, but you could just start appending the segments from the new stream instead of closing the connection
@@ -97,7 +97,7 @@ class SegmentsCache:
             segment_path = os.path.join(self.segments_dir, segment)
             if not os.path.isfile(segment_path) and int(time.time()) - self.segments[segment]['mtime'] >= CACHE_TIMEOUT:
                 segment_info = self.segments.pop(segment)
-                print(f'Removed segment {segment} from the cache for inactivity')
+                #print(f'Removed segment {segment} from the cache for inactivity')
                 
     def read(self, segment, read_size, instance_id):
         segment_path = os.path.join(self.segments_dir, segment)
@@ -105,11 +105,11 @@ class SegmentsCache:
             # ensure we don't cache segments from a previous stream
             stream_start = self.get_stream_start_time()
             if stream_start == None:
-                print('Stream has already ended, clearing cache...')
+                #print('Stream has already ended, clearing cache...')
                 self.stream_start = stream_start
                 self.segments.clear()
             elif stream_start != self.stream_start:
-                print('Stream restarted, clearing cache...')
+                #print('Stream restarted, clearing cache...')
                 self.stream_start = stream_start
                 self.segments.clear()
                 raise StreamRestarted # this is because the video gets corrupted anyway when the stream restarts and you append segments from the new stream to segments from the old stream
