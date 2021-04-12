@@ -134,6 +134,7 @@ function heartbeat() {
         streamTitle.innerHTML = response.title;
 
         // update stream start time (for the timer)
+        const oldStreamStart = streamStart;
         streamStart = response.started;
 
         // update stream status
@@ -141,7 +142,11 @@ function heartbeat() {
             return updateStreamStatus("The stream has ended.", "red", false);
         }
 
-        const serverSegment = response.current_segment;
+        if ( oldStreamStart != response.started ) {
+            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+        }
+
+       const serverSegment = response.current_segment;
         if ( !Number.isInteger(serverSegment) ) {
             return updateStreamStatus("The stream has ended.", "red", false);
         }
