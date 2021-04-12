@@ -202,7 +202,7 @@ def stream():
                                                  segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
                                                  stream_timeout=HLS_TIME + 2,
                                                  segment_hook=lambda n: _view_segment(n, token, check_exists=False),
-                                                 should_close_connection=is_stream_online)
+                                                 should_close_connection=lambda: not is_stream_online())
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-cache'
