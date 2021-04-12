@@ -149,6 +149,8 @@ def broadcaster():
 
 @app.route('/stream.m3u8')
 def playlist():
+    if not stream_is_online():
+        return abort(404)
     token = request.args.get('token') or request.cookies.get('token') or new_token()
     response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
@@ -157,6 +159,8 @@ def playlist():
 
 @app.route('/init.mp4')
 def segment_init():
+    if not stream_is_online():
+        return abort(404)
     token = request.args.get('token') or request.cookies.get('token') or new_token()
     response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
@@ -164,6 +168,8 @@ def segment_init():
 
 @app.route('/stream<int:n>.m4s')
 def segment_arbitrary(n):
+    if not stream_is_online():
+        return abort(404)
     token = request.args.get('token') or request.cookies.get('token')
     _view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
@@ -189,11 +195,14 @@ def _view_segment(n, token=None, check_exists=True):
 
 @app.route('/stream.mp4')
 def stream():
+    if not stream_is_online():
+        return abort(404)
     token = request.cookies.get('token')
     concatenated_segments = ConcatenatedSegments(segments_dir=SEGMENTS_DIR,
                                                  segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
                                                  stream_timeout=HLS_TIME + 2,
-                                                 segment_hook=lambda n: _view_segment(n, token, check_exists=False))
+                                                 segment_hook=lambda n: _view_segment(n, token, check_exists=False),
+                                                 should_close_connection=is_stream_online)
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-cache'
