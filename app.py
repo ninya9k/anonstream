@@ -219,6 +219,7 @@ def count_site_tokens():
             n += 1
     return n
 
+# TODO: account for the stream restarting; segments will be out of order
 def count_segment_views(exclude_token_views=True):
     '''
     Estimate the number of viewers using only the number of views segments have had in the last 30 seconds
