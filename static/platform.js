@@ -142,13 +142,13 @@ function heartbeat() {
             return updateStreamStatus("The stream has ended.", "red", false);
         }
 
-        if ( oldStreamStart != response.started ) {
-            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
-        }
-
        const serverSegment = response.current_segment;
         if ( !Number.isInteger(serverSegment) ) {
             return updateStreamStatus("The stream has ended.", "red", false);
+        }
+
+        if ( oldStreamStart != response.started ) {
+            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
         }
 
         // when the page is first loaded clientSegment may be null
