@@ -20,7 +20,7 @@ import json
 
 from pprint import pprint
 
-from concatenate import ConcatenatedSegments, SegmentsCache, _is_segment, _segment_number
+from concatenate import ConcatenatedSegments, _is_segment, _segment_number
 from colour import gen_colour, _contrast, _distance_sq
 
 # Override HTTP headers globally https://stackoverflow.com/a/46858238
@@ -49,13 +49,12 @@ CHAT_TIMEOUT = 5    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
 FLOOD_THRESHOLD = 3 # messages in FLOOD_PERIOD seconds
 
-SEGMENTS_CACHE = SegmentsCache(SEGMENTS_DIR, STREAM_START)
-
 viewers = {}
 lock = threading.Lock()
 
 chat = deque()
 captchas = {}
+CHAT_SCROLLBACK = 64
 
 CAPTCHA_CHARSET = '346qwertypagkxvbm'
 CAPTCHA_LENGTH = 3
@@ -191,7 +190,6 @@ def _view_segment(n, token=None, check_exists=True):
 def stream():
     token = request.cookies.get('token')
     concatenated_segments = ConcatenatedSegments(segments_dir=SEGMENTS_DIR,
-                                                 segments_cache=SEGMENTS_CACHE,
                                                  segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
                                                  stream_timeout=HLS_TIME + 2,
                                                  segment_hook=lambda n: _view_segment(n, token, check_exists=False))
@@ -204,7 +202,7 @@ def stream():
 def chat_iframe():
     token = request.args.get('token') or request.cookies.get('token') or new_token()
     messages = (message for message in chat if not message['hidden'])
-    messages = zip(messages, range(64)) # show at most 64 messages
+    messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
     messages = (message for message, _ in messages)
     return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == broadcaster_token, debug=request.args.get('debug'))
 
