@@ -155,13 +155,15 @@ class SegmentsIterator:
 
 
 class ConcatenatedSegments:
-    def __init__(self, segments_dir, segment_offset=4, stream_timeout=24, segment_hook=None):
+    def __init__(self, segments_dir, segment_offset=4, stream_timeout=24, segment_hook=None, should_close_connection=None):
         # start this many segments back from now (1 is most recent segment)
         self.segment_offset = segment_offset
         # consider the stream offline after this many seconds without a new segment
         self.stream_timeout = stream_timeout
         # run this function after sending each segment
         self.segment_hook = segment_hook or (lambda n: None)
+        # run this function before reading files; if it returns True, then stop
+        self.should_close_connection = should_close_connection
 
         self.segments_dir = segments_dir
         self.segments = SegmentsIterator(self.segments_dir,
@@ -179,6 +181,9 @@ class ConcatenatedSegments:
     def _read(self, n):
         chunk = b''
         while True:
+            if self.should_close_connection():
+                raise SegmentUnavailable
+
             #chunk_chunk = self.segments_cache.read(segment=self.segment, read_size=n - len(chunk), instance_id=self.instance_id)
             with open(os.path.join(self.segments_dir, self.segment), 'rb') as fp:
                 fp.seek(self.segment_read_offset)
