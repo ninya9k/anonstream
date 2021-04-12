@@ -19,6 +19,21 @@ HLS_LIST_SIZE=$(echo $DELETION_THRESHOLD / $HLS_TIME | bc)
 
 mkdir -p stream
 
+# This exists so we can corrupt video streams of viewers who are too delayed
+ffmpeg -f lavfi -i color=size="$BOX_WIDTH"x"$BOX_HEIGHT":rate=$FRAMERATE:color=black \
+    -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
+    -t 1 \
+    -f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4 \
+    -map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
+    stream/corrupt.m3u8
+
+rm stream/corrupt.m3u8 stream/init.mp4
+mv stream/corrupt0.m4s stream/corrupt.m4s
+
+
+date +%s > stream/start.txt
+
+# This is the command you should edit
 ffmpeg -thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y \
     -thread_queue_size 2048 -f pulse -i default \
     -c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p \
