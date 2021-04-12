@@ -20,7 +20,7 @@ import json
 
 from pprint import pprint
 
-from concatenate import ConcatenatedSegments, _is_segment, _segment_number
+from concatenate import ConcatenatedSegments, SegmentsCache, _is_segment, _segment_number
 from colour import gen_colour, _contrast, _distance_sq
 
 # Override HTTP headers globally https://stackoverflow.com/a/46858238
@@ -48,6 +48,8 @@ VIEWS_PERIOD = 30   # count views from the last VIEWS_PERIOD seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
 FLOOD_THRESHOLD = 3 # messages in FLOOD_PERIOD seconds
+
+SEGMENTS_CACHE = SegmentsCache(SEGMENTS_DIR, STREAM_START)
 
 viewers = {}
 lock = threading.Lock()
@@ -189,11 +191,14 @@ def _view_segment(n, token=None):
 def stream():
     token = request.cookies.get('token')
     concatenated_segments = ConcatenatedSegments(segments_dir=SEGMENTS_DIR,
+                                                 segments_cache=SEGMENTS_CACHE,
                                                  segment_offset=max(VIEWS_PERIOD // HLS_TIME, 2),
-                                                 stream_timeout=HLS_TIME * 2 + 4,
+                                                 stream_timeout=HLS_TIME + 2,
                                                  segment_hook=lambda n: _view_segment(n, token))
     file_wrapper = werkzeug.wrap_file(request.environ, concatenated_segments)
-    return Response(file_wrapper, mimetype='video/mp4')
+    response = Response(file_wrapper, mimetype='video/mp4')
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
 
 @app.route('/chat')
 def chat_iframe():
