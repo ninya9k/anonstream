@@ -42,6 +42,7 @@ SEGMENTS_DIR = os.path.join(ROOT, 'stream')
 SEGMENTS_M3U8 = os.path.join(SEGMENTS_DIR, 'stream.m3u8')
 STREAM_TITLE = os.path.join(ROOT, 'title.txt')
 STREAM_START = os.path.join(SEGMENTS_DIR, 'start.txt')
+STREAM_PIDFILE = os.path.join(SEGMENTS_DIR, 'pid.txt')
 
 HLS_TIME     = 8    # seconds per segment
 VIEWS_PERIOD = 30   # count views from the last VIEWS_PERIOD seconds
@@ -302,7 +303,25 @@ def current_segment():
         return None
 
 def stream_is_online():
-    return os.path.exists(SEGMENTS_M3U8) and True # TODO: check if ffmpeg is running
+    # If the playlist doesn't exist, return False
+    if not os.path.exists(SEGMENTS_M3U8):
+        return False
+
+    # If the pidfile doesn't exist, return False
+    try:
+        pid = open(STREAM_PIDFILE).read()
+        pid = int(pid)
+    except (FileNotFoundError, ValueError):
+        return False
+
+    # If the process ID doesn't exist, return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+
+    # Otherwise return True
+    return True
 
 def stream_title():
     try:
