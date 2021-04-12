@@ -190,6 +190,7 @@ class ConcatenatedSegments:
                 next_segment = next(self.segments)
             except SegmentUnavailable:
                 print('SegmentUnavailable in ConcatenatedSegments._read')
+                self.segment_hook(_segment_number(self.segment))
                 raise
             else:
                 self.segment_hook(_segment_number(self.segment))
