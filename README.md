@@ -28,10 +28,8 @@ This was originally made for fun over the course of five days and hence sloppine
 
 ## Issues
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
-* Fonts are hard-coded and you might not have them
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
 * Slow: stream delay of at least 40 seconds. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
-* Most of the code is in `app.py`; it should be split into several files with more narrow purposes.
 * Doesn't use low-latency HLS
 
 ## How it works
@@ -50,11 +48,9 @@ See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-serve
 
 To run this yourself, get this source code. As the project currently exists you might need to change some things:
 
-* If you're on Windows `stream.sh` will be wrong for you and so will all the fonts in `app.py`. `stream.sh` uses `$$` to get its process ID, you'll have to use the Windows equivalent.
-* If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `app.py`.
-* If you're on Linux `stream.sh` will probably be alright but you might not have all the fonts in `app.py`.
-
-Lots of the stuff in `app.py` and `stream.sh` should at some point be moved into a configuration file that you can edit more easily.
+* If you're on Windows `stream.sh` will be wrong for you and so will all the fonts in `config.json`. `stream.sh` uses `$$` to get its process ID, you'll have to use the Windows equivalent.
+* If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `config.json`.
+* If you're on Linux `stream.sh` will probably be alright but you might not have all the fonts in `config.json`.
 
 Assuming you've dealt with that, this is what you have to do.
 
