@@ -32,7 +32,7 @@ def index(token=None):
     except KeyError:
         pass
     viewership.setdefault(token)
-    response = Response(render_template('index.html', token=token))
+    response = Response(render_template('index.html', token=token)) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
 
