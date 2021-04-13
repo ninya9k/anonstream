@@ -137,7 +137,7 @@ function heartbeat() {
 
        const serverSegment = response.current_segment;
         if ( !Number.isInteger(serverSegment) ) {
-            return updateStreamStatus("The stream has ended.", "red", false);
+            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
         }
 
         if ( oldStreamAbsoluteStart != response.start_abs ) {
