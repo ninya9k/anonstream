@@ -18,6 +18,7 @@ DELETION_THRESHOLD=240 # seconds until segments are deleted
 HLS_LIST_SIZE=$(echo $DELETION_THRESHOLD / $HLS_TIME | bc)
 
 mkdir -p stream
+rm stream/*
 
 # This shell script's process ID, so we can tell if the stream is online or not
 echo $$ > stream/pid.txt
@@ -29,7 +30,6 @@ ffmpeg -f lavfi -i color=size="$BOX_WIDTH"x"$BOX_HEIGHT":rate=$FRAMERATE:color=b
     -f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4 \
     -map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact \
     stream/corrupt.m3u8
-
 rm stream/corrupt.m3u8 stream/init.mp4
 mv stream/corrupt0.m4s stream/corrupt.m4s
 
