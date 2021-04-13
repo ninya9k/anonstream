@@ -69,8 +69,12 @@ function updateStreamTimer() {
     if ( streamTimer == null ) {
         return;
     }
-    const diff = streamRelativeStart + Math.floor(Date.now() / 1000 - streamTimerLastUpdated);
-    if ( Number.isInteger(diff) ) {
+    let diff = streamRelativeStart;
+    if ( !Number.isInteger(diff) ) {
+        streamTimer.innerHTML = "";
+    } else {
+        diff += Math.floor(Date.now() / 1000 - streamTimerLastUpdated);
+
         const hours = Math.floor(diff / 3600);
         const minutes = Math.floor((diff % 3600) / 60);
         const seconds = diff % 60;
@@ -85,8 +89,6 @@ function updateStreamTimer() {
         } else {
             streamTimer.innerHTML = "1000+ hours";
         }
-    } else {
-        streamTimer.innerHTML = "";
     }
 }
 
