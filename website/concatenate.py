@@ -145,15 +145,17 @@ class SegmentsIterator:
 
 
 class ConcatenatedSegments:
-    def __init__(self, segments_dir, segment_offset=4, stream_timeout=24, segment_hook=None, should_close_connection=None):
+    def __init__(self, segments_dir, segment_offset=4, stream_timeout=24, segment_hook=None, corrupt_hook=None, should_close_connection=None):
         # start this many segments back from now (1 is most recent segment)
         self.segment_offset = segment_offset
         # consider the stream offline after this many seconds without a new segment
         self.stream_timeout = stream_timeout
         # run this function after sending each segment
         self.segment_hook = segment_hook or (lambda n: None)
+        # run this function when we send the corrupting segment
+        self.corrupt_hook = corrupt_hook or (lambda: None)
         # run this function before reading files; if it returns True, then stop
-        self.should_close_connection = should_close_connection
+        self.should_close_connection = should_close_connection or (lambda: None)
 
         self.segments_dir = segments_dir
         self.segments = SegmentsIterator(self.segments_dir,
@@ -222,7 +224,8 @@ class ConcatenatedSegments:
 
     def _corrupt(self, n):
         # TODO: make this corrupt more reliably (maybe it has to follow a full segment?)
-        print('Corrupting video')
+        print('ConcatenatedSegments._corrupt')
+        self.corrupt_hook()
         self.close()
         try:
             return open(os.path.join(self.segments_dir, CORRUPTING_SEGMENT), 'rb').read(n)
