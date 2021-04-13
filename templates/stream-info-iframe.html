@@ -153,7 +153,8 @@
         <script>
             /* ensure that the svg only appears when scripts are enabled */
             document.getElementById("svg").style.display = "";
-            var streamStart = {{ stream_start_json }};
+            var streamAbsoluteStart = {{ stream_start_abs_json }};
+            var streamRelativeStart = {{ stream_start_rel_json }};
         </script>
     </body>
 </html>
