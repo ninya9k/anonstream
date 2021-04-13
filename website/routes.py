@@ -8,7 +8,7 @@ import json
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
-from website.constants import SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, N_APPEAR_OK, N_APPEAR_FAIL
+from website.constants import SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE
 from website.concatenate import ConcatenatedSegments
 
 viewers = viewership.viewers
@@ -89,7 +89,7 @@ def chat_iframe():
     messages = (message for message in chat.messages if not message['hidden'])
     messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
     messages = (message for message, _ in messages)
-    return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == BROADCASTER_TOKEN, debug=request.args.get('debug'))
+    return render_template('chat-iframe.html', token=token, messages=messages, broadcaster=token == BROADCASTER_TOKEN, broadcaster_colour=BROADCASTER_COLOUR, debug=request.args.get('debug'))
 
 @current_app.route('/heartbeat')
 def heartbeat():
