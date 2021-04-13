@@ -1,11 +1,8 @@
-import re
 import os
 import time
-import threading
-import secrets
+from website.constants import SEGMENT_INIT
+from website.utils.stream import _is_segment, _segment_number
 
-RE_SEGMENT = re.compile(r'stream(?P<number>\d+).m4s')
-SEGMENT_INIT = 'init.mp4'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
 
 # TODO: uncommment this if it becomes useful
@@ -101,13 +98,6 @@ CORRUPTING_SEGMENT = 'corrupt.m4s'
 #            return chunk
 
 
-def _segment_number(fn):
-    if fn == SEGMENT_INIT: return None
-    return int(RE_SEGMENT.fullmatch(fn).group('number'))
-
-def _is_segment(fn):
-    return bool(RE_SEGMENT.fullmatch(fn))
-
 def get_next_segment(after, segments_dir, segment_offset, stream_timeout):
     start = time.time()
     while True:
@@ -163,7 +153,7 @@ class ConcatenatedSegments:
         # run this function after sending each segment
         self.segment_hook = segment_hook or (lambda n: None)
         # run this function before reading files; if it returns True, then stop
-        self.should_close_connection = should_close_connection or (lambda: None)
+        self.should_close_connection = should_close_connection
 
         self.segments_dir = segments_dir
         self.segments = SegmentsIterator(self.segments_dir,
@@ -231,6 +221,7 @@ class ConcatenatedSegments:
             return self._corrupt(n)
 
     def _corrupt(self, n):
+        # TODO: make this corrupt more reliably (maybe it has to follow a full segment?)
         print('Corrupting video')
         self.close()
         try:
