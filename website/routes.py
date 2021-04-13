@@ -12,6 +12,7 @@ from website.constants import SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR,
 from website.concatenate import ConcatenatedSegments
 
 viewers = viewership.viewers
+video_was_corrupted = set()
 
 #When a viewer leaves a comment, they make a POST request to /comment; either
 #you can redirect back to /comment-box or you can respond there without
@@ -26,6 +27,10 @@ def new_token():
 @current_app.route('/')
 def index(token=None):
     token = token or request.args.get('token') or request.cookies.get('token') or new_token()
+    try:
+        video_was_corrupted.remove(token)
+    except KeyError:
+        pass
     viewership.setdefault(token)
     response = Response(render_template('index.html', token=token))
     response.set_cookie('token', token)
@@ -38,9 +43,14 @@ def broadcaster():
 
 @current_app.route('/stream.m3u8')
 def playlist():
-    if not  stream.is_online():
+    if not stream.is_online():
         return abort(404)
+
     token = request.args.get('token') or request.cookies.get('token') or new_token()
+    try:
+        video_was_corrupted.remove(token)
+    except KeyError:
+        pass
     response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
@@ -48,18 +58,29 @@ def playlist():
 
 @current_app.route(f'/{SEGMENT_INIT}')
 def segment_init():
-    if not  stream.is_online():
+    if not stream.is_online():
         return abort(404)
+
     token = request.args.get('token') or request.cookies.get('token') or new_token()
+    try:
+        video_was_corrupted.remove(token)
+    except KeyError:
+        pass
     response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
+    response.set_cookie('token', token)
     return response
 
 @current_app.route('/stream<int:n>.m4s')
 def segment_arbitrary(n):
-    if not  stream.is_online():
+    if not stream.is_online():
         return abort(404)
+
     token = request.args.get('token') or request.cookies.get('token')
+    try:
+        video_was_corrupted.remove(token)
+    except KeyError:
+        pass
     viewership.view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
@@ -70,14 +91,19 @@ def segment_arbitrary(n):
 
 @current_app.route('/stream.mp4')
 def segments():
-    if not  stream.is_online():
+    if not stream.is_online():
         return abort(404)
-    token = request.cookies.get('token')
+    token = request.args.get('token') or request.cookies.get('token')
+    try:
+        video_was_corrupted.remove(token)
+    except KeyError:
+        pass
     concatenated_segments = ConcatenatedSegments(segments_dir=SEGMENTS_DIR,
                                                  segment_offset=max(VIEW_COUNTING_PERIOD // HLS_TIME, 2),
                                                  stream_timeout=HLS_TIME + 2,
                                                  segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
-                                                 should_close_connection=lambda: not  stream.is_online())
+                                                 corrupt_hook=lambda: video_was_corrupted.add(token), # lock?
+                                                 should_close_connection=lambda: not stream.is_online())
     file_wrapper = wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-cache'
@@ -177,15 +203,17 @@ def mod():
 
 @current_app.route('/stream-info')
 def stream_info():
+    token = request.args.get('token') or request.cookies.get('token')
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
-    online =  stream.is_online()
+    online = stream.is_online()
     return render_template('stream-info-iframe.html',
                            title=stream.get_title(),
                            viewer_count=viewership.count(),
                            stream_start_abs_json=json.dumps(start_abs if online else None),
                            stream_start_rel_json=json.dumps(start_rel if online else None),
                            stream_uptime=start_rel if online else None,
-                           online=online)
+                           online=online,
+                           video_was_corrupted=token != None and token in video_was_corrupted)
 
 @current_app.route('/teapot')
 def teapot():
