@@ -352,17 +352,17 @@ def stream_start(absolute=True, relative=False):
 
 @app.route('/heartbeat')
 def heartbeat():
-    now = int(time.time())
     token = request.args.get('token') or request.cookies.get('token')
     if token in viewers:
         viewers[token]['heartbeat'] = int(time.time())
     online = is_stream_online()
+    start_abs, start_rel = stream_start(absolute=True, relative=True)
     return {'viewers': n_viewers(),
             'online': online,
             'current_segment': current_segment(),
             'title': stream_title(),
-            'started': stream_start() if online else None}
-
+            'start_abs': start_abs if online else None,
+            'start_rel': start_rel if online else None}
 
 def _image_to_base64(im):
     buffer = io.BytesIO()
@@ -548,12 +548,13 @@ def mod():
 
 @app.route('/stream-info')
 def stream_info():
-    start, start_rel = stream_start(absolute=True, relative=True)
+    start_abs, start_rel = stream_start(absolute=True, relative=True)
     online = is_stream_online()
     return render_template('stream-info-iframe.html',
                            title=stream_title(),
                            viewer_count=n_viewers(),
-                           stream_start_json=json.dumps(start if online else None),
+                           start_abs_json=json.dumps(start_abs if online else None),
+                           start_rel_json=json.dumps(start_rel if online else None),
                            stream_uptime=start_rel if online else None,
                            online=online)
 
