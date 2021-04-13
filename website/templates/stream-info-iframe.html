@@ -145,8 +145,20 @@
                 </div>
             </div>
             <div>
-                <span id="stream-light" style="color:{% if online %}green{% else %}red{% endif %};">•</span>
-                <span id="stream-status">{% if online %}The stream is online.{% else %}The stream has ended.{% endif %}</span>
+                {% if not online %}
+                    <span id="stream-light" style="color:red">•</span>
+                    <span id="stream-status">
+                    The stream has ended.
+                {% elif video_was_corrupted %}
+                    <span id="stream-light" style="color:yellow">•</span>
+                    <span id="stream-status">
+                    The stream is online but you're not receiving it. Try refreshing the page.
+                {% else %}
+                    <span id="stream-light" style="color:green">•</span>
+                    <span id="stream-status">
+                    The stream is online.
+                {% endif %}
+                </span>
                 <a id="refresh-button" class="pure-button pure-button-primary" style="display: none;">Refresh</a>
             </div>
         </div>
