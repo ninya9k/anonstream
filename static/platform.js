@@ -1,25 +1,15 @@
 const t0 = Date.now() / 1000;
-const beginTimeout = 20.0; // seconds until playback should have begun
+const playbackTimeout = 20.0; // seconds until playback should have begun
 
 const segmentDuration = 8.0; // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
 
-let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton
-let streamStart, streamTimer;
+let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton;
+let streamAbsoluteStart, streamRelativeStart, streamTimer, streamTimerLastUpdated;
 
 // ensure only one heartbeat is sent at a time
 let heartIsBeating = false;
-
-/*// https://github.com/30-seconds/30-seconds-of-code/blob/master/snippets/parseCookie.md
-const parseCookie = str =>
-  str
-    .split(';')
-    .map(v => v.split('='))
-    .reduce((acc, v) => {
-      acc[decodeURIComponent(v[0].trim())] = decodeURIComponent(v[1].trim());
-      return acc;
-    }, {});*/
 
 let streamInfoFrame = window.frames['stream-info'];
 streamInfoFrame.addEventListener("load", function() {
@@ -36,7 +26,9 @@ streamInfoFrame.addEventListener("load", function() {
     refreshButton.onclick = function() { return window.location.reload(true); };
 
     streamTimer = streamInfo.getElementById("uptime");
-    streamStart = streamInfoFrame.contentWindow.streamStart;
+    streamAbsoluteStart = streamInfoFrame.contentWindow.streamAbsoluteStart;
+    streamRelativeStart = streamInfoFrame.contentWindow.streamRelativeStart;
+    streamTimerLastUpdated = Date.now() / 1000;
 
     // this viewer's token
     token = document.getElementById("token").value;
@@ -77,11 +69,8 @@ function updateStreamTimer() {
     if ( streamTimer == null ) {
         return;
     }
-    const start = streamStart;
-    if ( Number.isInteger(start) ) {
-        const now = Math.floor(Date.now() / 1000);
-        diff = now - start;
-
+    const diff = streamRelativeStart + Math.floor(Date.now() / 1000 - streamTimerLastUpdated);
+    if ( Number.isInteger(diff) ) {
         const hours = Math.floor(diff / 3600);
         const minutes = Math.floor((diff % 3600) / 60);
         const seconds = diff % 60;
@@ -134,8 +123,10 @@ function heartbeat() {
         streamTitle.innerHTML = response.title;
 
         // update stream start time (for the timer)
-        const oldStreamStart = streamStart;
-        streamStart = response.started;
+        const oldStreamAbsoluteStart = streamAbsoluteStart;
+        streamAbsoluteStart = response.start_abs;
+        streamRelativeStart = response.start_rel;
+        streamTimerLastUpdated = Date.now() / 1000;
 
         // update stream status
         if ( !response.online ) {
@@ -147,7 +138,7 @@ function heartbeat() {
             return updateStreamStatus("The stream has ended.", "red", false);
         }
 
-        if ( oldStreamStart != response.started ) {
+        if ( oldStreamAbsoluteStart != response.start_abs ) {
             return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
         }
 
@@ -160,7 +151,7 @@ function heartbeat() {
             } else if ( diff < 0 ) {
                 return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
             }
-        } else if (Date.now() / 1000 - t0 >= beginTimeout) {
+        } else if (Date.now() / 1000 - t0 >= playbackTimeout) {
             return updateStreamStatus("The stream is online but you're not receiving it. Try refreshing the page.", "yellow", true);
         }
 
