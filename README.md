@@ -29,7 +29,7 @@ This was originally made for fun over the course of five days and hence sloppine
 ## Issues
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
-* Slow: stream delay of at least 40 seconds. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
+* Slow: stream delay of at least 30 seconds. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
 * Doesn't use low-latency HLS
 
 ## How it works
