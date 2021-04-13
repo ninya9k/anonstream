@@ -312,10 +312,6 @@ def current_segment():
         return None
 
 def is_stream_online():
-    # If the playlist doesn't exist, return False
-    if not os.path.exists(SEGMENTS_M3U8):
-        return False
-
     # If the pidfile doesn't exist, return False
     try:
         pid = open(STREAM_PIDFILE).read()
