@@ -76,7 +76,7 @@ def segment_arbitrary(n):
         pass
     viewership.view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
-    response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+    response.headers['Cache-Control'] = 'no-cache'
     if token == None:
         token = new_token()
         response.set_cookie('token', token)
@@ -171,7 +171,7 @@ def comment():
 #   for changing your appearance. So this is not done for now.
 @current_app.route('/settings', methods=['POST'])
 def settings():
-    token = request.args.get('token') or request.cookies.get('token') or new_token()
+    token = request.form.get('token') or request.cookies.get('token') or new_token()
     nickname = request.form.get('nickname', '')
     password = request.form.get('password', '')
 
