@@ -1,18 +1,22 @@
 <html>
     <head>
+        {% if not embed_images %}<noscript><meta http-equiv="refresh" content="0;url={{ url_for('stream_info', token=token, embed=1) }}"></noscript>{% endif %}
         <noscript><meta http-equiv="refresh" content="20"></noscript>
-        <link href="/static/pure-min.css" rel="stylesheet">
+        <link href="/static/external/pure-min.css" rel="stylesheet">
         <style>
             html {color: white;}            
-            #stream-title {display:inline-block;width:calc(100% - 20px - 6.75em);font-size:150%;font-weight: bold;}
-            #stream-light {font-size: 200%;vertical-align: sub;margin-right:0.125em;}
-            #refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
-            svg {
-                vertical-align:text-bottom;
-                fill: #ff8280;
+            #stream-title {display:inline-block;width:calc(100% - 20px - 6.75em);font-size:150%;font-weight: bold;margin-bottom: 0.375em;}
+            #stream-light {
+                height: 0.625em;
+                width: 0.625em;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right:0.125em;
             }
-            img {
-                vertical-align: text-bottom;
+            #stream-status {vertical-align: text-bottom;}
+            #refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
+            .icon {
+                margin-top:-1pt;
             }
 
             {% if stream_uptime != None %}
@@ -62,11 +66,36 @@
               83.3333% {margin-top: -10em;}
             }
             {% endif %}
+            .bottom-right {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+            }
+            {% if not embed_images %}
+            #radial-loader {
+                transform: rotate(-90deg) scaleY(-1);
+            }
+            #radial-loader circle {
+                stroke: #3f3f3f;
+                fill: none;
+                stroke-dasharray: 32;
+                stroke-dashoffset: 0;
+                stroke-width: 10;
+            }
+            .radial-animation {
+                animation: radial 20s linear forwards;
+            }
+            @keyframes radial {
+                from {stroke-dashoffset: 0;}
+                to   {stroke-dashoffset: 32;}
+            }
+            {% endif %}
         </style>
     </head>
     <body>
         <div style="margin: 0.5em;margin-bottom: 0;">
             <div id="stream-title">{{ title }}</div>
+            <!-- TODO: make stream stats align vertically with stream title -->
             <div id="stream-stats" style="display:inline;">
                 <div id="uptime" style="float:right;color:lightgray;">
                     {% if stream_uptime != None %}
@@ -140,31 +169,44 @@
                     {% endif %}
                 </div>
                 <div style="float:right;color:#ff8280;margin-right:0.5em;">
-                    <svg id="svg" style="display:none;" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg><noscript><img src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC"></noscript
-                    ><span id="viewer-count" style="margin-left: 0.125em;">{{ viewer_count }}</span>
+                    {% if embed_images %}<img class="icon" src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC">{% else %}<svg class="icon" style="display:none;fill:#{{ broadcaster_colour.hex() }};" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg>{% endif %}</span><span id="viewer-count" style="margin-left: 0.125em;vertical-align:top;">{{ viewer_count }}</span>
                 </div>
             </div>
             <div>
                 {% if not online %}
-                    <span id="stream-light" style="color:red">•</span>
+                    <span id="stream-light" style="background-color:red"></span>
                     <span id="stream-status">
                     The stream has ended.
                 {% elif video_was_corrupted %}
-                    <span id="stream-light" style="color:yellow">•</span>
+                    <span id="stream-light" style="background-color:yellow"></span>
                     <span id="stream-status">
                     The stream is online but you're not receiving it. Try refreshing the page.
                 {% else %}
-                    <span id="stream-light" style="color:green">•</span>
+                    <span id="stream-light" style="background-color:green"></span>
                     <span id="stream-status">
                     The stream is online.
                 {% endif %}
                 </span>
                 <a id="refresh-button" class="pure-button pure-button-primary" style="display: none;">Refresh</a>
             </div>
+            {% if embed_images %}
+                <!-- embedding this animated png messes with the animation -->
+                <img class="bottom-right" src="{{ url_for('radial') }}">
+            {% else %}
+                <svg id="radial-loader" class="bottom-right" width="20px" height="20px" viewBox="0 0 20 20">
+                    <circle class="radial-animation" cx="10" cy="10" r="5"></circle>
+                </svg>
+            {% endif %}
         </div>
         <script>
-            /* ensure that the svg only appears when scripts are enabled */
-            document.getElementById("svg").style.display = "";
+            {% if embed_images %}
+            window.location.replace("{{ url_for('stream_info', token=token) }}");
+            {% endif %}
+
+            /* ensure that svg only appears when scripts are enabled */
+            for ( element of document.querySelectorAll("svg") ) {
+                element.style.display = null;
+            }
             var streamAbsoluteStart = {{ stream_start_abs_json }};
             var streamRelativeStart = {{ stream_start_rel_json }};
         </script>

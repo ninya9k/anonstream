@@ -1,7 +1,7 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <link href="/static/pure-min.css" rel="stylesheet">
+        <link href="/static/external/pure-min.css" rel="stylesheet">
         <style>
         body {
           margin-left:0.5em;
@@ -171,6 +171,7 @@
         <input type="checkbox" id="settings-toggle">
         <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">
+            <input type="hidden" name="nonce" value="{{ nonce }}">
             <input required id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
             <div class="note-space">
                 <label for="settings-toggle">⚙️</label>
@@ -184,7 +185,7 @@
         </form>
         <form id="settings" action="{{ url_for('settings') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">
-            <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ nickname }}">
+            <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ '' if nickname == None else nickname }}">
             <input type="checkbox" id="password-toggle" name="set-tripcode">
             <input type="checkbox" id="blank-tripcode-toggle" name="remove-tripcode">
             <input id="password" type="password" style="width:30%;" name="password" maxlength="256" placeholder="Password">

@@ -5,7 +5,7 @@ const segmentDuration = 8.0; // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
 
-let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton;
+let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton, radialLoader, radialLoderCircle;
 let streamAbsoluteStart, streamRelativeStart, streamTimer, streamTimerLastUpdated;
 
 // ensure only one heartbeat is sent at a time
@@ -29,6 +29,9 @@ streamInfoFrame.addEventListener("load", function() {
     streamAbsoluteStart = streamInfoFrame.contentWindow.streamAbsoluteStart;
     streamRelativeStart = streamInfoFrame.contentWindow.streamRelativeStart;
     streamTimerLastUpdated = Date.now() / 1000;
+
+    radialLoader = streamInfo.getElementById("radial-loader");
+    radialLoaderCircle = radialLoader.querySelector("circle");
 
     // this viewer's token
     token = document.getElementById("token").value;
@@ -59,7 +62,7 @@ function updateStreamStatus(msg, color, showRefreshButton) {
     streamStatus.innerHTML = msg;
     streamLight.style.color = color;
     if ( showRefreshButton ) {
-        refreshButton.style.display = "";
+        refreshButton.style.display = null;
     } else {
         refreshButton.style.display = "none";
     }
@@ -92,6 +95,13 @@ function updateStreamTimer() {
     }
 }
 
+function resetRadialLoader() {
+    const element = radialLoader;
+    const newElement = element.cloneNode(true);
+    element.parentNode.replaceChild(newElement, element);
+    radialLoader = newElement;
+}
+
 // get stream info from the server (viewer count, current segment, if stream is online, etc.)
 function heartbeat() {
     if ( heartIsBeating ) {
@@ -100,66 +110,74 @@ function heartbeat() {
         heartIsBeating = true;
     }
 
-    // prepare a request to /heartbeat
-    const xhr = new XMLHttpRequest();
-    xhr.open("GET", `/heartbeat?token=${token}`);
+    try {
+        // prepare a request to /heartbeat
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", `/heartbeat?token=${token}`);
 
-    xhr.timeout = 18000; // timeout in ms, 18 seconds
-    xhr.onerror = function(e) {
-        heartIsBeating = false;
-        console.log(e);
-        updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", true);
-    }
-    xhr.ontimeout = xhr.onerror;
-    xhr.onload = function(e) {
-        heartIsBeating = false;
-        if ( xhr.status != 200 ) {
-            return xhr.onerror(xhr);
+        xhr.timeout = 18000; // timeout in ms, 18 seconds
+        xhr.onerror = function(e) {
+            heartIsBeating = false;
+            console.log(e);
+            updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", true);
         }
-        response = JSON.parse(xhr.responseText)
+        xhr.ontimeout = xhr.onerror;
+        xhr.onload = function(e) {
+            heartIsBeating = false;
+            if ( xhr.status != 200 ) {
+                return xhr.onerror(xhr);
+            }
+            response = JSON.parse(xhr.responseText)
 
-        // update viewer count
-        viewerCount.innerHTML = response.viewers;
+            // reset radial loader
+            resetRadialLoader();
 
-        // update stream title
-        streamTitle.innerHTML = response.title;
+            // update viewer count
+            viewerCount.innerHTML = response.viewers;
 
-        // update stream start time (for the timer)
-        const oldStreamAbsoluteStart = streamAbsoluteStart;
-        streamAbsoluteStart = response.start_abs;
-        streamRelativeStart = response.start_rel;
-        streamTimerLastUpdated = Date.now() / 1000;
+            // update stream title
+            streamTitle.innerHTML = response.title;
 
-        // update stream status
-        if ( !response.online ) {
-            return updateStreamStatus("The stream has ended.", "red", false);
-        }
+            // update stream start time (for the timer)
+            const oldStreamAbsoluteStart = streamAbsoluteStart;
+            streamAbsoluteStart = response.start_abs;
+            streamRelativeStart = response.start_rel;
+            streamTimerLastUpdated = Date.now() / 1000;
 
-       const serverSegment = response.current_segment;
-        if ( !Number.isInteger(serverSegment) ) {
-            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
-        }
+            // update stream status
+            if ( !response.online ) {
+                return updateStreamStatus("The stream has ended.", "red", false);
+            }
 
-        if ( oldStreamAbsoluteStart != response.start_abs ) {
-            return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
-        }
-
-        // when the page is first loaded clientSegment may be null
-        const clientSegment = currentSegment();
-        if ( Number.isInteger(clientSegment) ) {
-            const diff = serverSegment - clientSegment;
-            if ( diff >= segmentThreshold ) {
-                return updateStreamStatus(`You're more than ${latencyThreshold} seconds behind the stream. Refresh the page.`, "yellow", true);
-            } else if ( diff < 0 ) {
+           const serverSegment = response.current_segment;
+            if ( !Number.isInteger(serverSegment) ) {
                 return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
             }
-        } else if (Date.now() / 1000 - t0 >= playbackTimeout) {
-            return updateStreamStatus("The stream is online but you're not receiving it. Try refreshing the page.", "yellow", true);
+
+            if ( oldStreamAbsoluteStart != response.start_abs ) {
+                return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+            }
+
+            // when the page is first loaded clientSegment may be null
+            const clientSegment = currentSegment();
+            if ( Number.isInteger(clientSegment) ) {
+                const diff = serverSegment - clientSegment;
+                if ( diff >= segmentThreshold ) {
+                    return updateStreamStatus(`You're more than ${latencyThreshold} seconds behind the stream. Refresh the page.`, "yellow", true);
+                } else if ( diff < 0 ) {
+                    return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+                }
+            } else if (Date.now() / 1000 - t0 >= playbackTimeout) {
+                return updateStreamStatus("The stream is online but you're not receiving it. Try refreshing the page.", "yellow", true);
+            }
+
+            // otherwise
+            return updateStreamStatus("The stream is online.", "green", false);
         }
 
-        // otherwise
-        return updateStreamStatus("The stream is online.", "green", false);
+        xhr.send();
+    } catch (e) {
+        heartIsBeating = false;
+        throw e;
     }
-
-    xhr.send();
 }

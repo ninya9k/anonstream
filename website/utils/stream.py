@@ -12,23 +12,27 @@ def _segment_number(fn):
 def _is_segment(fn):
     return bool(RE_SEGMENT.fullmatch(fn))
 
+def _get_segments(sort=False):
+    try:
+        m3u8 = [line.rstrip() for line in open(SEGMENTS_M3U8).readlines() if _is_segment(line.rstrip())]
+    except FileNotFoundError:
+        return []
+
+    if sort:
+        m3u8.sort(key=_segment_number)
+    return m3u8
+
+def _is_available(fn, m3u8):
+    return fn in m3u8
+
 def current_segment():
-    try:
-        files = os.listdir(SEGMENTS_DIR)
-    except FileNotFoundError:
-        return None
-
-    try:
-        m3u8 = open(SEGMENTS_M3U8).read()
-    except FileNotFoundError:
-        return None
-
-    files = filter(lambda fn: fn in m3u8, files)
-
-    try:
-        last_segment = max(filter(_is_segment, files), key=_segment_number)
+    if is_online():
+        segments = _get_segments()
+        if len(segments) == 0:
+            return None
+        last_segment = max(segments, key=_segment_number)
         return _segment_number(last_segment)
-    except ValueError:
+    else:
         return None
 
 def is_online():

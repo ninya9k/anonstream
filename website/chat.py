@@ -8,19 +8,26 @@ import website.utils.captcha as captcha_util
 import website.utils.tripcode as tripcode
 import website.viewership as viewership
 from website.constants import BROADCASTER_TOKEN, CHAT_MAX_LENGTH, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, \
-                              NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_RANDOM, N_APPEAR_OK, N_APPEAR_FAIL
+                              NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_RANDOM, N_CONFIRM, N_APPEAR_OK, N_APPEAR_FAIL
 
 from pprint import pprint
 
 messages = deque()
 captchas = {}
 viewers = viewership.viewers
+nonces = set()
 
 def behead_chat():
     while len(messages) > CHAT_MAX_LENGTH:
         messages.pop()
 
-def comment(text, token, c_response, c_token):
+def new_nonce():
+    nonce = secrets.token_hex(8)
+    with viewership.lock:
+        nonces.add(nonce)
+    return nonce
+
+def comment(text, token, c_response, c_token, nonce):
     failure_reason = N_NONE
     with viewership.lock:
         now = int(time.time())
@@ -54,17 +61,22 @@ def comment(text, token, c_response, c_token):
                 failure_reason = N_CAPTCHA_RANDOM
                 viewers[token]['verified'] = False
             else:
-                dt = datetime.utcfromtimestamp(now)
-                messages.appendleft({'text': text,
-                                     'viewer': viewers[token],
-                                     'id': f'{token}-{secrets.token_hex(4)}',
-                                     'hidden': False,
-                                     'time': dt.strftime('%H:%M'),
-                                     'date': dt.strftime('%F %T')})
-                viewers[token]['comment'] = now
-                viewers[token]['recent_comments'].append(now)
-                viewers[token]['verified'] = True
-                behead_chat()
+                try:
+                    nonces.remove(nonce)
+                except KeyError:
+                    failure_reason = N_CONFIRM
+                else:
+                    dt = datetime.utcfromtimestamp(now)
+                    messages.appendleft({'text': text,
+                                         'viewer': viewers[token],
+                                         'id': f'{token}-{secrets.token_hex(4)}',
+                                         'hidden': False,
+                                         'time': dt.strftime('%H:%M'),
+                                         'date': dt.strftime('%F %T')})
+                    viewers[token]['comment'] = now
+                    viewers[token]['recent_comments'].append(now)
+                    viewers[token]['verified'] = True
+                    behead_chat()
 
     viewership.setdefault(BROADCASTER_TOKEN)
     viewers[BROADCASTER_TOKEN]['verified'] = True
@@ -104,7 +116,10 @@ def set_nickname(nickname, token):
     if len(nickname) > 24:
         return N_APPEAR_FAIL, False
 
-    viewers[token]['nickname'] = nickname or viewership.default_nickname(token)
+    if len(nickname) == 0 or nickname == viewership.default_nickname(token):
+        nickname = None
+
+    viewers[token]['nickname'] = nickname
     return N_APPEAR_OK, True
 
 def set_tripcode(password, token):

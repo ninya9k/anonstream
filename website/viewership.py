@@ -8,7 +8,15 @@ from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCA
 
 viewers = {}
 segment_views = {}
+video_was_corrupted = set()
 lock = threading.Lock()
+
+#When a viewer leaves a comment, they make a POST request to /comment; either
+#you can redirect back to /comment-box or you can respond there without
+#redirecting. In the second case viewers will get a confirmation dialogue when
+#they refresh the page; in the first case, you need to somehow give them the
+#note exactly once. That's what this dict is for.
+preset_comment_iframe = {}
 
 def default_nickname(token):
     if token == BROADCASTER_TOKEN:
@@ -23,11 +31,14 @@ def setdefault(token):
                       'heartbeat': int(time.time()),
                       'verified': False,
                       'recent_comments': [],
-                      'nickname': default_nickname(token),
+                      'nickname': None,
                       'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
                       'banned': False,
                       'tripcode': tripcode.default(),
                       'broadcaster': False}
+    c = viewers[token]['colour']
+    tag = ((c[2] & 0xf0) >> 2) | ((c[1] & 0xf0) >> 6) | ((c[2] & 0xf0) >> 10)
+    viewers[token]['tag'] = f'#{tag:03x}'
     if token == BROADCASTER_TOKEN:
         viewers[token]['broadcaster'] = True
         viewers[token]['colour'] = BROADCASTER_COLOUR
