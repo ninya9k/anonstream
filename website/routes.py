@@ -235,7 +235,7 @@ def settings():
 @current_app.auth.login_required
 def mod_chat():
     message_ids = request.form.getlist('message_id[]')
-    chat.mod_messages(message_ids, request.form.get('hide'), request.form.get('ban'), request.form.get('ban_purge'))
+    chat.mod_chat(message_ids, request.form.get('hide'), request.form.get('ban'), request.form.get('ban_purge'))
     return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform: scaleY(-1);">it is done</div>'
 
 @current_app.route('/mod/users', methods=['POST'])
