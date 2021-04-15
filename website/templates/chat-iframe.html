@@ -27,8 +27,10 @@
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;}
           .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
 
-          #users {margin-left:0.5em;}
-          .group-name {color:white;margin-bottom:0.125em;}
+          #users {color:white;margin-left:0.5em;}
+          .group {margin-bottom:1.5em;}
+          .group-name {margin-bottom:0.25em;}
+          .person {margin-left: 0.5em;}
 
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
           div#refresh {
@@ -98,18 +100,30 @@
 <div id="users" style="display: none;">
     {% with broadcaster = people['broadcaster'] %}
         {% if broadcaster %}
-            <div style="margin-bottom:1em;">
+            <div class="group">
                 <div class="group-name">Broadcaster</div>
-                <span class="camera" title="Broadcaster">🎥</span><span class="name" style="color:#{{ broadcaster['colour'].hex() }};">{{ broadcaster['nickname'] or default_nickname(broadcaster['token']) }}</span>{% if broadcaster['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ broadcaster['tripcode']['string'] }}</div>{% endif %}
+                <div class="person">
+                    <span class="camera" title="Broadcaster">🎥</span><span class="name" style="color:#{{ broadcaster['colour'].hex() }};">{{ broadcaster['nickname'] or default_nickname(broadcaster['token']) }}</span>{% if broadcaster['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ broadcaster['tripcode']['string'] }}</div>{% endif %}
+                </div>
             </div>
         {% endif %}
     {% endwith %}
-    <div class="group-name">Users ({{ len(people['users']) }})</div>
-    {% for person in people['users'] %}
-        <div class="person">
-            <span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
-        </div>
-    {% endfor %}
+    <div class="group">
+        <div class="group-name">Users watching ({{ len(people['watching']) }})</div>
+        {% for person in people['watching'] %}
+            <div class="person">
+                <span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="group">
+        <div class="group-name">Users not watching ({{ len(people['not_watching']) }})</div>
+        {% for person in people['not_watching'] %}
+            <div class="person">
+                <span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
+            </div>
+        {% endfor %}
+    </div>
 </div>
     </body>
 </html>

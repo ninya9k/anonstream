@@ -114,7 +114,7 @@ def segment_arbitrary(n):
 def segments():
     if not stream.is_online():
         return abort(404)
-    token = get_token()
+    token = get_token() or new_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -127,6 +127,7 @@ def segments():
     file_wrapper = wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-store'
+    response.set_cookie('token', token)
     return response
 
 # TODO: have a button like on Twitch that when you click it shows you a list of viewers / chatters that are currently watching / in chat
@@ -262,7 +263,7 @@ def stream_info():
 def users():
     token = get_token()
     viewership.made_request(token)
-    return render_template('users.html', token=token, people=viewership.get_people_list(), default_nickname=viewership.default_nickname, broadcaster_colour=BROADCASTER_COLOUR, len=len)
+    return render_template('users-iframe.html', token=token, people=viewership.get_people_list(), default_nickname=viewership.default_nickname, broadcaster_colour=BROADCASTER_COLOUR, len=len)
 
 @current_app.route('/static/radial.apng')
 def radial():
