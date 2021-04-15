@@ -102,7 +102,7 @@
             frameContainer.replaceChild(newFrame, oldFrame);
         }
         replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
-        replaceFrameURL("chat-container", "{{ url_for('chat_iframe') }}?token={{ token }}&users=1", "chat", "chat");
+        replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
 
         const chat = document.getElementById("chat");
         const usersToggle  = document.getElementById("users-toggle");
