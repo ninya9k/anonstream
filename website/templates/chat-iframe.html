@@ -63,7 +63,7 @@
     <body>
 <div id="messages">
 {% if broadcaster %}
-    <form action="{{ url_for('mod_messages') }}" method="post">
+    <form action="{{ url_for('mod_chat') }}" method="post">
         <div class="reverse">
             <input class="rotate" type="submit" name="ban" value="Ban">
             <input class="rotate" type="submit" name="hide" value="Hide">
@@ -97,6 +97,7 @@
 
     <a href="" style="text-decoration: none;"><div id="refresh" class="rotate">Manual refresh required</div></a>
 </div>
+{% if users %}
 <div id="users" style="display: none;">
     {% with person = people['broadcaster'] %}
         {% if person %}
@@ -148,5 +149,6 @@
     </form>
 {% endif %}
 </div>
+{% endif %}
     </body>
 </html>

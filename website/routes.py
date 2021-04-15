@@ -138,7 +138,7 @@ def chat_iframe():
     token = get_token() or new_token()
     viewership.made_request(token)
 
-    include_user_list = bool(request.args.get('users', default=0, type=int))
+    include_user_list = bool(request.args.get('users', default=1, type=int))
     messages = (message for message in chat.messages if not message['hidden'])
     messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
     messages = (message for message, _ in messages)
