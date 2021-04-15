@@ -9,7 +9,7 @@
   border: 1px solid #434343;
 }
 .hue-rotate {
-  filter: hue-rotate(150deg);
+  filter: hue-rotate(144deg);
 }
 #stream {
   height: calc(100vw * 9 / 16);
