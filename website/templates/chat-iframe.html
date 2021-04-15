@@ -27,10 +27,12 @@
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;}
           .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
 
+          {% if include_user_list %}
           #users {color:white;margin-left:0.5em;}
           .group {margin-bottom:1.5em;}
           .group-name {margin-bottom:0.25em;}
           .person {margin-left: 0.5em;}
+          {% endif %}
 
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
           div#refresh {
