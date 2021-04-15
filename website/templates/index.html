@@ -2,20 +2,24 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- https://unpkg.com/video.js@7.12.1/dist/video-js.min.css -->
-        <link href="/static/external/video-js.min.css" rel="stylesheet">
         <link href="/static/external/pure-min.css" rel="stylesheet">
         <link href="/static/external/grids-responsive-min.css" rel="stylesheet">
         <link href="/static/platform.css" rel="stylesheet">
+        {% if use_videojs %}
+        <!-- https://unpkg.com/video.js@7.12.1/dist/video-js.min.css -->
+        <link href="/static/external/video-js.min.css" rel="stylesheet">
         <!-- https://unpkg.com/video.js@7.12.1/dist/video.min.js -->
         <script src="/static/external/video.min.js"></script>
         <!-- https://unpkg.com/@videojs/http-streaming@2.7.1/dist/videojs-http-streaming.min.js -->
         <script src="/static/external/videojs-http-streaming.min.js"></script>
+        {% endif %}
         <noscript>
             <style>
+                {% if use_videojs %}
                 #videojs {
                     display: none;
                 }
+                {% endif %}
                 #users-container {
                     display: none;
                 }
@@ -44,6 +48,7 @@
             <div class="pure-u-1 pure-u-md-2-3">
                 <!-- TODO: choose which elements get borders more cleverly -->
                 <div id="stream" class="border">
+                    {% if use_videojs %}
                     <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
                     <video id="videojs" style="width: 100%;height: 100%;" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
                         <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
@@ -51,6 +56,9 @@
                     <noscript>
                         <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments', token=token) }}">
                     </noscript>
+                    {% else %}
+                    <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments', token=token) }}">
+                    {% endif %}
                 </div>
                 <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&embed=1"></iframe></noscript></div>
                 <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>

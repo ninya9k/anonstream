@@ -32,8 +32,9 @@ def index(token=None):
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    use_videojs = bool(request.args.get('videojs', default=1, type=int))
     viewership.made_request(token)
-    response = Response(render_template('index.html', token=token)) # TODO: add a view of the chat only, either as an arg here or another route
+    response = Response(render_template('index.html', token=token, use_videojs=use_videojs)) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
 
