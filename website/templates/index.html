@@ -31,6 +31,10 @@
                 #users-toggle:checked + .banner form[target="users"] {
                     display: revert;
                 }
+                /* noscript acting weird with svg */
+                #svg-container {
+                    display: none;
+                }
             </style>
         </noscript>
     </head>
@@ -38,6 +42,7 @@
         <div class=pure-g>
             <!-- TODO: get rid of PureCSS dependency here; the noscript block on top of the video is too large because the PureCSS files take longer to load -->
             <div class="pure-u-1 pure-u-md-2-3">
+                <!-- TODO: choose which elements get borders more cleverly -->
                 <div id="stream" class="border">
                     <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
                     <video id="videojs" style="width: 100%;height: 100%;" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
@@ -57,8 +62,10 @@
                     <div class="banner">
                         <div class="chat-banner-left">
                             <label for="users-toggle" title="Users in chat">
-                                <svg class="users-logo" style="display:none;" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M7 2a4 4 0 00-1.015 7.87c-.098.64-.651 1.13-1.318 1.13A2.667 2.667 0 002 13.667V18h2v-4.333c0-.368.298-.667.667-.667.908 0 1.732-.363 2.333-.953.601.59 1.425.953 2.333.953.369 0 .667.299.667.667V18h2v-4.333A2.667 2.667 0 009.333 11c-.667 0-1.22-.49-1.318-1.13A4.002 4.002 0 007 2zM5 6a2 2 0 104 0 2 2 0 00-4 0z" clip-rule="evenodd"></path><path d="M14 11.83V18h4v-3.75c0-.69-.56-1.25-1.25-1.25a.75.75 0 01-.75-.75v-.42a3.001 3.001 0 10-2 0z"></path></g>
-                                </svg>
+                                <div id="svg-container">
+                                    <svg class="users-logo" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M7 2a4 4 0 00-1.015 7.87c-.098.64-.651 1.13-1.318 1.13A2.667 2.667 0 002 13.667V18h2v-4.333c0-.368.298-.667.667-.667.908 0 1.732-.363 2.333-.953.601.59 1.425.953 2.333.953.369 0 .667.299.667.667V18h2v-4.333A2.667 2.667 0 009.333 11c-.667 0-1.22-.49-1.318-1.13A4.002 4.002 0 007 2zM5 6a2 2 0 104 0 2 2 0 00-4 0z" clip-rule="evenodd"></path><path d="M14 11.83V18h4v-3.75c0-.69-.56-1.25-1.25-1.25a.75.75 0 01-.75-.75v-.42a3.001 3.001 0 10-2 0z"></path></g>
+                                    </svg>
+                                </div>
                                 <noscript><div class="users-logo"><img src="/static/external/users.png"></div></noscript>
                             </label>
                         </div>
@@ -76,7 +83,7 @@
                     </div>
                     <div id="chat-window">
                         <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token) }}"></iframe></noscript></div>
-                        <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users') }}"></iframe></noscript></div>
+                        <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
                     <iframe style="height:6em;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
                 </div>
@@ -95,11 +102,6 @@
         }
         replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
         replaceFrameURL("chat-container", "{{ url_for('chat_iframe') }}?token={{ token }}&users=1", "chat", "chat");
-
-        /* ensure that svg only appears when scripts are enabled */
-        for ( element of document.querySelectorAll("svg") ) {
-            element.style.display = null;
-        }
 
         const chat = document.getElementById("chat");
         const usersToggle  = document.getElementById("users-toggle");

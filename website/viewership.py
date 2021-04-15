@@ -28,6 +28,7 @@ def setdefault(token):
         return
     viewers[token] = {'token': token,
                       'last_comment': float('-inf'),
+                      'last_segment': float('-inf'),
                       'last_request': float('-inf'),
                       'first_request': float('-inf'),
                       'verified': False,
@@ -62,11 +63,15 @@ def view_segment(n, token=None, check_exists=True):
     if check_exists and not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
         return
 
+    now = int(time.time())
     with lock:
-        now = int(time.time())
         segment_views.setdefault(n, []).append({'time': now, 'token': token})
         if token:
-            made_request(token)
+            setdefault(token)
+            if viewers[token]['first_request'] == float('-inf'):
+                viewers[token]['first_request'] = now
+            viewers[token]['last_request'] = now
+            viewers[token]['last_segment'] = now
         print(f'seg{n}: {token}')
 
 #def count_site_tokens():
@@ -155,11 +160,16 @@ def get_people_list():
     users = filter(lambda token: now - viewers[token]['last_request'] < 24, users)
     users = sorted(users, key=lambda token: viewers[token]['first_request'])
 
-    people = {'broadcaster': None, 'users': []}
+    people = {'broadcaster': None, 'watching': [], 'not_watching': [], 'banned': []}
     for token in users:
-        if viewers[token]['broadcaster']:
-            people['broadcaster'] = viewers[token]
+        person = viewers[token]
+        if person['broadcaster']:
+            people['broadcaster'] = person
+        elif now - person['last_segment'] < 24:
+            people['watching'].append(person)
         else:
-            people['users'].append(viewers[token])
+            people['not_watching'].append(person)
+        if person['banned']:
+            people['banned'].append(person)
 
     return people

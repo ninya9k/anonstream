@@ -38,5 +38,5 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
     return best_colour
 
 def tag(colour):
-    tag = ((colour[2] & 0xf0) >> 2) | ((colour[1] & 0xf0) >> 6) | ((colour[2] & 0xf0) >> 10)
+    tag = ((colour[2] & 0xf0) >> 4) | (colour[1] & 0xf0) | ((colour[0] & 0xf0) << 4)
     return f'#{tag:03x}'

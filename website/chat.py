@@ -82,23 +82,29 @@ def comment(text, token, c_response, c_token, nonce):
     viewers[BROADCASTER_TOKEN]['verified'] = True
     return failure_reason
 
-def mod(message_ids, hide, ban, ban_and_purge):
+def mod_messages(message_ids, hide, ban, ban_and_purge):
     purge  = ban_and_purge
     ban    = ban_and_purge or ban
 
-    if ban:
-        banned = {message_id.split('-')[0] for message_id in message_ids}
-        for token in banned:
-            viewers[token]['banned'] = True
+    with viewership.lock:
+        if ban:
+            banned = {message_id.split('-')[0] for message_id in message_ids}
+            for token in banned:
+                viewers[token]['banned'] = True
 
-    for message in messages:
-        if hide and message['id'] in message_ids:
-            message['hidden'] = True
-        if purge and message['viewer']['token'] in banned:
-            message['hidden'] = True
+        for message in messages:
+            if hide and message['id'] in message_ids:
+                message['hidden'] = True
+            if purge and message['viewer']['token'] in banned:
+                message['hidden'] = True
 
-    viewership.setdefault(BROADCASTER_TOKEN)
-    viewers[BROADCASTER_TOKEN]['banned'] = False
+        viewership.setdefault(BROADCASTER_TOKEN)
+        viewers[BROADCASTER_TOKEN]['banned'] = False
+
+def mod_users(tokens, banned):
+    with viewership.lock:
+        for token in tokens:
+            viewers[token]['banned'] = banned
 
 def get_captcha(token):
     viewership.setdefault(token)

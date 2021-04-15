@@ -230,13 +230,23 @@ def settings():
     viewership.preset_comment_iframe[token] = {'note': note, 'show_settings': True}
     return redirect(url_for('comment_iframe', token=token))
 
-# TODO: undo bans; undo hides; optionally show that a comment was hidden
-@current_app.route('/mod', methods=['POST'])
+# TODO: undo hides; optionally show that a comment was hidden; optionally show bans in chat
+@current_app.route('/mod/messages', methods=['POST'])
 @current_app.auth.login_required
-def mod():
+def mod_messages():
     message_ids = request.form.getlist('message_id[]')
-    chat.mod(message_ids, request.form.get('hide'), request.form.get('ban'), request.form.get('ban_purge'))
+    chat.mod_messages(message_ids, request.form.get('hide'), request.form.get('ban'), request.form.get('ban_purge'))
     return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform: scaleY(-1);">it is done</div>'
+
+@current_app.route('/mod/users', methods=['POST'])
+@current_app.auth.login_required
+def mod_users():
+    tokens = request.form.getlist('token[]')
+    banned = bool(request.form.get('banned', type=int))
+    chat.mod_users(tokens, banned=banned)
+
+    noscript = bool(request.form.get('noscript', type=int))
+    return f'<meta http-equiv="refresh" content="0;url={url_for("users") if noscript else url_for("chat_iframe")}"><div style="font-weight:bold;color:white;">it is done</div>'
 
 @current_app.route('/stream-info')
 def stream_info():
@@ -263,7 +273,14 @@ def stream_info():
 def users():
     token = get_token()
     viewership.made_request(token)
-    return render_template('users-iframe.html', token=token, people=viewership.get_people_list(), default_nickname=viewership.default_nickname, broadcaster_colour=BROADCASTER_COLOUR, len=len)
+    return render_template('users-iframe.html',
+                           token=token,
+                           people=viewership.get_people_list(),
+                           default_nickname=viewership.default_nickname,
+                           broadcaster=token == BROADCASTER_TOKEN,
+                           debug=request.args.get('debug'),
+                           broadcaster_colour=BROADCASTER_COLOUR,
+                           len=len)
 
 @current_app.route('/static/radial.apng')
 def radial():
