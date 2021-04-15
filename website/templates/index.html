@@ -72,6 +72,7 @@
                         <span>Stream chat</span>
                         <form target="chat" action="/chat" method="get" style="float: right;margin: 0;width: 1em;">
                             <input id="token" type="hidden" name="token" value="{{ token }}">
+                            <noscript><input type="hidden" name="users" value="0"></noscript>
                             <input type="checkbox" style="display:none;" name="debug">
                             <button class="hue-rotate" title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;" type="submit" class="">🔄</button>
                         </form>
@@ -82,7 +83,7 @@
                         </form>
                     </div>
                     <div id="chat-window">
-                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token) }}"></iframe></noscript></div>
+                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token, users=0) }}"></iframe></noscript></div>
                         <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
                     <iframe style="height:6em;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
