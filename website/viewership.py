@@ -157,7 +157,7 @@ def count():
 def get_people_list():
     now = int(time.time())
     users = filter(lambda token: viewers[token]['first_request'] > float('-inf'), viewers)
-    users = filter(lambda token: now - viewers[token]['last_request'] < 24, users)
+    users = filter(lambda token: now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD, users)
     users = sorted(users, key=lambda token: viewers[token]['first_request'])
 
     people = {'broadcaster': None, 'watching': [], 'not_watching': [], 'banned': []}
@@ -165,7 +165,7 @@ def get_people_list():
         person = viewers[token]
         if person['broadcaster']:
             people['broadcaster'] = person
-        elif now - person['last_segment'] < 24:
+        elif now - person['last_segment'] < VIEW_COUNTING_PERIOD:
             people['watching'].append(person)
         else:
             people['not_watching'].append(person)
