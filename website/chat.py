@@ -82,7 +82,7 @@ def comment(text, token, c_response, c_token, nonce):
     viewers[BROADCASTER_TOKEN]['verified'] = True
     return failure_reason
 
-def mod_messages(message_ids, hide, ban, ban_and_purge):
+def mod_chat(message_ids, hide, ban, ban_and_purge):
     purge  = ban_and_purge
     ban    = ban_and_purge or ban
 
