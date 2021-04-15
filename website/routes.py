@@ -145,6 +145,7 @@ def chat_iframe():
     return render_template('chat-iframe.html',
                            token=token,
                            messages=messages,
+                           include_user_list=include_user_list,
                            people=viewership.get_people_list(),
                            default_nickname=viewership.default_nickname,
                            broadcaster=token == BROADCASTER_TOKEN,

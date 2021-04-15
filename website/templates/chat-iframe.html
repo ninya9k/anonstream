@@ -97,7 +97,7 @@
 
     <a href="" style="text-decoration: none;"><div id="refresh" class="rotate">Manual refresh required</div></a>
 </div>
-{% if users %}
+{% if include_user_list %}
 <div id="users" style="display: none;">
     {% with person = people['broadcaster'] %}
         {% if person %}
