@@ -36,3 +36,7 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
         if best_score == None or score > best_score:
             best_colour = colour
     return best_colour
+
+def tag(colour):
+    tag = ((colour[2] & 0xf0) >> 2) | ((colour[1] & 0xf0) >> 6) | ((colour[2] & 0xf0) >> 10)
+    return f'#{tag:03x}'

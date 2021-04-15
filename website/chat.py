@@ -48,17 +48,17 @@ def comment(text, token, c_response, c_token, nonce):
 
             if viewers[token]['banned']:
                 failure_reason = N_BANNED
-            elif now < viewers[token]['comment'] + CHAT_TIMEOUT:
-                failure_reason = N_TOOFAST
-            elif len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
-                failure_reason = N_FLOOD
-                viewers[token]['verified'] = False
             elif not viewers[token]['verified'] and c_token not in captchas:
                 failure_reason = N_CAPTCHA_MISSING
             elif not viewers[token]['verified'] and captchas[c_token] != c_response:
                 failure_reason = N_CAPTCHA_WRONG
             elif secrets.randbelow(50) == 0:
                 failure_reason = N_CAPTCHA_RANDOM
+                viewers[token]['verified'] = False
+            elif now < viewers[token]['last_comment'] + CHAT_TIMEOUT:
+                failure_reason = N_TOOFAST
+            elif len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
+                failure_reason = N_FLOOD
                 viewers[token]['verified'] = False
             else:
                 try:
@@ -73,7 +73,7 @@ def comment(text, token, c_response, c_token, nonce):
                                          'hidden': False,
                                          'time': dt.strftime('%H:%M'),
                                          'date': dt.strftime('%F %T')})
-                    viewers[token]['comment'] = now
+                    viewers[token]['last_comment'] = now
                     viewers[token]['recent_comments'].append(now)
                     viewers[token]['verified'] = True
                     behead_chat()

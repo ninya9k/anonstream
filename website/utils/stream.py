@@ -1,9 +1,11 @@
 import os
 import re
 import time
+from flask import abort
 from website.constants import SEGMENTS_DIR, SEGMENTS_M3U8, SEGMENT_INIT, STREAM_PIDFILE, STREAM_START, STREAM_TITLE
 
-RE_SEGMENT = re.compile(r'stream(?P<number>\d+).m4s')
+RE_SEGMENT_OR_INIT = re.compile(r'\b(stream(?P<number>\d+)\.m4s|init\.mp4)\b')
+RE_SEGMENT = re.compile(r'stream(?P<number>\d+)\.m4s')
 
 def _segment_number(fn):
     if fn == SEGMENT_INIT: return None
@@ -73,3 +75,33 @@ def get_start(absolute=True, relative=False):
         return start
     elif relative:
         return diff
+
+
+class TokenPlaylist:
+    '''
+    Append '?token={token}' to each segment in the playlist
+    '''
+    def __init__(self, token):
+        self.token = token
+        self.fp = open(SEGMENTS_M3U8)
+        self.leftover = b''
+
+    def read(self, n):
+        if self.token == None:
+            return self.fp.read(n)
+
+        leftover = self.leftover
+        chunk = b''
+        while True:
+            line = self.fp.readline()
+            if len(line) == 0:
+                break
+            injected_line = RE_SEGMENT_OR_INIT.sub(lambda match: f'{match.group()}?token={self.token}', line)
+            chunk += injected_line.encode()
+            if len(chunk) >= n:
+                chunk, self.leftover = chunk[:n], chunk[n:]
+                break
+        return leftover + chunk
+
+    def close(self):
+        self.fp.close()

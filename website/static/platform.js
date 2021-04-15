@@ -11,7 +11,7 @@ let streamAbsoluteStart, streamRelativeStart, streamTimer, streamTimerLastUpdate
 // ensure only one heartbeat is sent at a time
 let heartIsBeating = false;
 
-let streamInfoFrame = window.frames['stream-info'];
+let streamInfoFrame = window.frames["stream-info"];
 streamInfoFrame.addEventListener("load", function() {
     console.log("stream info iframe loaded");
 
@@ -58,9 +58,9 @@ function currentSegment() {
     }
 }
 
-function updateStreamStatus(msg, color, showRefreshButton) {
+function updateStreamStatus(msg, backgroundColor, showRefreshButton) {
     streamStatus.innerHTML = msg;
-    streamLight.style.color = color;
+    streamLight.style.backgroundColor = backgroundColor;
     if ( showRefreshButton ) {
         refreshButton.style.display = null;
     } else {
@@ -100,6 +100,10 @@ function resetRadialLoader() {
     const newElement = element.cloneNode(true);
     element.parentNode.replaceChild(newElement, element);
     radialLoader = newElement;
+}
+
+// TODO: this
+function fitFrame(frame) {
 }
 
 // get stream info from the server (viewer count, current segment, if stream is online, etc.)
@@ -176,8 +180,8 @@ function heartbeat() {
         }
 
         xhr.send();
-    } catch (e) {
+    } catch ( error ) {
         heartIsBeating = false;
-        throw e;
+        throw error;
     }
 }

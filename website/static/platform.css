@@ -1,43 +1,77 @@
 .banner {
   text-align: center;
   margin: 0.5em;
+  padding-bottom:0.5em;
+  border-bottom:1px solid gray;
+  font-size:125%;
 }
-
 .border {
   border: 1px solid #434343;
 }
-
-.red {
-  color: #ff8280;
-  fill: #ff8280;
+.hue-rotate {
+  filter: hue-rotate(150deg);
 }
-
 #stream {
   height: calc(100vw * 9 / 16);
 }
-
-#chat {
+#chat-window iframe {
   height: calc(100vh - (100vw * 9 / 16 + 20em));
   min-height: 12em;
 }
-
+#chat {
+  transform: scaleY(-1);
+}
 #noscript {
   text-align: center;
   margin-top: calc(-100vw * 9 / 16 / 2 - 1ex);
   position: relative;
 }
-
-iframe.stream-info {
+#stream-info {
   min-height: 7em;
   height: 7em;
 }
-
 #source {
     display: none;
 }
-
+.users-logo {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+svg.users-logo {
+    fill: white;
+}
+.chat-banner-left {
+    float: left;
+    width: 1em;
+    margin-top: 2px;
+}
+.users-logo:hover {
+    border-radius: 6px;
+    background-color: #2f2f2f;
+    padding: 4px;
+    margin: -4px;
+}
+#users-toggle:checked + .banner .users-logo {
+    border-radius: 6px;
+    background-color: #3f3f3f;
+    padding: 4px;
+    margin: -4px;
+}
+#users-toggle:checked + .banner svg.users-logo {
+    fill: #0078e7;
+}
+#users-toggle:checked + .banner .users-logo img {
+    filter: brightness(0) saturate(100%) invert(41%) sepia(92%) saturate(5359%) hue-rotate(195deg) brightness(97%) contrast(103%); /* thanks to https://codepen.io/sosuke/pen/Pjoqqp */
+}
+form[target="users"] {
+    display: none;
+}
+#users-toggle:checked + .banner form[target="chat"] button {
+    filter: revert;
+}
 @media screen and (min-width:48em) {
-  #chat {
+  #chat-window iframe {
     height: calc(100vh - 1px - 10em);
   }
   #stream {
@@ -46,40 +80,34 @@ iframe.stream-info {
   #noscript {
     margin-top: calc(-100vw * 2 / 3 * 9 / 16 / 2 - 1ex);
   }
-  iframe.stream-info {
+  #stream-info {
     height: calc(100vh - 100vw * 2 / 3 * 9 / 16 - 2px);
   }
   #source {
     display: revert;
   }
 }
-
 iframe {
   border:0;
   width: 100%;
 }
-
 .dark-theme a:hover,
 .dark-theme a:active {
   color: #00b6f0;
 }
-
 .dark-theme a {
   color: #a0a0a0;
   text-decoration: none;
 }
-
 body.dark-theme {
   background-color: #232323;
   color: #f0f0f0;
 }
-
 .dark-theme input,
 .dark-theme select,
 .dark-theme textarea {
   color: #232323;
 }
-
 /* workaround to make some custom user css work
 e.g. https://raw.githubusercontent.com/33kk/uso-archive/flomaster/data/usercss/2154.user.css */
 div[class="vjs-text-track-display"] {

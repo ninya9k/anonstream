@@ -24,11 +24,12 @@ def default_nickname(token):
     return ANON_DEFAULT_NICKNAME
 
 def setdefault(token):
-    if token in viewers:
+    if token in viewers or token == None:
         return
     viewers[token] = {'token': token,
-                      'comment': float('-inf'),
-                      'heartbeat': int(time.time()),
+                      'last_comment': float('-inf'),
+                      'last_request': float('-inf'),
+                      'first_request': float('-inf'),
                       'verified': False,
                       'recent_comments': [],
                       'nickname': None,
@@ -36,17 +37,21 @@ def setdefault(token):
                       'banned': False,
                       'tripcode': tripcode.default(),
                       'broadcaster': False}
-    c = viewers[token]['colour']
-    tag = ((c[2] & 0xf0) >> 2) | ((c[1] & 0xf0) >> 6) | ((c[2] & 0xf0) >> 10)
-    viewers[token]['tag'] = f'#{tag:03x}'
+    viewers[token]['tag'] = colour.tag(viewers[token]['colour'])
     if token == BROADCASTER_TOKEN:
         viewers[token]['broadcaster'] = True
         viewers[token]['colour'] = BROADCASTER_COLOUR
         viewers[token]['verified'] = True
 
-def heartbeat(token):
+# TODO: generalise this and reduce the number of keys in last_request; comment is used for flood detection and the rest is for get_user_list
+def made_request(token):
+    if token == None:
+        return
+    now = int(time.time())
     setdefault(token)
-    viewers[token]['heartbeat'] = int(time.time())
+    if viewers[token]['first_request'] == float('-inf'):
+        viewers[token]['first_request'] = now
+    viewers[token]['last_request'] = now
 
 def view_segment(n, token=None, check_exists=True):
     # n is None if segment_hook is called in ConcatenatedSegments and the current segment is init.mp4
@@ -60,18 +65,20 @@ def view_segment(n, token=None, check_exists=True):
     with lock:
         now = int(time.time())
         segment_views.setdefault(n, []).append({'time': now, 'token': token})
+        if token:
+            made_request(token)
         print(f'seg{n}: {token}')
 
-def count_site_tokens():
-    '''
-    Return the number of viewers who have sent a heartbeat or commented in the last 30 seconds
-    '''
-    n = 0
-    now = int(time.time())
-    for token in set(viewers):
-        if max(viewers[token]['heartbeat'], viewers[token]['comment']) >= now - VIEW_COUNTING_PERIOD:
-            n += 1
-    return n
+#def count_site_tokens():
+#    '''
+#    Return the number of viewers who have sent a heartbeat or commented in the last 30 seconds
+#    '''
+#    n = 0
+#    now = int(time.time())
+#    for token in set(viewers):
+#        if max(viewers[token]['last_request']['heartbeat'], viewers[token]['last_request']['comment']) >= now - VIEW_COUNTING_PERIOD:
+#            n += 1
+#    return n
 
 # TODO: account for the stream restarting; segments will be out of order
 def count_segment_views(exclude_token_views=True):
@@ -140,3 +147,19 @@ def count():
         a, b = count_segment_tokens(), count_segment_views(exclude_token_views=True)
         print(f'count_segment_tokens={a}; count_segment_views={b}')
         return a + b
+
+# TODO: separate users into watching and not watching
+def get_people_list():
+    now = int(time.time())
+    users = filter(lambda token: viewers[token]['first_request'] > float('-inf'), viewers)
+    users = filter(lambda token: now - viewers[token]['last_request'] < 24, users)
+    users = sorted(users, key=lambda token: viewers[token]['first_request'])
+
+    people = {'broadcaster': None, 'users': []}
+    for token in users:
+        if viewers[token]['broadcaster']:
+            people['broadcaster'] = viewers[token]
+        else:
+            people['users'].append(viewers[token])
+
+    return people

@@ -4,7 +4,8 @@
         <meta http-equiv="conent-security-policy" content="default-src 'none'">
         {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
         <style>
-          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);transform: scaleX(-1);}
+          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);}
+          #messages {transform: scaleX(-1);}
           .inline-block {display: inline-block;}
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
@@ -20,10 +21,14 @@
               font-size: 90%;
               font-family: monospace;
               vertical-align: middle;
+              display: inline-block;
           }
           .message {margin-left: 0.5em;overflow-wrap: break-word;unicode-bidi: isolate;}
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;}
           .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
+
+          #users {margin-left:0.5em;}
+          .group-name {color:white;margin-bottom:0.125em;}
 
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
           div#refresh {
@@ -54,7 +59,7 @@
         </style>
     </head>
     <body>
-
+<div id="messages">
 {% if broadcaster %}
     <form action="/mod" method="post">
         <div class="reverse">
@@ -89,6 +94,22 @@
 {% endif %}
 
     <a href="" style="text-decoration: none;"><div id="refresh" class="rotate">Manual refresh required</div></a>
-
+</div>
+<div id="users" style="display: none;">
+    {% with broadcaster = people['broadcaster'] %}
+        {% if broadcaster %}
+            <div style="margin-bottom:1em;">
+                <div class="group-name">Broadcaster</div>
+                <span class="camera" title="Broadcaster">🎥</span><span class="name" style="color:#{{ broadcaster['colour'].hex() }};">{{ broadcaster['nickname'] or default_nickname(broadcaster['token']) }}</span>{% if broadcaster['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ broadcaster['tripcode']['string'] }}</div>{% endif %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <div class="group-name">Users ({{ len(people['users']) }})</div>
+    {% for person in people['users'] %}
+        <div class="person">
+            <span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
+        </div>
+    {% endfor %}
+</div>
     </body>
 </html>

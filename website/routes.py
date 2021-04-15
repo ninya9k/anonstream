@@ -17,14 +17,22 @@ viewers = viewership.viewers
 def new_token():
     return secrets.token_hex(8)
 
+def get_token(form=False):
+    token = (request.form if form else request.args).get('token')
+    if token == None or len(token) >= 256 or len(token) < 4:
+        token = request.cookies.get('token')
+    if token and (len(token) >= 256 or len(token) < 4):
+        token = None
+    return token
+
 @current_app.route('/')
 def index(token=None):
-    token = token or request.args.get('token') or request.cookies.get('token') or new_token()
+    token = token or get_token() or new_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    viewership.setdefault(token)
+    viewership.made_request(token)
     response = Response(render_template('index.html', token=token)) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
@@ -34,17 +42,37 @@ def index(token=None):
 def broadcaster():
     return index(token=BROADCASTER_TOKEN)
 
+## simple version, just reads the file from disk
+#@current_app.route('/stream.m3u8')
+#def playlist():
+#    if not stream.is_online():
+#        return abort(404)
+#
+#    token = get_token() or new_token()
+#    try:
+#        viewership.video_was_corrupted.remove(token)
+#    except KeyError:
+#        pass
+#    response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
+#    response.headers['Cache-Control'] = 'no-cache'
+#    response.set_cookie('token', token)
+#    return response
+
 @current_app.route('/stream.m3u8')
 def playlist():
     if not stream.is_online():
         return abort(404)
-
-    token = request.args.get('token') or request.cookies.get('token') or new_token()
+    token = get_token() or new_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
+
+    try:
+        file_wrapper = wrap_file(request.environ, stream.TokenPlaylist(token))
+    except FileNotFoundError:
+        return abort(404)
+    response = Response(file_wrapper, mimetype='application/x-mpegURL')
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
     return response
@@ -54,7 +82,7 @@ def segment_init():
     if not stream.is_online():
         return abort(404)
 
-    token = request.args.get('token') or request.cookies.get('token') or new_token()
+    token = get_token() or new_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -69,7 +97,7 @@ def segment_arbitrary(n):
     if not stream.is_online():
         return abort(404)
 
-    token = request.args.get('token') or request.cookies.get('token')
+    token = get_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -86,7 +114,7 @@ def segment_arbitrary(n):
 def segments():
     if not stream.is_online():
         return abort(404)
-    token = request.args.get('token') or request.cookies.get('token')
+    token = get_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -106,16 +134,27 @@ def segments():
 #       or no-js users have to load it and js users get it in heartbeat, or no-js users always load it like /chat and js users get it in heartbeat
 @current_app.route('/chat')
 def chat_iframe():
-    token = request.args.get('token') or request.cookies.get('token') or new_token()
+    token = get_token() or new_token()
+    viewership.made_request(token)
+
+    include_user_list = bool(request.args.get('users', default=0, type=int))
     messages = (message for message in chat.messages if not message['hidden'])
     messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
     messages = (message for message, _ in messages)
-    return render_template('chat-iframe.html', token=token, messages=messages, default_nickname=viewership.default_nickname, broadcaster=token == BROADCASTER_TOKEN, broadcaster_colour=BROADCASTER_COLOUR, debug=request.args.get('debug'))
+    return render_template('chat-iframe.html',
+                           token=token,
+                           messages=messages,
+                           people=viewership.get_people_list(),
+                           default_nickname=viewership.default_nickname,
+                           broadcaster=token == BROADCASTER_TOKEN,
+                           broadcaster_colour=BROADCASTER_COLOUR,
+                           debug=request.args.get('debug'),
+                           len=len)
 
 @current_app.route('/heartbeat')
 def heartbeat():
-    token = request.args.get('token') or request.cookies.get('token')
-    viewership.heartbeat(token)
+    token = get_token()
+    viewership.made_request(token)
     online = stream.is_online()
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
     return {'viewers': viewership.count(),
@@ -127,7 +166,8 @@ def heartbeat():
 
 @current_app.route('/comment-box')
 def comment_iframe(token=None):
-    token = token or request.args.get('token') or request.cookies.get('token') or new_token()
+    token = token or get_token() or new_token()
+    viewership.made_request(token)
 
     try:
         preset = viewership.preset_comment_iframe.pop(token)
@@ -154,11 +194,13 @@ def comment_iframe(token=None):
 
 @current_app.route('/comment', methods=['POST'])
 def comment():
-    token = request.form.get('token') or request.cookies.get('token') or new_token()
+    token = get_token(form=True) or new_token()
     nonce = request.form.get('nonce')
     message = request.form.get('message', '').replace('\r', '').replace('\n', ' ').strip()
     c_response = request.form.get('captcha')
     c_token = request.form.get('captcha-token')
+
+    viewership.made_request(token)
 
     failure_reason = chat.comment(message, token, c_response, c_token, nonce)
 
@@ -171,9 +213,11 @@ def comment():
 #   for changing your appearance. So this is not done for now.
 @current_app.route('/settings', methods=['POST'])
 def settings():
-    token = request.form.get('token') or request.cookies.get('token') or new_token()
+    token = get_token(form=True) or new_token()
     nickname = request.form.get('nickname', '')
     password = request.form.get('password', '')
+
+    viewership.made_request(token)
 
     note, ok = chat.set_nickname(nickname, token)
     if ok:
@@ -195,8 +239,11 @@ def mod():
 
 @current_app.route('/stream-info')
 def stream_info():
-    token = request.args.get('token') or request.cookies.get('token')
+    token = get_token()
     embed_images = bool(request.args.get('embed', type=int))
+
+    viewership.made_request(token)
+
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
     online = stream.is_online()
     return render_template('stream-info-iframe.html',
@@ -211,6 +258,12 @@ def stream_info():
                            token=token,
                            broadcaster_colour=BROADCASTER_COLOUR)
 
+@current_app.route('/users')
+def users():
+    token = get_token()
+    viewership.made_request(token)
+    return render_template('users.html', token=token, people=viewership.get_people_list(), default_nickname=viewership.default_nickname, broadcaster_colour=BROADCASTER_COLOUR, len=len)
+
 @current_app.route('/static/radial.apng')
 def radial():
     response = send_from_directory(DIR_STATIC, 'radial.apng', mimetype='image/png', add_etags=False)
@@ -218,9 +271,15 @@ def radial():
     response.expires = response.date
     return response
 
-@current_app.route('/static/external/<path:path>')
-def third_party(path):
-    response = send_from_directory(DIR_STATIC_EXTERNAL, path, add_etags=False)
+@current_app.route('/static/<fn>')
+def _static(fn):
+    response = send_from_directory(DIR_STATIC, fn, add_etags=False)
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
+
+@current_app.route('/static/external/<fn>')
+def third_party(fn):
+    response = send_from_directory(DIR_STATIC_EXTERNAL, fn, add_etags=False)
     response.headers['Cache-Control'] = 'public, max-age=604800, immutable'
     response.expires = response.date + datetime.timedelta(days=7)
     return response
