@@ -5,11 +5,15 @@ const segmentDuration = 8.0; // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
 
-let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton, radialLoader, radialLoderCircle;
+const heartbeatPeriod = 20.0; // seconds between heartbeats
+
+let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton, radialLoader;
 let streamAbsoluteStart, streamRelativeStart, streamTimer, streamTimerLastUpdated;
 
 // ensure only one heartbeat is sent at a time
 let heartIsBeating = false;
+
+let nextHeartbeat;
 
 let streamInfoFrame = window.frames["stream-info"];
 streamInfoFrame.addEventListener("load", function() {
@@ -31,13 +35,12 @@ streamInfoFrame.addEventListener("load", function() {
     streamTimerLastUpdated = Date.now() / 1000;
 
     radialLoader = streamInfo.getElementById("radial-loader");
-    radialLoaderCircle = radialLoader.querySelector("circle");
 
     // this viewer's token
     token = document.getElementById("token").value;
 
-    // get stream info every 20 seconds
-    setInterval(heartbeat, 20000);
+    // get stream info every heartbeatPeriod seconds
+    setInterval(heartbeat, heartbeatPeriod * 1000);
 
     // update stream timer every second
     setInterval(updateStreamTimer, 1000);
@@ -95,9 +98,10 @@ function updateStreamTimer() {
     }
 }
 
-function resetRadialLoader() {
+function resetRadialLoader(animationDuration) {
     const element = radialLoader;
     const newElement = element.cloneNode(true);
+    newElement.children[0].style.animationDuration = animationDuration + "s";
     element.parentNode.replaceChild(newElement, element);
     radialLoader = newElement;
 }
@@ -108,6 +112,8 @@ function fitFrame(frame) {
 
 // get stream info from the server (viewer count, current segment, if stream is online, etc.)
 function heartbeat() {
+    nextHeartbeat = Date.now() / 1000 + heartbeatPeriod;
+
     if ( heartIsBeating ) {
         return;
     } else {
@@ -134,7 +140,7 @@ function heartbeat() {
             response = JSON.parse(xhr.responseText)
 
             // reset radial loader
-            resetRadialLoader();
+            resetRadialLoader(nextHeartbeat - Date.now() / 1000);
 
             // update viewer count
             viewerCount.innerHTML = response.viewers;
