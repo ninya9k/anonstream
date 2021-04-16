@@ -117,17 +117,28 @@ def get_next_segment(after, start_segment):
         time.sleep(1)
         segments = _get_segments(sort=True)
         if after == None:
-            return SEGMENT_INIT
+            try:
+                if os.path.getsize(os.path.join(SEGMENTS_DIR, SEGMENT_INIT)) > 0: # FFmpeg creates an empty init.mp4 and only writes to it when the first segment exists
+                    return SEGMENT_INIT
+            except FileNotFoundError:
+                pass
         elif after == SEGMENT_INIT:
-            return start_segment
+            if os.path.isfile(os.path.join(SEGMENTS_DIR, start_segment)):
+                return start_segment
         else:
             segments = filter(lambda segment: _segment_number(segment) > _segment_number(after), segments)
-        try:
-            return min(segments, key=_segment_number)
-        except ValueError:
-            if time.time() - start >= STREAM_TIMEOUT:
-                print(f'SegmentUnavailable in get_next_segment; {after=}')
-                raise SegmentUnavailable
+            try:
+                return min(segments, key=_segment_number)
+            except ValueError:
+                pass
+
+        if time.time() - start >= STREAM_TIMEOUT:
+            if after == None:
+                raise SegmentUnavailable('timeout waiting for initial segment {SEGMENT_INIT}')
+            elif after == SEGMENT_INIT:
+                raise SegmentUnavailable(f'timeout waiting for start segment {start_segment}')
+            else:
+                raise SegmentUnavailable(f'timeout searching after {after}')
 
 class SegmentUnavailable(Exception):
     pass
@@ -164,19 +175,20 @@ class ConcatenatedSegments:
         self.segment_read_offset = 0
         self.segment = next(self.segments)
 
-        if not os.path.isfile(os.path.join(SEGMENTS_DIR, start_segment)):
-            raise FileNotFoundError
-
     def _read(self, n):
         chunk = b''
         while True:
             if self.should_close_connection():
-                raise SegmentUnavailable
+                raise SegmentUnavailable(f'told to close while reading {self.segment}')
 
             #chunk_chunk = self.segments_cache.read(segment=self.segment, read_size=n - len(chunk), instance_id=self.instance_id)
-            with open(os.path.join(SEGMENTS_DIR, self.segment), 'rb') as fp:
-                fp.seek(self.segment_read_offset)
-                chunk_chunk = fp.read(n - len(chunk))
+            try:
+                with open(os.path.join(SEGMENTS_DIR, self.segment), 'rb') as fp:
+                    fp.seek(self.segment_read_offset)
+                    chunk_chunk = fp.read(n - len(chunk))
+            except FileNotFoundError:
+                raise SegmentUnavailable(f'deleted while reading {self.segment}')
+
             self.segment_read_offset += len(chunk_chunk)
             chunk += chunk_chunk
 
@@ -187,7 +199,6 @@ class ConcatenatedSegments:
             try:
                 next_segment = next(self.segments)
             except SegmentUnavailable:
-                print('SegmentUnavailable in ConcatenatedSegments._read')
                 self.segment_hook(_segment_number(self.segment))
                 raise
             else:
@@ -201,7 +212,7 @@ class ConcatenatedSegments:
 
         try:
             return self._read(n)
-        except (FileNotFoundError, SegmentUnavailable):
+        except SegmentUnavailable as e:
             # If a fragment gets interrupted and we start appending whole new
             # fragments after it, the video will get corrupted.
             # This is very likely to happen if you become extremely delayed.
@@ -216,7 +227,7 @@ class ConcatenatedSegments:
             # Until this is figured out, it's probably best to just corrupt the
             # video stream so it's clear to the viewer that they have to refresh.
 
-            print('FileNotFoundError or SegmentUnavailable in ConcatenatedSegments.read')
+            print('SegmentUnavailable in ConcatenatedSegments.read:', *e.args)
             return self._corrupt(n)
 
     def _corrupt(self, n):
