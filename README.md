@@ -21,15 +21,16 @@ This was originally made for fun over the course of five days and hence sloppine
 * Viewer count
 * Stream on/off indicator (and with JavaScript, playback error messages with prompts to refresh)
 * Chat with custom names & tripcodes
-* Ban chatters / hide messages
+* Ban/unban chatters & hide messages
 * Flood detection / liberal captcha
 * Shows stream uptime
+* List of users watching / not watching
 * Works without JavaScript
 
 ## Issues
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
-* Slow: stream delay of at least 30 seconds. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
+* Slow: stream delay of at least 30 seconds (lower with videojs disabled). Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
 * Doesn't use low-latency HLS
 
 ## How it works
