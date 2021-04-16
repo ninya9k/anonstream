@@ -30,13 +30,21 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
     best_colour, best_score = None, None
     for _ in range(16384):
         colour = _gen_colour(seed, background)
-        score = float('inf') if len(avoid) == 0 else sum(_contrast(colour, c) for c in avoid) / len(avoid)
+        score = float('inf') if len(avoid) == 0 else sum(_distance_sq(colour, c) for c in avoid) / len(avoid)
         if 1.25 < score:
             return colour
         if best_score == None or score > best_score:
             best_colour = colour
     return best_colour
 
-def tag(colour):
-    tag = ((colour[2] & 0xf0) >> 4) | (colour[1] & 0xf0) | ((colour[0] & 0xf0) << 4)
-    return f'#{tag:03x}'
+# old-style tag generation: similar colours make similar tags
+#def tag(colour):
+#    tag = ((colour[2] & 0xf0) >> 4) | (colour[1] & 0xf0) | ((colour[0] & 0xf0) << 4)
+#    return f'#{tag:03x}'
+
+def tag(colour, length=3):
+    '''
+    Generates a deterministic pseudorandom tag from a given colour
+    '''
+    digest = hashlib.sha256(colour).digest()
+    return f'#{digest.hex()[:length]}'
