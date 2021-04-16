@@ -7,6 +7,14 @@ const segmentThreshold = latencyThreshold / segmentDuration;
 
 const heartbeatPeriod = 20.0; // seconds between heartbeats
 
+const video = document.querySelector("video");
+const videojsEnabled = parseInt(document.getElementById("videojs-enabled").value);
+let firstSegment;
+
+if ( !videojsEnabled ) {
+    firstSegment = parseInt(/segment=(\d+)/.exec(video.src)[1]);
+}
+
 let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton, radialLoader;
 let streamAbsoluteStart, streamRelativeStart, streamTimer, streamTimerLastUpdated;
 
@@ -25,9 +33,11 @@ streamInfoFrame.addEventListener("load", function() {
 
     streamStatus = streamInfo.getElementById("stream-status");
     streamLight = streamInfo.getElementById("stream-light");
-    refreshButton = streamInfo.getElementById("refresh-button");
+    refreshStreamButton = streamInfo.getElementById("refresh-stream-button");
+    refreshPageButton = streamInfo.getElementById("refresh-page-button");
 
-    refreshButton.onclick = function() { return window.location.reload(true); };
+    refreshStreamButton.onclick = function() { refreshStreamButton.style.display = "none"; return video.load(); };
+    refreshPageButton.onclick   = function() { return window.location.reload(true); };
 
     streamTimer = streamInfo.getElementById("uptime");
     streamAbsoluteStart = streamInfoFrame.contentWindow.streamAbsoluteStart;
@@ -47,27 +57,46 @@ streamInfoFrame.addEventListener("load", function() {
 });
 
 function currentSegment() {
-    try {
-        let player = videojs.players.vjs_video_3;
-        if ( player == null ) {
-            player = videojs.players.videojs;
+    if ( videojsEnabled ) {
+        try {
+            let player = videojs.players.vjs_video_3;
+            if ( player == null ) {
+                player = videojs.players.videojs;
+            }
+            const tracks = player.textTracks();
+            const cues = tracks[0].cues;
+            const uri = cues[cues.length - 1].value.uri;
+            return parseInt(uri.split("/")[3].slice(6));
+        } catch ( error ) {
+            return null;
         }
-        const tracks = player.textTracks();
-        const cues = tracks[0].cues;
-        const uri = cues[cues.length - 1].value.uri;
-        return parseInt(uri.split("/")[3].slice(6));
-    } catch ( error ) {
-        return null;
+    } else {
+        if ( video.readyState != video.HAVE_ENOUGH_DATA || video.networkState == video.NETWORK_IDLE ) {
+            return null;
+        }
+        return firstSegment + Math.floor(video.duration / segmentDuration);
     }
 }
 
-function updateStreamStatus(msg, backgroundColor, showRefreshButton) {
+function updateStreamStatus(msg, backgroundColor, refreshStream, refreshPage) {
+    // TODO: figure out why when the colour is yellow the stream light moves down a few pixels
     streamStatus.innerHTML = msg;
     streamLight.style.backgroundColor = backgroundColor;
-    if ( showRefreshButton ) {
-        refreshButton.style.display = null;
+
+    // doesn't work with videojs: there are errors in the console; probably there is a workaround
+    // could work with html5 video but we'd need to find what segment to start at; too complicated for now
+    refreshPage = refreshPage | refreshStream;
+    refreshStream = false;
+
+    if ( refreshStream ) {
+        refreshStreamButton.style.display = null;
     } else {
-        refreshButton.style.display = "none";
+        refreshStreamButton.style.display = "none";
+    }
+    if ( refreshPage ) {
+        refreshPageButton.style.display = null;
+    } else {
+        refreshPageButton.style.display = "none";
     }
 }
 
@@ -129,7 +158,7 @@ function heartbeat() {
         xhr.onerror = function(e) {
             heartIsBeating = false;
             console.log(e);
-            updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", true);
+            updateStreamStatus("The stream was unreachable. Try refreshing the page.", "yellow", false, true);
         }
         xhr.ontimeout = xhr.onerror;
         xhr.onload = function(e) {
@@ -156,16 +185,16 @@ function heartbeat() {
 
             // update stream status
             if ( !response.online ) {
-                return updateStreamStatus("The stream has ended.", "red", false);
+                return updateStreamStatus("The stream has ended.", "red", false, false);
             }
 
            const serverSegment = response.current_segment;
             if ( !Number.isInteger(serverSegment) ) {
-                return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+                return updateStreamStatus("The stream restarted. Reload the stream.", "yellow", true, false);
             }
 
             if ( oldStreamAbsoluteStart != response.start_abs ) {
-                return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+                return updateStreamStatus("The stream restarted. Reload the stream.", "yellow", true, false);
             }
 
             // when the page is first loaded clientSegment may be null
@@ -173,16 +202,16 @@ function heartbeat() {
             if ( Number.isInteger(clientSegment) ) {
                 const diff = serverSegment - clientSegment;
                 if ( diff >= segmentThreshold ) {
-                    return updateStreamStatus(`You're more than ${latencyThreshold} seconds behind the stream. Refresh the page.`, "yellow", true);
+                    return updateStreamStatus(`You're more than ${latencyThreshold} seconds behind the stream. Reload the stream.`, "yellow", true, false);
                 } else if ( diff < 0 ) {
-                    return updateStreamStatus("The stream restarted. Refresh the page.", "yellow", true);
+                    return updateStreamStatus("The stream restarted. Reload the stream.", "yellow", true, false);
                 }
             } else if (Date.now() / 1000 - t0 >= playbackTimeout) {
-                return updateStreamStatus("The stream is online but you're not receiving it. Try refreshing the page.", "yellow", true);
+                return updateStreamStatus("The stream is online but you're not receiving it. Try refreshing the page.", "yellow", false, true);
             }
 
             // otherwise
-            return updateStreamStatus("The stream is online.", "green", false);
+            return updateStreamStatus("The stream is online.", "green", false, false);
         }
 
         xhr.send();

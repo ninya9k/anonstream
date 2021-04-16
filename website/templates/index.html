@@ -49,6 +49,7 @@
                 <!-- TODO: choose which elements get borders more cleverly -->
                 <div id="stream" class="border">
                     {% if use_videojs %}
+                    <input id="videojs-enabled" type="hidden" value="1">
                     <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
                     <video id="videojs" style="width: 100%;height: 100%;" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
                         <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
@@ -57,7 +58,8 @@
                         <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments', token=token) }}">
                     </noscript>
                     {% else %}
-                    <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments', token=token) }}">
+                    <input id="videojs-enabled" type="hidden" value="0">
+                    <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
                     {% endif %}
                 </div>
                 <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&embed=1"></iframe></noscript></div>

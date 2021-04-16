@@ -1,9 +1,11 @@
 import os
 import time
-from website.constants import SEGMENTS_DIR, SEGMENT_INIT
+from website.constants import HLS_TIME, SEGMENTS_DIR, SEGMENT_INIT, VIEW_COUNTING_PERIOD
 from website.utils.stream import _is_segment, _segment_number, _get_segments
 
+SEGMENT = 'stream{number}.m4s'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
+STREAM_TIMEOUT = HLS_TIME + 2 # consider the stream offline after this many seconds without a new segment
 
 # TODO: uncommment this if it becomes useful
 #
@@ -98,7 +100,18 @@ CORRUPTING_SEGMENT = 'corrupt.m4s'
 #            return chunk
 
 
-def get_next_segment(after, segment_offset, stream_timeout):
+def resolve_segment_offset(segment_offset=max(VIEW_COUNTING_PERIOD // HLS_TIME, 2)):
+    '''
+    Returns the number of the segment at `segment_offset` (1 is most recent segment)
+    '''
+    segments = _get_segments(sort=True)
+    try:
+        segment = segments[-min(segment_offset, len(segments))]
+    except IndexError:
+        raise FileNotFoundError
+    return _segment_number(segment)
+
+def get_next_segment(after, start_segment):
     start = time.time()
     while True:
         time.sleep(1)
@@ -106,16 +119,13 @@ def get_next_segment(after, segment_offset, stream_timeout):
         if after == None:
             return SEGMENT_INIT
         elif after == SEGMENT_INIT:
-            try:
-                return segments[-min(segment_offset, len(segments))]
-            except IndexError:
-                pass
+            return start_segment
         else:
             segments = filter(lambda segment: _segment_number(segment) > _segment_number(after), segments)
         try:
             return min(segments, key=_segment_number)
         except ValueError:
-            if time.time() - start >= stream_timeout:
+            if time.time() - start >= STREAM_TIMEOUT:
                 print(f'SegmentUnavailable in get_next_segment; {after=}')
                 raise SegmentUnavailable
 
@@ -124,25 +134,22 @@ class SegmentUnavailable(Exception):
 
 
 class SegmentsIterator:
-    def __init__(self, segment_offset, stream_timeout, skip_init_segment=False):
-        self.segment_offset = segment_offset
-        self.stream_timeout = stream_timeout
+    def __init__(self, start_segment, skip_init_segment=False):
+        self.start_segment = start_segment
         self.segment = SEGMENT_INIT if skip_init_segment else None
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        self.segment = get_next_segment(self.segment, self.segment_offset, self.stream_timeout)
+        self.segment = get_next_segment(self.segment, self.start_segment)
         return self.segment
 
 
 class ConcatenatedSegments:
-    def __init__(self, segment_offset=4, stream_timeout=24, segment_hook=None, corrupt_hook=None, should_close_connection=None):
-        # start this many segments back from now (1 is most recent segment)
-        self.segment_offset = segment_offset
-        # consider the stream offline after this many seconds without a new segment
-        self.stream_timeout = stream_timeout
+    def __init__(self, start_number, segment_hook=None, corrupt_hook=None, should_close_connection=None):
+        # start at this segment, after SEGMENT_INIT
+        self.start_number = start_number
         # run this function after sending each segment
         self.segment_hook = segment_hook or (lambda n: None)
         # run this function when we send the corrupting segment
@@ -150,16 +157,15 @@ class ConcatenatedSegments:
         # run this function before reading files; if it returns True, then stop
         self.should_close_connection = should_close_connection or (lambda: None)
 
-        self.segments = SegmentsIterator(segment_offset=self.segment_offset,
-                                         stream_timeout=self.stream_timeout)
+        start_segment = SEGMENT.format(number=start_number)
+        self.segments = SegmentsIterator(start_segment=start_segment)
 
         self._closed = False
         self.segment_read_offset = 0
-        try:
-            self.segment = next(self.segments)
-        except SegmentUnavailable:
-            print('SegmentUnavailable in ConcatenatedSegments.__init__')
-            self.close()
+        self.segment = next(self.segments)
+
+        if not os.path.isfile(os.path.join(SEGMENTS_DIR, start_segment)):
+            raise FileNotFoundError
 
     def _read(self, n):
         chunk = b''

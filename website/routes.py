@@ -10,7 +10,7 @@ import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
 from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE
-from website.concatenate import ConcatenatedSegments
+from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
 viewers = viewership.viewers
 
@@ -34,7 +34,12 @@ def index(token=None):
         pass
     use_videojs = bool(request.args.get('videojs', default=1, type=int))
     viewership.made_request(token)
-    response = Response(render_template('index.html', token=token, use_videojs=use_videojs)) # TODO: add a view of the chat only, either as an arg here or another route
+
+    response = render_template('index.html',
+                               token=token,
+                               use_videojs=use_videojs,
+                               start_number=resolve_segment_offset())
+    response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
 
@@ -120,11 +125,22 @@ def segments():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    concatenated_segments = ConcatenatedSegments(segment_offset=max(VIEW_COUNTING_PERIOD // HLS_TIME, 2),
-                                                 stream_timeout=HLS_TIME + 2,
-                                                 segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
-                                                 corrupt_hook=lambda: viewership.video_was_corrupted.add(token), # lock?
-                                                 should_close_connection=lambda: not stream.is_online())
+
+    start_number = request.args.get('segment', type=int)
+    if start_number == None:
+        try:
+            start_number = resolve_segment_offset()
+        except FileNotFoundError:
+            return abort(404)
+
+    try:
+        concatenated_segments = ConcatenatedSegments(start_number=start_number,
+                                                     segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
+                                                     corrupt_hook=lambda: viewership.video_was_corrupted.add(token), # lock?
+                                                     should_close_connection=lambda: not stream.is_online())
+    except FileNotFoundError:
+        return abort(404)
+
     file_wrapper = wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-store'
@@ -160,12 +176,17 @@ def heartbeat():
     viewership.made_request(token)
     online = stream.is_online()
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
-    return {'viewers': viewership.count(),
-            'online': online,
-            'current_segment': stream.current_segment(),
-            'title': stream.get_title(),
-            'start_abs': start_abs if online else None,
-            'start_rel': start_rel if online else None}
+
+    response =  {'viewers': viewership.count(),
+                 'online': online,
+                 'current_segment': stream.current_segment(),
+                 'title': stream.get_title(),
+                 'start_abs': start_abs if online else None,
+                 'start_rel': start_rel if online else None}
+    if token in viewership.video_was_corrupted:
+        response['corrupted'] = True
+
+    return response
 
 @current_app.route('/comment-box')
 def comment_iframe(token=None):

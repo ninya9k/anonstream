@@ -14,7 +14,8 @@
                 margin-right:0.125em;
             }
             #stream-status {vertical-align: text-bottom;}
-            #refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
+            .refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
+            .hue-rotate {filter: hue-rotate(136deg);}
             .icon {
                 margin-top:-1pt;
             }
@@ -84,6 +85,9 @@
             }
             .radial-animation {
                 animation: radial 20s linear forwards;
+            }
+            .radial-animation-duration {
+                animation-duration: 20s;
             }
             @keyframes radial {
                 from {stroke-dashoffset: 0;}
@@ -175,19 +179,16 @@
             <div>
                 {% if not online %}
                     <span id="stream-light" style="background-color:red"></span>
-                    <span id="stream-status">
-                    The stream has ended.
+                    <span id="stream-status">The stream has ended.</span>
                 {% elif video_was_corrupted %}
                     <span id="stream-light" style="background-color:yellow"></span>
-                    <span id="stream-status">
-                    The stream is online but you're not receiving it. Try refreshing the page.
+                    <span id="stream-status">The stream is online but you're not receiving it. Try refreshing the page.</span>
                 {% else %}
                     <span id="stream-light" style="background-color:green"></span>
-                    <span id="stream-status">
-                    The stream is online.
+                    <span id="stream-status">The stream is online.</span>
                 {% endif %}
-                </span>
-                <a id="refresh-button" class="pure-button pure-button-primary" style="display: none;">Refresh</a>
+                <a id="refresh-stream-button" class="refresh-button pure-button pure-button-primary" style="display: none;">Reload</a>
+                <a id="refresh-page-button" class="refresh-button hue-rotate pure-button pure-button-primary" style="display: none;">Refresh</a>
             </div>
             {% if embed_images %}
                 <!-- embedding this animated png messes with the animation -->
