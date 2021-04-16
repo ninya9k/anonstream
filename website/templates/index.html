@@ -49,27 +49,26 @@
         <div class=pure-g>
             <!-- TODO: get rid of PureCSS dependency here; the noscript block on top of the video is too large because the PureCSS files take longer to load -->
             <div class="pure-u-1 pure-u-md-2-3">
-                <!-- TODO: choose which elements get borders more cleverly -->
-                <div id="stream" class="border">
+                <div id="stream">
                     {% if use_videojs %}
                     <input id="videojs-enabled" type="hidden" value="1">
                     <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
-                    <video id="videojs" style="width: 100%;height: 100%;" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
+                    <video id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
                         <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
                     </video>
                     <noscript>
-                        <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
+                        <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
                     </noscript>
                     {% else %}
                     <input id="videojs-enabled" type="hidden" value="0">
-                    <video style="width: 100%;height: 100%;" controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
+                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
                     {% endif %}
                 </div>
                 <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&embed=1"></iframe></noscript></div>
                 <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
             </div>
             <div class="pure-u-1 pure-u-md-1-3">
-                <div class="border">
+                <div id="chat-border">
                     <!-- TODO: mobile tooltip -->
                     <input id="users-toggle" type="checkbox" style="display: none;">
                     <div class="banner">
