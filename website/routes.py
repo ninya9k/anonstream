@@ -259,6 +259,7 @@ def mod_users():
     noscript = bool(request.form.get('noscript', type=int))
     return f'<meta http-equiv="refresh" content="0;url={url_for("users") if noscript else url_for("chat_iframe")}"><div style="font-weight:bold;color:white;">it is done</div>'
 
+# TODO: "you're not receiving the stream" message if that token isn't receiving the stream; make sure they don't see it when they first load the page
 @current_app.route('/stream-info')
 def stream_info():
     token = get_token() or new_token()
