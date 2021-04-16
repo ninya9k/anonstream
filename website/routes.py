@@ -128,9 +128,8 @@ def segments():
 
     start_number = request.args.get('segment', type=int)
     if start_number == None:
-        try:
-            start_number = resolve_segment_offset()
-        except FileNotFoundError:
+        start_number = resolve_segment_offset()
+        if start_number == None:
             return abort(404)
 
     try:
