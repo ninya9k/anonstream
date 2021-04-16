@@ -81,7 +81,7 @@ To appear as the broadcaster in chat, go to `/broadcaster` and log in with the u
 
 You can change the stream title while streaming and it will update for all viewers. Edit `title.txt` to do that.
 
-If you restart FFmpeg while you're streaming, viewers will have to refresh the page. Viewers with JavaScript are prompted to refresh the page.
+If you restart FFmpeg while you're streaming, viewers will have to refresh the page. All viewers are prompted to refresh the page.
 
 ### Stop streaming
 
