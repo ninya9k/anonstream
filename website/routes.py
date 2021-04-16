@@ -126,11 +126,7 @@ def segments():
     except KeyError:
         pass
 
-    start_number = request.args.get('segment', type=int)
-    if start_number == None:
-        start_number = resolve_segment_offset()
-        if start_number == None:
-            start_number = 0
+    start_number = request.args.get('segment', type=int) or resolve_segment_offset()
 
     try:
         concatenated_segments = ConcatenatedSegments(start_number=start_number,

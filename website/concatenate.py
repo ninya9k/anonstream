@@ -108,7 +108,7 @@ def resolve_segment_offset(segment_offset=max(VIEW_COUNTING_PERIOD // HLS_TIME, 
     try:
         segment = segments[-min(segment_offset, len(segments))]
     except IndexError:
-        return None
+        return 0
     return _segment_number(segment)
 
 def get_next_segment(after, start_segment):
