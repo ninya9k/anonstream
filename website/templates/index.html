@@ -21,13 +21,16 @@
                 }
                 {% endif %}
                 #users-container {
-                    display: none;
+                    height: 0;
+                    overflow: hidden;
                 }
                 #users-toggle:checked ~ #chat-window #users-container {
-                    display: revert;
+                    height: revert;
+                    overflow: revert;
                 }
                 #users-toggle:checked ~ #chat-window #chat-container {
-                    display: none;
+                    height: 0;
+                    overflow: hidden;
                 }
                 #users-toggle:checked + .banner form[target="chat"] {
                     display: none;
@@ -121,13 +124,18 @@
             const chatUsers    = chat.contentDocument.getElementById("users");
             if ( chatUsers == null || chatMessages == null )
                 return;
+            /* using display: none; resets css animations, i.e. the manual refresh banner */
             if ( usersToggle.checked ) {
-                chatMessages.style.display = "none";
-                chatUsers.style.display = null;
+                chatMessages.style.overflow = "hidden";
+                chatMessages.style.height = "0";
+                chatUsers.style.height = "unset";
+                chatUsers.style.overflow = "unset";
                 chat.style.transform = "revert";
             } else {
-                chatUsers.style.display = "none";
-                chatMessages.style.display = null;
+                chatUsers.style.overflow = "hidden";
+                chatUsers.style.height = "0";
+                chatMessages.style.height = "unset";
+                chatMessages.style.overflow = "unset";
                 chat.style.transform = null;
             }
         }

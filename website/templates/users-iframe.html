@@ -2,7 +2,7 @@
 <head>
 {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
 <style>
-          body {color:white;margin-left: 1em;}
+          body {color:white;margin-top: 0;margin-bottom: 0;}
           .group {margin-bottom:1.5em;}
           .group-name {margin-bottom:0.25em;}
           .person {margin-left: 0.5em;}
@@ -18,9 +18,43 @@
               vertical-align: middle;
               display: inline-block;
           }
+          form {
+            margin: 0;
+          }
+          .refresh {
+            color: white;
+            background-color: gray;
+            position: sticky;
+            top: 0;      /* (when upside down etc.) placement is correct with top when there is no scrollbar */
+          /*bottom: 0;*/ /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
+            padding: 1em;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 4px;
+            box-shadow: 0px 2px 4px black;
+            margin: 0;
+          }
+          .unhide-margin {
+            animation: unhide-margin 0s forwards 30s;
+            height: 0;
+            padding: 0;
+            visibility: hidden;
+          }
+          @keyframes unhide-margin {
+            to {
+              height: revert;
+              padding: 1em;
+              visibility: visible;
+              marign-bottom: 1.25em;
+            }
+          }
 </style>
 </head>
 <body>
+    <a href="" style="text-decoration: none;">
+        <div class="refresh unhide-margin" style="bottom:revert;top:0;">Manual refresh required</div>
+    </a>
+    <div style="margin: 0 1em;">
     {% with person = people['broadcaster'] %}
         {% if person %}
             <div class="group">
@@ -70,5 +104,6 @@
         <button>Unban</button>
     </form>
 {% endif %}
+</div>
 </body>
 </html>

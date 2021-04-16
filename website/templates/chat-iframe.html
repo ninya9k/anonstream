@@ -4,8 +4,9 @@
         <meta http-equiv="conent-security-policy" content="default-src 'none'">
         {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
         <style>
-          body {margin: 0.5em;margin-bottom: 0;min-height: calc(100vh - 1em);}
+          body {margin: 0 0.5em;min-height: calc(100vh - 1em);}
           #messages {transform: scaleX(-1);}
+          form {margin: 0;}
           .inline-block {display: inline-block;}
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
@@ -28,38 +29,53 @@
           .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
 
           {% if include_user_list %}
-          #users {color:white;margin-left:0.5em;}
+          #users {color:white;}
           .group {margin-bottom:1.5em;}
           .group-name {margin-bottom:0.25em;}
           .person {margin-left: 0.5em;}
           {% endif %}
 
           input[type="submit"] {padding: 0;margin-bottom: 0.5em;}
-          div#refresh {
+          .refresh {
             color: white;
             background-color: gray;
             position: sticky;
-          /*top: 100vh;*/ /* placement is correct with top when there is no scrollbar */
-            bottom: 0;    /* placement is correct with bottom when there is a scrollbar */
+          /*top: 100vh;*/ /* (when upside down etc.) placement is correct with top when there is no scrollbar */
+            bottom: 0;    /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
             padding: 1em;
             text-align: center;
             font-weight: bold;
             border-radius: 4px;
             box-shadow: 0px 2px 4px black;
+            margin: 0;
           }
-          div#refresh {
+          .unhide {
             animation: unhide 0s forwards 30s;
             height: 0;
             padding: 0;
             visibility: hidden;
           }
-        @keyframes unhide {
-          to {
-            height: revert;
-            padding: 1em;
-            visibility: visible;
+          .unhide-margin {
+            animation: unhide-margin 0s forwards 30s;
+            height: 0;
+            padding: 0;
+            visibility: hidden;
           }
-        }
+          @keyframes unhide {
+            to {
+              height: revert;
+              padding: 1em;
+              visibility: visible;
+            }
+          }
+          @keyframes unhide-margin {
+            to {
+              height: revert;
+              padding: 1em;
+              visibility: visible;
+              margin-bottom: 1.25em;
+            }
+          }
         </style>
     </head>
     <body>
@@ -97,10 +113,14 @@
     </form>
 {% endif %}
 
-    <a href="" style="text-decoration: none;"><div id="refresh" class="rotate">Manual refresh required</div></a>
+    <a href="" style="text-decoration: none;"><div class="refresh unhide rotate">Manual refresh required</div></a>
 </div>
 {% if include_user_list %}
-<div id="users" style="display: none;">
+<div id="users" style="overflow: hidden;height:0;">
+        <a href="" style="text-decoration: none;">
+            <div class="refresh unhide-margin" style="bottom:revert;top:0;">Manual refresh required</div>
+        </a>
+    <div style="margin: 0.5em 1em 0 1em;">
     {% with person = people['broadcaster'] %}
         {% if person %}
             <div class="group">
@@ -150,6 +170,7 @@
         <button>Unban</button>
     </form>
 {% endif %}
+</div>
 </div>
 {% endif %}
     </body>

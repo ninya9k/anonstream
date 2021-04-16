@@ -15,7 +15,8 @@
   height: calc(100vw * 9 / 16);
 }
 #chat-window iframe {
-  height: calc(100vh - (100vw * 9 / 16 + 20em));
+  height: calc(100vh - (100vw * 9 / 16 + 20.5em));
+  margin-bottom: 0.5em;
   min-height: 12em;
 }
 #chat {
@@ -72,7 +73,7 @@ form[target="users"] {
 }
 @media screen and (min-width:48em) {
   #chat-window iframe {
-    height: calc(100vh - 1px - 10em);
+    height: calc(100vh - 1px - 10.5em);
   }
   #stream {
     height: calc(100vw * 2 / 3 * 9 / 16); /* 16:9 video taking up 2/3 of the page horizontally */
