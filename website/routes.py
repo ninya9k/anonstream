@@ -146,9 +146,6 @@ def segments():
     response.set_cookie('token', token)
     return response
 
-# TODO: have a button like on Twitch that when you click it shows you a list of viewers / chatters that are currently watching / in chat
-#       there are several ways to do it, e.g. another iframe that gets constantly updates, or include the information in heartbeat,
-#       or no-js users have to load it and js users get it in heartbeat, or no-js users always load it like /chat and js users get it in heartbeat
 @current_app.route('/chat')
 def chat_iframe():
     token = get_token() or new_token()
