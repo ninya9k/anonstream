@@ -68,7 +68,7 @@ def broadcaster():
 def playlist():
     if not stream.is_online():
         return abort(404)
-    token = get_token() or new_token()
+    token = get_token()
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -80,7 +80,6 @@ def playlist():
         return abort(404)
     response = Response(file_wrapper, mimetype='application/x-mpegURL')
     response.headers['Cache-Control'] = 'no-cache'
-    response.set_cookie('token', token)
     return response
 
 @current_app.route(f'/{SEGMENT_INIT}')
@@ -111,9 +110,6 @@ def segment_arbitrary(n):
     viewership.view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
-    if token == None:
-        token = new_token()
-        response.set_cookie('token', token)
     return response
 
 @current_app.route('/stream.mp4')
@@ -144,7 +140,7 @@ def segments():
 
 @current_app.route('/chat')
 def chat_iframe():
-    token = get_token() or new_token()
+    token = get_token()
     viewership.made_request(token)
 
     include_user_list = bool(request.args.get('users', default=1, type=int))
@@ -265,7 +261,7 @@ def mod_users():
 
 @current_app.route('/stream-info')
 def stream_info():
-    token = get_token()
+    token = get_token() or new_token()
     embed_images = bool(request.args.get('embed', type=int))
 
     viewership.made_request(token)
