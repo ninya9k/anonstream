@@ -25,6 +25,8 @@ This was originally made for fun over the course of five days and hence sloppine
 * Flood detection / liberal captcha
 * Shows stream uptime
 * List of users watching / not watching
+* Optionally uses videojs (append `?videojs=0` to the URL to disable it)
+* With videojs disabled, you can scrub backwards and forwards on the video timeline. If you scrub to the end (the most recent segment), you can achieve really quite low latency, as low as 12 seconds.
 * Works without JavaScript
 
 ## Issues
