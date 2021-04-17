@@ -38,7 +38,7 @@ def index(token=None):
     response = render_template('index.html',
                                token=token,
                                use_videojs=use_videojs,
-                               start_number=resolve_segment_offset())
+                               start_number=resolve_segment_offset() if stream.is_online() else 0)
     response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
