@@ -13,7 +13,7 @@
   position: relative;
   padding-bottom: calc(100% * 9 / 16);
 }
-#stream video {
+#stream video, #videojs {
   position: absolute;
   top: 0;
   left: 0;
