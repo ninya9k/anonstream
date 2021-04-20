@@ -53,7 +53,7 @@ The FFmpeg command in `stream.sh` was based on [this series of articles by Marti
 
 To run this yourself, get this source code. As the project currently exists you might need to change some things:
 
-`stream.sh` as it exists in this repo is set up to record your screen and system audio on Linux.
+`stream.sh` as it exists in this repo is set up to record your screen and system audio on Linux. See https://trac.ffmpeg.org/wiki/Capture/Desktop for the syntax for different OSs.
 
 * If you're on Windows `stream.sh` will be wrong for you and so will all the fonts in `config.json`. `stream.sh` uses `$$` to get its process ID, you'll have to use the Windows equivalent.
 * If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `config.json`.
