@@ -45,11 +45,15 @@ This was originally made for fun over the course of five days and hence sloppine
 
 TODO
 
-See https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-1/ and https://www.martin-riedl.de/2018/08/24/using-ffmpeg-as-a-hls-streaming-server-part-2/ as `stream.sh` is based on those.
+The FFmpeg command in `stream.sh` was based on [this series of articles by Martin Riedl](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-overview/).
+
+[This article](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-part-8-reducing-delay/) explains what causes HLS to have latency.
 
 ## Tutorial
 
 To run this yourself, get this source code. As the project currently exists you might need to change some things:
+
+`stream.sh` as it exists in this repo is set up to record your screen and system audio on Linux.
 
 * If you're on Windows `stream.sh` will be wrong for you and so will all the fonts in `config.json`. `stream.sh` uses `$$` to get its process ID, you'll have to use the Windows equivalent.
 * If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `config.json`.
