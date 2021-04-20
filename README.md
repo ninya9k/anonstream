@@ -59,7 +59,7 @@ To run this yourself, get this source code. As the project currently exists you 
 * If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `config.json`.
 * If you're on Linux `stream.sh` will probably be alright but you might not have all the fonts in `config.json`.
 
-As an aside: you can change the command in stream.sh to record anything you want, it doesn't have to be just your screen and system audio. If you want to change stuff around, just know that all that's required is: (1) `stream/pid.txt` contains `stream.sh`'s process ID, (2) `stream/start.txt` contains the time the stream started, (3) HLS segments appear as `stream/stream*.m4s`, and (4) `stream/stream.m3u8` is the HLS playlist.
+As an aside: you can change the command in stream.sh to record anything you want, it doesn't have to be just your screen and system audio. If you want to change stuff around, just know that all that's required is: (1) `stream/pid.txt` contains `stream.sh`'s process ID, (2) `stream/start.txt` contains the time the stream started, (3) HLS segments appear as `stream/stream*.m4s`, (4) `stream/init.mp4` is the inital HLS segment, and (5) `stream/stream.m3u8` is the HLS playlist. (All this is taken care of in `stream.sh` by default.)
 
 Assuming your FFmpeg command is working, this is what you have to do.
 
