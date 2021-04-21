@@ -19,18 +19,21 @@ def _gen_colour(seed, background=BACKGROUND_COLOUR):
         seed = hashlib.sha256(seed).digest()
         for i in range(0, len(seed) - len(seed) % 3, 3):
             colour = seed[i:i+3]
-            if 1.5 < _contrast(colour, background):
+            if 1 < _contrast(colour, background) < 3:
                 return colour
 
 def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
     '''
     Returns a colour that with sufficient contrast to the background colour
     Tries to make the colour contrast with all the colours in `avoid`
+    This function hasn't been analysed for efficiency or anything
     '''
     best_colour, best_score = None, None
     for _ in range(16384):
         colour = _gen_colour(seed, background)
         score = float('inf') if len(avoid) == 0 else sum(_distance_sq(colour, c) for c in avoid) / len(avoid)
+        if colour in avoid:
+            score = float('-inf')
         if 1.25 < score:
             return colour
         if best_score == None or score > best_score:
