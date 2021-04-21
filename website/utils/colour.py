@@ -34,7 +34,7 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
         score = float('inf') if len(avoid) == 0 else sum(_distance_sq(colour, c) for c in avoid) / len(avoid)
         if colour in avoid:
             score = float('-inf')
-        if 1.25 < score:
+        if 1.8 < score:
             return colour
         if best_score == None or score > best_score:
             best_colour = colour
