@@ -93,6 +93,6 @@ If you restart FFmpeg while you're streaming, viewers will have to refresh the p
 
 ### Stop streaming
 
-To stop streaming, stop FFmpeg and delete all the files in `stream/`. To start streaming again just run `stream.sh`.
+To stop streaming, stop FFmpeg. You can delete the files in `stream/` if you want. To start streaming again just rerun `stream.sh`.
 
 If you restart Flask, the chat will be cleared, you'll have to log in again, and everyone else will have to do the captcha again.
