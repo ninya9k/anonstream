@@ -4,7 +4,10 @@ Recipe for livestreaming over the Tor network
 
 ![Screenshot of the livestream web interface](demo.png)
 
-This was originally made for fun over the course of five days and hence sloppiness may pervade (especially in the CSS).
+This was originally made for fun over the course of five days and hence sloppiness may pervade.
+
+* [Repo on GitHub](https://github.com/ninya9k/onion-livestreaming)
+* [Repo on GitLab](https://gitlab.com/ninya9k/onion-livestreaming)
 
 ## Dependencies
 * Tor
