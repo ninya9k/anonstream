@@ -7,7 +7,7 @@ from datetime import datetime
 import website.utils.captcha as captcha_util
 import website.utils.tripcode as tripcode
 import website.viewership as viewership
-from website.constants import BROADCASTER_TOKEN, CHAT_MAX_LENGTH, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, \
+from website.constants import BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_STORAGE, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, \
                               NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_RANDOM, N_CONFIRM, N_APPEAR_OK, N_APPEAR_FAIL
 
 from pprint import pprint
@@ -18,7 +18,7 @@ viewers = viewership.viewers
 nonces = set()
 
 def behead_chat():
-    while len(messages) > CHAT_MAX_LENGTH:
+    while len(messages) > CHAT_MAX_STORAGE:
         messages.pop()
 
 def new_nonce():
@@ -35,7 +35,7 @@ def comment(text, token, c_response, c_token, nonce):
             failure_reason = N_TOKEN_EMPTY
         elif not text:
             failure_reason = N_MESSAGE_EMPTY
-        elif len(text) >= 256:
+        elif len(text) >= MESSAGE_MAX_LENGTH:
             failure_reason = N_MESSAGE_LONG
         else:
             viewership.setdefault(token)

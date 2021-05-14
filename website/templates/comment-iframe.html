@@ -32,8 +32,9 @@
         form {
           margin: 0;
         }
-        img {
+        input[type="image"] {
           margin-top: 0.125em;
+          cursor: help;
         }
         .note-space {
           display: inline-block;
@@ -172,16 +173,16 @@
         <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">
             <input type="hidden" name="nonce" value="{{ nonce }}">
-            <input required id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
+            <input id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
+            <button style="height:30;font-weight:bold;" class="pure-button pure-button-primary">Chat</button>
             <div class="note-space">
                 <label for="settings-toggle">⚙️</label>
                 {% if captcha %}
-                    <img src="{{ captcha['src'] }}">
+                    <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}"></input>
                     <input name="captcha-token" type="hidden" value="{{ captcha['token'] }}">
-                    <input required id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
+                    <input id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
                 {% endif %}
             </div>
-            <button style="height:30;font-weight:bold;" class="pure-button pure-button-primary">Chat</button>
         </form>
         <form id="settings" action="{{ url_for('settings') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">

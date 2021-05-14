@@ -9,7 +9,7 @@ import datetime
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
-from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE
+from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
 viewers = viewership.viewers
@@ -176,7 +176,7 @@ def heartbeat():
 
     return response
 
-@current_app.route('/comment-box')
+@current_app.route('/comment-box', methods=['GET', 'POST'])
 def comment_iframe(token=None):
     token = token or get_token() or new_token()
     viewership.made_request(token)
@@ -185,8 +185,12 @@ def comment_iframe(token=None):
         preset = viewership.preset_comment_iframe.pop(token)
     except KeyError:
         preset = {}
-    if preset.get('note', N_NONE) not in NOTES:
-        preset['note'] = N_NONE
+
+    # a new captcha was requested; fill in the message that the user has typed so far
+    if preset == {} and request.method == 'POST':
+        message = request.form.get('message', '')
+        if len(message) < MESSAGE_MAX_LENGTH:
+            preset['message'] = message
 
     captcha = chat.get_captcha(token)
 
