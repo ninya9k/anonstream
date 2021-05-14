@@ -57,14 +57,14 @@
                         <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
                     </video>
                     <noscript>
-                        <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
+                        <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}"></video>
                     </noscript>
                     {% else %}
                     <input id="videojs-enabled" type="hidden" value="0">
-                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&token={{ token }}">
+                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}">
                     {% endif %}
                 </div>
-                <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&embed=1"></iframe></noscript></div>
+                <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&amp;embed=1"></iframe></noscript></div>
                 <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
             </div>
             <div class="pure-u-1 pure-u-md-1-3">
@@ -95,7 +95,7 @@
                         </form>
                     </div>
                     <div id="chat-window">
-                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe') }}?token={{ token }}&users=0"></iframe></noscript></div>
+                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe') }}?token={{ token }}&amp;users=0"></iframe></noscript></div>
                         <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
                     <iframe style="height:98px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
