@@ -9,6 +9,8 @@ This was originally made for fun over the course of five days and hence sloppine
 * [Repo on GitHub](https://github.com/ninya9k/onion-livestreaming)
 * [Repo on GitLab](https://gitlab.com/ninya9k/onion-livestreaming)
 
+This works on Linux, and should work on macOS and Windows with some tweaking. Look at the [setup tutorial](#tutorial).
+
 ## Dependencies
 * Tor
 * FFmpeg
