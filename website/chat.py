@@ -1,139 +1,176 @@
-import secrets
+import math
+import os
+import threading
 import time
-import unicodedata
-from collections import deque
-from datetime import datetime
-
-import website.utils.captcha as captcha_util
+import website.utils.colour as colour
 import website.utils.tripcode as tripcode
-import website.viewership as viewership
-from website.constants import BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_STORAGE, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, \
-                              NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_RANDOM, N_CONFIRM, N_APPEAR_OK, N_APPEAR_FAIL
+from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD
 
-from pprint import pprint
+viewers = {}
+segment_views = {}
+video_was_corrupted = set()
+lock = threading.Lock()
 
-messages = deque()
-captchas = {}
-viewers = viewership.viewers
-nonces = set()
+#When a viewer leaves a comment, they make a POST request to /comment; either
+#you can redirect back to /comment-box or you can respond there without
+#redirecting. In the second case viewers will get a confirmation dialogue when
+#they refresh the page; in the first case, you need to somehow give them the
+#note exactly once. That's what this dict is for.
+preset_comment_iframe = {}
 
-def behead_chat():
-    while len(messages) > CHAT_MAX_STORAGE:
-        messages.pop()
+def default_nickname(token):
+    if token == BROADCASTER_TOKEN:
+        return HOST_DEFAULT_NICKNAME
+    return ANON_DEFAULT_NICKNAME
 
-def new_nonce():
-    nonce = secrets.token_hex(8)
-    with viewership.lock:
-        nonces.add(nonce)
-    return nonce
+def setdefault(token):
+    if token in viewers or token == None:
+        return
+    viewers[token] = {'token': token,
+                      'last_comment': float('-inf'),
+                      'last_segment': float('-inf'),
+                      'last_request': float('-inf'),
+                      'first_request': float('-inf'),
+                      'verified': False,
+                      'recent_comments': [],
+                      'nickname': None,
+                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
+                      'banned': False,
+                      'tripcode': tripcode.default(),
+                      'broadcaster': False}
+    viewers[token]['tag'] = colour.tag(viewers[token]['colour'])
+    if token == BROADCASTER_TOKEN:
+        viewers[token]['broadcaster'] = True
+        viewers[token]['colour'] = BROADCASTER_COLOUR
+        viewers[token]['verified'] = True
 
-def comment(text, token, c_response, c_token, nonce):
-    failure_reason = N_NONE
-    with viewership.lock:
-        now = int(time.time())
-        if not token:
-            failure_reason = N_TOKEN_EMPTY
-        elif not text:
-            failure_reason = N_MESSAGE_EMPTY
-        elif len(text) >= MESSAGE_MAX_LENGTH:
-            failure_reason = N_MESSAGE_LONG
+# TODO: generalise this and reduce the number of keys in last_request; comment is used for flood detection and the rest is for get_user_list
+def made_request(token):
+    if token == None:
+        return
+    now = int(time.time())
+    setdefault(token)
+    if viewers[token]['first_request'] == float('-inf'):
+        viewers[token]['first_request'] = now
+    viewers[token]['last_request'] = now
+
+def view_segment(n, token=None, check_exists=True):
+    # n is None if segment_hook is called in ConcatenatedSegments and the current segment is init.mp4
+    if n == None:
+        return
+
+    # technically this is a race condition
+    if check_exists and not os.path.isfile(os.path.join(SEGMENTS_DIR, f'stream{n}.m4s')):
+        return
+
+    now = int(time.time())
+    with lock:
+        segment_views.setdefault(n, []).append({'time': now, 'token': token})
+        if token:
+            setdefault(token)
+            if viewers[token]['first_request'] == float('-inf'):
+                viewers[token]['first_request'] = now
+            viewers[token]['last_request'] = now
+            viewers[token]['last_segment'] = now
+        print(f'seg{n}: {token}')
+
+#def count_site_tokens():
+#    '''
+#    Return the number of viewers who have sent a heartbeat or commented in the last 30 seconds
+#    '''
+#    n = 0
+#    now = int(time.time())
+#    for token in set(viewers):
+#        if max(viewers[token]['last_request']['heartbeat'], viewers[token]['last_request']['comment']) >= now - VIEW_COUNTING_PERIOD:
+#            n += 1
+#    return n
+
+# TODO: account for the stream restarting; segments will be out of order
+def count_segment_views(exclude_token_views=True):
+    '''
+    Estimate the number of viewers using only the number of views segments have had in the last 30 seconds
+    If `exclude_token_views` is True then ignore views with associated tokens
+    '''
+    if not segment_views: # what?
+        return 0
+
+    # create the list of streaks; a streak is a sequence of consequtive segments with non-zero views
+    streaks = []
+    streak = []
+    for i in range(min(segment_views), max(segment_views)):
+        _views = segment_views.get(i, [])
+        if exclude_token_views:
+            _views = filter(lambda _view: _view['token'] == None, _views)
+            _views = list(_views)
+        if len(_views) == 0:
+            if streak:
+                streaks.append(streak)
+            streak = []
         else:
-            viewership.setdefault(token)
-            # remove record of old comments
-            for t in viewers[token]['recent_comments'].copy():
-                if t < now - FLOOD_PERIOD:
-                    viewers[token]['recent_comments'].remove(t)
+            streak.append(len(_views))
+    else:
+        if streak:
+            streaks.append(streak)
 
-            pprint(viewers)
+    total_viewers = 0
+    for streak in streaks:
+        n = 0
+        _previous_n_views = 0
+        for _n_views in streak:
+            # any increase in views from one segment to the next means there must be new viewer
+            n += max(_n_views - _previous_n_views, 0)
+            _previous_n_views = _n_views
+        total_viewers += n
 
-            if viewers[token]['banned']:
-                failure_reason = N_BANNED
-            elif not viewers[token]['verified'] and c_token not in captchas:
-                failure_reason = N_CAPTCHA_MISSING
-            elif not viewers[token]['verified'] and captchas[c_token] != c_response:
-                failure_reason = N_CAPTCHA_WRONG
-            elif secrets.randbelow(50) == 0:
-                failure_reason = N_CAPTCHA_RANDOM
-                viewers[token]['verified'] = False
-            elif now < viewers[token]['last_comment'] + CHAT_TIMEOUT:
-                failure_reason = N_TOOFAST
-            elif len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
-                failure_reason = N_FLOOD
-                viewers[token]['verified'] = False
-            else:
-                try:
-                    nonces.remove(nonce)
-                except KeyError:
-                    failure_reason = N_CONFIRM
-                else:
-                    dt = datetime.utcfromtimestamp(now)
-                    messages.appendleft({'text': text,
-                                         'viewer': viewers[token],
-                                         'id': f'{token}-{secrets.token_hex(4)}',
-                                         'hidden': False,
-                                         'time': dt.strftime('%H:%M'),
-                                         'date': dt.strftime('%F %T')})
-                    viewers[token]['last_comment'] = now
-                    viewers[token]['recent_comments'].append(now)
-                    viewers[token]['verified'] = True
-                    behead_chat()
+    # this assumes every viewer views exactly VIEW_COUNTING_PERIOD / HLS_TIME segments
+    average_viewers = sum(sum(streak) for streak in streaks) * HLS_TIME / VIEW_COUNTING_PERIOD
 
-    viewership.setdefault(BROADCASTER_TOKEN)
-    viewers[BROADCASTER_TOKEN]['verified'] = True
-    return failure_reason
+    print(f'count_segment_views: {total_viewers=}, {average_viewers=}')
+    return max(total_viewers, math.ceil(average_viewers))
 
-def mod_chat(message_ids, hide, ban, ban_and_purge):
-    purge  = ban_and_purge
-    ban    = ban_and_purge or ban
+def count_segment_tokens():
+    # remove old views
+    now = int(time.time())
+    for i in set(segment_views):
+        for view in segment_views[i].copy():
+            if view['time'] < now - VIEW_COUNTING_PERIOD:
+                segment_views[i].remove(view)
+        if len(segment_views[i]) == 0:
+            segment_views.pop(i)
 
-    with viewership.lock:
-        if ban:
-            banned = {message_id.split('-')[0] for message_id in message_ids}
-            for token in banned:
-                viewers[token]['banned'] = True
+    tokens = set()
+    for i in segment_views:
+        for view in segment_views[i]:
+            # count only token views; token=None means there was no token
+            if view['token'] != None:
+                tokens.add(view['token'])
 
-        for message in messages:
-            if hide and message['id'] in message_ids:
-                message['hidden'] = True
-            if purge and message['viewer']['token'] in banned:
-                message['hidden'] = True
+    return len(tokens)
 
-        viewership.setdefault(BROADCASTER_TOKEN)
-        viewers[BROADCASTER_TOKEN]['banned'] = False
+def count():
+    with lock:
+        a, b = count_segment_tokens(), count_segment_views(exclude_token_views=True)
+        print(f'count_segment_tokens={a}; count_segment_views={b}')
+        return a + b
 
-def mod_users(tokens, banned):
-    with viewership.lock:
-        for token in tokens:
-            viewers[token]['banned'] = banned
+# TODO: separate users into watching and not watching
+def get_people_list():
+    now = int(time.time())
+    users = filter(lambda token: viewers[token]['first_request'] > float('-inf'), viewers)
+    users = filter(lambda token: now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD, users)
+    users = sorted(users, key=lambda token: viewers[token]['first_request'])
 
-def get_captcha(token):
-    viewership.setdefault(token)
-    if viewers[token]['verified']:
-        return None
-    c_src, c_answer = captcha_util.gen_captcha()
-    c_token = secrets.token_hex(8)
-    captchas[c_token] = c_answer
-    return {'src': c_src, 'token': c_token}
+    people = {'broadcaster': None, 'watching': [], 'not_watching': [], 'banned': []}
+    for token in users:
+        person = viewers[token]
+        if person['broadcaster']:
+            people['broadcaster'] = person
+        elif now - person['last_segment'] < VIEW_COUNTING_PERIOD:
+            people['watching'].append(person)
+        else:
+            people['not_watching'].append(person)
+    for token in viewers:
+        if person['banned']:
+            people['banned'].append(person)
 
-def set_nickname(nickname, token):
-    viewership.setdefault(token)
-
-    nickname = ''.join(char if unicodedata.category(char) != 'Cc' else ' ' for char in nickname).strip()
-    if len(nickname) > 24:
-        return N_APPEAR_FAIL, False
-
-    if len(nickname) == 0 or nickname == viewership.default_nickname(token):
-        nickname = None
-
-    viewers[token]['nickname'] = nickname
-    return N_APPEAR_OK, True
-
-def set_tripcode(password, token):
-    if len(password) > 256:
-        return N_APPEAR_FAIL, False
-    viewers[token]['tripcode'] = tripcode.gen_tripcode(password)
-    return N_APPEAR_OK, True
-
-def remove_tripcode(token):
-    viewers[token]['tripcode'] = tripcode.default()
-    return N_APPEAR_OK, True
+    return people
