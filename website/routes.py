@@ -225,8 +225,8 @@ def comment():
 
 # TODO: make it so your message that you haven't sent yet stays there when you change your appearance
 # ^ This is possible if you use only one form and change buttons to <input type="submit" formaction="/url">
-#   BUT then you won't be able to have `required` in any inputs since a message shouldn't be required
-#   for changing your appearance. So this is not done for now.
+#   BUT it's not easy to make sure the formaction is correct when you press enter in any given <input>.
+#   There could be some other way, idk.
 @current_app.route('/settings', methods=['POST'])
 def settings():
     token = get_token(form=True) or new_token()
