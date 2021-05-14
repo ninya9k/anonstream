@@ -153,24 +153,25 @@ def count():
         print(f'count_segment_tokens={a}; count_segment_views={b}')
         return a + b
 
-# TODO: separate users into watching and not watching
 def get_people_list():
-    now = int(time.time())
-    users = filter(lambda token: viewers[token]['first_request'] > float('-inf'), viewers)
-    users = filter(lambda token: now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD, users)
-    users = sorted(users, key=lambda token: viewers[token]['first_request'])
+    with lock:
+        now = int(time.time())
+        users = filter(lambda token: viewers[token]['first_request'] > float('-inf'), viewers)
+        users = filter(lambda token: now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD, users)
+        users = sorted(users, key=lambda token: viewers[token]['first_request'])
 
-    people = {'broadcaster': None, 'watching': [], 'not_watching': [], 'banned': []}
-    for token in users:
-        person = viewers[token]
-        if person['broadcaster']:
-            people['broadcaster'] = person
-        elif now - person['last_segment'] < VIEW_COUNTING_PERIOD:
-            people['watching'].append(person)
-        else:
-            people['not_watching'].append(person)
-    for token in viewers:
-        if person['banned']:
-            people['banned'].append(person)
+        people = {'broadcaster': None, 'watching': [], 'not_watching': [], 'banned': []}
+        for token in users:
+            person = viewers[token]
+            if person['broadcaster']:
+                people['broadcaster'] = person
+            elif now - person['last_segment'] < VIEW_COUNTING_PERIOD:
+                people['watching'].append(person)
+            else:
+                people['not_watching'].append(person)
+        for token in viewers:
+            person = viewers[token]
+            if person['banned']:
+                people['banned'].append(person)
 
-    return people
+        return people
