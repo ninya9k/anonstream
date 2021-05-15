@@ -37,7 +37,9 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 ## Issues
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
-* Slow: stream delay of at least 10 seconds (>30 seconds with videojs enabled). Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
+* Slow: stream delay of at least 10 seconds (>30 seconds with videojs enabled). Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI. ([This article](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-part-8-reducing-delay/) explains what causes HLS to have latency.)
+
+
 * Doesn't use low-latency HLS
 
 ## How it works
@@ -48,11 +50,36 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 
 ## Explanation of the FFmpeg command in `stream.sh`
 
-TODO
-
 The FFmpeg command in `stream.sh` was based on [this series of articles by Martin Riedl](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-overview/).
 
-[This article](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-part-8-reducing-delay/) explains what causes HLS to have latency.
+video input (differs between OSs)
+`-thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y`
+* `-thread_queue_size 2048` prevents ffmpeg from giving some warnings
+* `-video_size "$BOX_WIDTH"x"$BOX_HEIGHT"` sets the size of the video
+* `-framerate $FRAMERATE` sets the framerate of the video
+* `-f x11grab` tells ffmpeg to use the `x11grab` device, used for recording the screen on Linux
+* `-i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y` sets the x- and y-offset for the screen recording
+
+audio input (differs between OSs)
+`-thread_queue_size 2048 -f pulse -i default`
+
+video encoding
+`-c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p`
+
+date and time in the top left
+`-filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6"`
+
+audio encoding
+`-c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS`
+
+HLS configuration
+`-f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4`
+
+strip all metadata
+`-map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact`
+
+output
+`stream/stream.m3u8`
 
 ## Tutorial
 
