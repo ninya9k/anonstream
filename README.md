@@ -30,14 +30,14 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 * Flood detection / liberal captcha
 * Shows stream uptime
 * List of users watching / not watching
-* Optionally uses videojs (append `?videojs=0` to the URL to disable it)
-* With videojs disabled, you can scrub backwards and forwards on the video timeline. If you scrub to the end (the most recent segment), you can achieve really quite low latency, as low as 12 seconds.
+* Optionally uses videojs (append `?videojs=1` to the URL to enable it)
+* With videojs disabled, you can scrub backwards and forwards on the video timeline. If you scrub to the end (the most recent segment), you can achieve really quite low latency, as low as 10 seconds.
 * Works without JavaScript
 
 ## Issues
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
-* Slow: stream delay of at least 30 seconds (lower with videojs disabled). Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
+* Slow: stream delay of at least 10 seconds (>30 seconds with videojs enabled). Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI
 * Doesn't use low-latency HLS
 
 ## How it works

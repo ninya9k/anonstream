@@ -9,7 +9,7 @@ import datetime
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
-from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
+from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
 viewers = viewership.viewers
@@ -32,7 +32,7 @@ def index(token=None):
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    use_videojs = bool(request.args.get('videojs', default=1, type=int))
+    use_videojs = bool(request.args.get('videojs', default=int(VIDEOJS_ENABLED_BY_DEFAULT), type=int))
     viewership.made_request(token)
 
     response = render_template('index.html',

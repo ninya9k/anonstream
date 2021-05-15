@@ -18,6 +18,8 @@ CONFIG = json.load(open(CONFIG_FILE))
 
 BROADCASTER_TOKEN = secrets.token_hex(8)
 
+VIDEOJS_ENABLED_BY_DEFAULT = False
+
 HLS_TIME     = 8    # seconds per segment
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
