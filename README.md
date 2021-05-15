@@ -52,7 +52,7 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 
 The FFmpeg command in `stream.sh` was based on [this series of articles by Martin Riedl](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-overview/).
 
-video input (differs between OSs)
+### video input (differs between OSs)
 `-thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y`
 * `-thread_queue_size 2048` prevents ffmpeg from giving some warnings
 * `-video_size "$BOX_WIDTH"x"$BOX_HEIGHT"` sets the size of the video
@@ -60,25 +60,26 @@ video input (differs between OSs)
 * `-f x11grab` tells ffmpeg to use the `x11grab` device, used for recording the screen on Linux
 * `-i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y` sets the x- and y-offset for the screen recording
 
-audio input (differs between OSs)
+### audio input (differs between OSs)
 `-thread_queue_size 2048 -f pulse -i default`
 
-video encoding
+### video encoding
 `-c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p`
 
-date and time in the top left
+### date and time in the top left
 `-filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6"`
+* you might need to change the font `/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf` if you're on macOS and definitely if you're on Windows
 
-audio encoding
+### audio encoding
 `-c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS`
 
-HLS configuration
+### HLS configuration
 `-f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4`
 
-strip all metadata
+### strip all metadata
 `-map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact`
 
-output
+### output
 `stream/stream.m3u8`
 
 ## Tutorial
