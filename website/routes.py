@@ -5,6 +5,7 @@ import time
 import secrets
 import json
 import datetime
+import re
 
 import website.chat as chat
 import website.viewership as viewership
