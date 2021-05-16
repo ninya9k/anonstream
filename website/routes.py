@@ -5,15 +5,12 @@ import time
 import secrets
 import json
 import datetime
-import re
 
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
 from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
-
-RE_WHITESPACE = re.compile(r'\s+')
 
 viewers = viewership.viewers
 
@@ -160,9 +157,7 @@ def chat_iframe():
                            broadcaster=token == BROADCASTER_TOKEN,
                            broadcaster_colour=BROADCASTER_COLOUR,
                            debug=request.args.get('debug'),
-                           RE_WHITESPACE=RE_WHITESPACE,
-                           len=len,
-                           chr=chr)
+                           len=len)
 
 @current_app.route('/heartbeat')
 def heartbeat():

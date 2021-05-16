@@ -13,7 +13,7 @@
  
           .comment {color: white;padding:4px 0;margin-top:-4px;margin-bottom:calc(-4px + 0.375em);overflow:hidden;}
 
-          .name {font-weight: bold;unicode-bidi: isolate;}
+          .name {font-weight: bold;unicode-bidi: isolate;word-break:break-all;}
           sup {margin: 0 -0.25em 0 0.125em;font-size: 90%;font-family:monospace;}
           .tripcode {
               margin-left: 0.5em;
@@ -100,7 +100,7 @@
                 {% if message['viewer']['broadcaster'] %}
                     ><span class="camera" title="Broadcaster">🎥</span
                 {% endif %}
-                    ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
+                ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ message['viewer']['nickname'] or default_nickname(message['viewer']['token']) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
                 {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
                     ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div
                 {% endif %}{% endwith %}
