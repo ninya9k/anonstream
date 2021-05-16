@@ -60,7 +60,7 @@
             <div class="group">
                 <div class="group-name">Broadcaster</div>
                 <div class="person">
-                    <span class="camera" title="Broadcaster">🎥</span><span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}
+                    <span class="camera" title="Broadcaster">🎥</span>&NoBreak;<span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}
                 </div>
             </div>
         {% endif %}

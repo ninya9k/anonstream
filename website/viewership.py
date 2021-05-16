@@ -6,7 +6,7 @@ import website.utils.colour as colour
 import website.utils.tripcode as tripcode
 from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD
 
-viewers = {}
+viewers = {} # TODO: remove viewers who haven't visited for a while, or limit the size of this dictionary somehow; otherwise this dictionary can become arbitrarily large
 segment_views = {}
 video_was_corrupted = set()
 lock = threading.Lock()
@@ -57,6 +57,7 @@ def made_request(token):
 def view_segment(n, token=None, check_exists=True):
     # n is None if segment_hook is called in ConcatenatedSegments and the current segment is init.mp4
     if n == None:
+        print(f'init.mp4: {token}')
         return
 
     # technically this is a race condition

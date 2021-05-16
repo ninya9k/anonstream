@@ -232,6 +232,7 @@ class ConcatenatedSegments:
 
     def _corrupt(self, n):
         # TODO: make this corrupt more reliably (maybe it has to follow a full segment?)
+        # Doesn't corrupt when directly after init.mp4
         print('ConcatenatedSegments._corrupt')
         self.corrupt_hook()
         self.close()

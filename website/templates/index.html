@@ -2,8 +2,6 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="/static/external/pure-min.css" rel="stylesheet">
-        <link href="/static/external/grids-responsive-min.css" rel="stylesheet">
         <link href="/static/platform.css" rel="stylesheet">
         {% if use_videojs %}
         <!-- https://unpkg.com/video.js@7.12.1/dist/video-js.min.css -->
@@ -13,6 +11,19 @@
         <!-- https://unpkg.com/@videojs/http-streaming@2.7.1/dist/videojs-http-streaming.min.js -->
         <script src="/static/external/videojs-http-streaming.min.js"></script>
         {% endif %}
+        <style>
+            .two-thirds, .one-third {
+                width: 100%;
+            }
+            @media screen and (min-width:48em) {
+                .two-thirds {
+                    width: 66.6667%;
+                }
+                .one-third {
+                    width: 33.3333%;
+                }
+            }
+        </style>
         <noscript>
             <style>
                 {% if use_videojs %}
@@ -45,10 +56,9 @@
             </style>
         </noscript>
     </head>
-    <body class="dark-theme">
-        <div class=pure-g>
-            <!-- TODO: get rid of PureCSS dependency here; the noscript block on top of the video is too large because the PureCSS files take longer to load -->
-            <div class="pure-u-1 pure-u-md-2-3">
+    <body class="dark-theme" style="margin:0;">
+        <div style="display:flex;flex-flow:row wrap;">
+            <div class="two-thirds">
                 <div id="stream">
                     {% if use_videojs %}
                     <input id="videojs-enabled" type="hidden" value="1">
@@ -61,13 +71,13 @@
                     </noscript>
                     {% else %}
                     <input id="videojs-enabled" type="hidden" value="0">
-                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}">
+                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}"></video>
                     {% endif %}
                 </div>
                 <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&amp;embed=1"></iframe></noscript></div>
                 <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
             </div>
-            <div class="pure-u-1 pure-u-md-1-3">
+            <div class="one-third">
                 <div id="chat-border">
                     <!-- TODO: mobile tooltip -->
                     <input id="users-toggle" type="checkbox" style="display: none;">
@@ -98,48 +108,47 @@
                         <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe') }}?token={{ token }}&amp;users=0"></iframe></noscript></div>
                         <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
-                    <iframe style="height:98px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
+                    <iframe style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
                 </div>
             </div>
         </div>
-    </div>
-    <script>
-        function replaceFrameURL(frameContainerId, newUrl, newId, newName) {
-            const frameContainer = document.getElementById(frameContainerId);
-            const oldFrame = frameContainer.querySelector("*");
-            const newFrame = document.createElement("iframe");
-            newFrame.id = newId;
-            newFrame.name = newName;
-            newFrame.src = newUrl;
-            frameContainer.replaceChild(newFrame, oldFrame);
-        }
-        replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
-        replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
-
-        const chat = document.getElementById("chat");
-        const usersToggle  = document.getElementById("users-toggle");
-        usersToggle.onchange = function() {
-            const chatMessages = chat.contentDocument.getElementById("messages");
-            const chatUsers    = chat.contentDocument.getElementById("users");
-            if ( chatUsers == null || chatMessages == null )
-                return;
-            /* using display: none; resets css animations, i.e. the manual refresh banner */
-            if ( usersToggle.checked ) {
-                chatMessages.style.overflow = "hidden";
-                chatMessages.style.height = "0";
-                chatUsers.style.height = "unset";
-                chatUsers.style.overflow = "unset";
-                chat.style.transform = "revert";
-            } else {
-                chatUsers.style.overflow = "hidden";
-                chatUsers.style.height = "0";
-                chatMessages.style.height = "unset";
-                chatMessages.style.overflow = "unset";
-                chat.style.transform = null;
+        <script>
+            function replaceFrameURL(frameContainerId, newUrl, newId, newName) {
+                const frameContainer = document.getElementById(frameContainerId);
+                const oldFrame = frameContainer.querySelector("*");
+                const newFrame = document.createElement("iframe");
+                newFrame.id = newId;
+                newFrame.name = newName;
+                newFrame.src = newUrl;
+                frameContainer.replaceChild(newFrame, oldFrame);
             }
-        }
-        chat.addEventListener("load", usersToggle.onchange);
-    </script>
-    <script src="/static/platform.js"></script>
+            replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
+            replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
+
+            const chat = document.getElementById("chat");
+            const usersToggle  = document.getElementById("users-toggle");
+            usersToggle.onchange = function() {
+                const chatMessages = chat.contentDocument.getElementById("messages");
+                const chatUsers    = chat.contentDocument.getElementById("users");
+                if ( chatUsers == null || chatMessages == null )
+                    return;
+                /* using display: none; resets css animations, i.e. the manual refresh banner */
+                if ( usersToggle.checked ) {
+                    chatMessages.style.overflow = "hidden";
+                    chatMessages.style.height = "0";
+                    chatUsers.style.height = "unset";
+                    chatUsers.style.overflow = "unset";
+                    chat.style.transform = "revert";
+                } else {
+                    chatUsers.style.overflow = "hidden";
+                    chatUsers.style.height = "0";
+                    chatMessages.style.height = "unset";
+                    chatMessages.style.overflow = "unset";
+                    chat.style.transform = null;
+                }
+            }
+            chat.addEventListener("load", usersToggle.onchange);
+        </script>
+        <script src="/static/platform.js"></script>
     </body>
 </html>

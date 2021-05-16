@@ -12,6 +12,8 @@ import website.utils.stream as stream
 from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
+RE_WHITESPACE = re.compile(r'\s+')
+
 viewers = viewership.viewers
 
 def new_token():
@@ -144,9 +146,10 @@ def chat_iframe():
     viewership.made_request(token)
 
     include_user_list = bool(request.args.get('users', default=1, type=int))
-    messages = (message for message in chat.messages if not message['hidden'])
-    messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
-    messages = (message for message, _ in messages)
+    with viewership.lock: # required because another thread can change chat.messages while we're iterating through it
+        messages = (message for message in chat.messages if not message['hidden'])
+        messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
+        messages = [message for message, _ in messages]
     return render_template('chat-iframe.html',
                            token=token,
                            messages=messages,
@@ -156,7 +159,9 @@ def chat_iframe():
                            broadcaster=token == BROADCASTER_TOKEN,
                            broadcaster_colour=BROADCASTER_COLOUR,
                            debug=request.args.get('debug'),
-                           len=len)
+                           RE_WHITESPACE=RE_WHITESPACE,
+                           len=len,
+                           chr=chr)
 
 @current_app.route('/heartbeat')
 def heartbeat():
