@@ -5,7 +5,7 @@ from website.utils.stream import _is_segment, _segment_number, _get_segments
 
 SEGMENT = 'stream{number}.m4s'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
-STREAM_TIMEOUT = HLS_TIME + 2 # consider the stream offline after this many seconds without a new segment
+STREAM_TIMEOUT = HLS_TIME * 2 # consider the stream offline after this many seconds without a new segment
 
 # TODO: uncommment this if it becomes useful
 #
@@ -100,7 +100,7 @@ STREAM_TIMEOUT = HLS_TIME + 2 # consider the stream offline after this many seco
 #            return chunk
 
 
-def resolve_segment_offset(segment_offset=max(VIEW_COUNTING_PERIOD // HLS_TIME, 2)):
+def resolve_segment_offset(segment_offset=1):
     '''
     Returns the number of the segment at `segment_offset` (1 is most recent segment)
     '''
