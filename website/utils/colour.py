@@ -13,7 +13,7 @@ def _distance_sq(c1, c2):
 
 def _gen_colour(seed, background=BACKGROUND_COLOUR):
     '''
-    Returns a colour that with sufficient contrast to the background colour
+    Returns a colour with sufficient contrast to the background colour
     '''
     while True:
         seed = hashlib.sha256(seed).digest()
@@ -24,14 +24,14 @@ def _gen_colour(seed, background=BACKGROUND_COLOUR):
 
 def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
     '''
-    Returns a colour that with sufficient contrast to the background colour
+    Returns a colour with sufficient contrast to the background colour
     Tries to make the colour contrast with all the colours in `avoid`
     This function hasn't been analysed for efficiency or anything
     '''
     best_colour, best_score = None, None
     for _ in range(16384):
         colour = _gen_colour(seed, background)
-        score = float('inf') if len(avoid) == 0 else sum(_distance_sq(colour, c) for c in avoid) / len(avoid)
+        score = float('inf') if len(avoid) == 0 else sum(_contrast(colour, c) for c in avoid) / len(avoid)
         if colour in avoid:
             score = float('-inf')
         if 1.8 < score:
@@ -45,9 +45,9 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
 #    tag = ((colour[2] & 0xf0) >> 4) | (colour[1] & 0xf0) | ((colour[0] & 0xf0) << 4)
 #    return f'#{tag:03x}'
 
-def tag(colour, length=3):
+def tag(token, length=3):
     '''
-    Generates a deterministic pseudorandom tag from a given colour
+    Generates a deterministic pseudorandom tag from a given token
     '''
-    digest = hashlib.sha256(colour).digest()
+    digest = hashlib.sha256(token.encode()).digest()
     return f'#{digest.hex()[:length]}'

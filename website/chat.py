@@ -12,7 +12,7 @@ from website.constants import BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_ST
 
 from pprint import pprint
 
-messages = deque()
+messages = deque() # messages are stored from most recent on the left to least recent on the right
 captchas = {}
 viewers = viewership.viewers
 nonces = set()
@@ -72,7 +72,8 @@ def comment(text, token, c_response, c_token, nonce):
                                          'id': f'{token}-{secrets.token_hex(4)}',
                                          'hidden': False,
                                          'time': dt.strftime('%H:%M'),
-                                         'date': dt.strftime('%F %T')})
+                                         'timestamp': dt.strftime('%F %T'),
+                                         'date': dt.strftime('%F')})
                     viewers[token]['last_comment'] = now
                     viewers[token]['recent_comments'].append(now)
                     viewers[token]['verified'] = True
@@ -138,3 +139,50 @@ def set_tripcode(password, token):
 def remove_tripcode(token):
     viewers[token]['tripcode'] = tripcode.default()
     return N_APPEAR_OK, True
+
+def decorate(messages):
+    '''
+    add extra stuff to a list of messages, e.g. date, chat command responses
+    '''
+    def _is_visible(message):
+        # uncomment the end part once the broadcaster can see hidden comments
+        return not message['hidden'] # or token == BROADCASTER_TOKEN
+
+    first_visible_message = None
+    final_visible_message = None
+    for message in messages:
+        if _is_visible(message):
+            final_visible_message = message
+            break
+    messages.reverse()
+    for message in messages:
+        if _is_visible(message):
+            first_visible_message = message
+            break
+
+    # if there are no messages, do nothing
+    if first_visible_message == None or final_visible_message == None:
+        return
+
+    # TODO: chat commands e.g. !uptime; try to make it so responses always follow the message with the command, so not split over a date separator
+
+    # add date at the top if necessary
+    if first_visible_message['date'] != final_visible_message['date']:
+        messages.insert(0, {'special': 'date', 'content': first_visible_message['date']})
+
+    # add dates between messages that cross over a day boundary
+    to_insert = []
+    previous_message = None
+    for index, message in enumerate(messages):
+        if message.get('special'):
+            continue
+        if previous_message and message['date'] != previous_message['date']:
+            to_insert.append(index)
+        previous_message = message
+
+    to_insert.reverse()
+    for index in to_insert:
+        messages.insert(index, {'special': 'date', 'content': messages[index]['date']})
+
+    # revert back to original ordering
+    messages.reverse()

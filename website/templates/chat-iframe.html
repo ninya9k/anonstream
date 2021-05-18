@@ -12,6 +12,7 @@
           .reverse {direction: rtl;}
  
           .comment {color: white;padding:4px 0;margin-top:-4px;margin-bottom:calc(-4px + 0.375em);overflow:hidden;}
+          .date {color:gray;font-size:75%;text-align:center;border-bottom:1px solid #333;margin:0.5em 0 0.75em 0;}
 
           .name {font-weight: bold;unicode-bidi: isolate;}
           sup {margin: 0 -0.25em 0 0.125em;font-size: 90%;font-family:monospace;}
@@ -91,22 +92,26 @@
 
     <!-- TODO: mobile tooltip / title -->
     {% for message in messages %}
-        <div class="comment rotate">
-            {% if not message['hidden'] %}
-                {% if broadcaster %}
-                    <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
+        {% if message.get('special') == 'date' %}
+            <div class="date rotate">{{ message['content'] }}</div>
+         {% else %}
+            <div class="comment rotate">
+                {% if not message['hidden'] %}
+                    {% if broadcaster %}
+                        <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
+                    {% endif %}
+                    <span class="time" title="{{ message['timestamp'] }}">{{ message['time'] }}</span
+                    {% if message['viewer']['broadcaster'] %}
+                        ><span class="camera" title="Broadcaster">🎥</span
+                    {% endif %}
+                    ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
+                    {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
+                        ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div
+                    {% endif %}{% endwith %}
+                    ><span class="message">{{ message['text'] }}</span>
                 {% endif %}
-                <span class="time" title="{{ message['date'] }}">{{ message['time'] }}</span
-                {% if message['viewer']['broadcaster'] %}
-                    ><span class="camera" title="Broadcaster">🎥</span
-                {% endif %}
-                ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
-                {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
-                    ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div
-                {% endif %}{% endwith %}
-                ><span class="message">{{ message['text'] }}</span>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
     {% endfor %}
 
 {% if broadcaster %}

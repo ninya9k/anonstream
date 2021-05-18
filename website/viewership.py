@@ -38,7 +38,7 @@ def setdefault(token):
                       'banned': False,
                       'tripcode': tripcode.default(),
                       'broadcaster': False}
-    viewers[token]['tag'] = colour.tag(viewers[token]['colour'])
+    viewers[token]['tag'] = colour.tag(token)
     if token == BROADCASTER_TOKEN:
         viewers[token]['broadcaster'] = True
         viewers[token]['colour'] = BROADCASTER_COLOUR

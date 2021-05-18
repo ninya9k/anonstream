@@ -151,6 +151,8 @@ def chat_iframe():
         messages = (message for message in chat.messages if not message['hidden'])
         messages = zip(messages, range(CHAT_SCROLLBACK)) # show at most CHAT_SCROLLBACK messages
         messages = [message for message, _ in messages]
+
+    chat.decorate(messages)
     return render_template('chat-iframe.html',
                            token=token,
                            messages=messages,
@@ -177,8 +179,9 @@ def heartbeat():
                  'title': stream.get_title(),
                  'start_abs': start_abs if online else None,
                  'start_rel': start_rel if online else None}
-    if token in viewership.video_was_corrupted:
-        response['corrupted'] = True
+    # commented out because we should be able to tell if we're not receiving the stream already
+#    if token in viewership.video_was_corrupted:
+#        response['corrupted'] = True
 
     return response
 
