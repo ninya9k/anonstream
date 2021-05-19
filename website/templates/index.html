@@ -67,14 +67,14 @@
                         <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
                     </video>
                     <noscript>
-                        <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}"></video>
+                        <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
                     </noscript>
                     {% else %}
                     <input id="videojs-enabled" type="hidden" value="0">
-                    <video controls autoplay src="{{ url_for('segments') }}?segment={{ start_number }}&amp;token={{ token }}"></video>
+                    <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
                     {% endif %}
                 </div>
-                <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info') }}?token={{ token }}&amp;embed=1"></iframe></noscript></div>
+                <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info', token=token, embed=1) }}"></iframe></noscript></div>
                 <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
             </div>
             <div class="one-third">
@@ -92,20 +92,20 @@
                             </label>
                         </div>
                         <span>Stream chat</span>
-                        <form target="chat" action="/chat" method="get" style="float: right;margin: 0;width: 1em;">
+                        <form target="chat" action="{{ url_for('chat_iframe', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
                             <input id="token" type="hidden" name="token" value="{{ token }}">
                             <noscript><input type="hidden" name="users" value="0"></noscript>
                             <input type="checkbox" style="display:none;" name="debug">
                             <button class="hue-rotate" title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
                         </form>
-                        <form target="users" action="/users" method="get" style="float: right;margin: 0;width: 1em;">
+                        <form target="users" action="{{ url_for('users', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
                             <input id="token" type="hidden" name="token" value="{{ token }}">
                             <input type="checkbox" style="display:none;" name="debug">
                             <button title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
                         </form>
                     </div>
                     <div id="chat-window">
-                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe') }}?token={{ token }}&amp;users=0"></iframe></noscript></div>
+                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token, users=0) }}"></iframe></noscript></div>
                         <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
                     <iframe style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
@@ -149,6 +149,7 @@
             }
             chat.addEventListener("load", usersToggle.onchange);
         </script>
+        <input type="hidden" id="hls-time" value="{{ hls_time }}">
         <script src="/static/platform.js"></script>
     </body>
 </html>

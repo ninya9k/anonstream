@@ -179,7 +179,7 @@
                 <label for="settings-toggle">⚙️</label>
                 {% if captcha %}
                     <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}"></input>
-                    <input name="captcha-token" type="hidden" value="{{ captcha['token'] }}">
+                    <input name="captcha-ciphertext" type="hidden" value="{{ captcha['ciphertext'] }}">
                     <input id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
                 {% endif %}
             </div>

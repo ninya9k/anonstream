@@ -76,6 +76,7 @@ def playlist():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    viewership.made_request(token)
 
     try:
         file_wrapper = wrap_file(request.environ, stream.TokenPlaylist(token))
@@ -95,6 +96,7 @@ def segment_init():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    viewership.made_request(token)
     response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
@@ -124,6 +126,7 @@ def segments():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    viewership.made_request(token)
 
     start_number = request.args.get('segment', type=int) if 'segment' in request.args else resolve_segment_offset()
 
@@ -223,11 +226,11 @@ def comment():
     nonce = request.form.get('nonce')
     message = request.form.get('message', '').replace('\r', '').replace('\n', ' ').strip()
     c_response = request.form.get('captcha')
-    c_token = request.form.get('captcha-token')
+    c_ciphertext = request.form.get('captcha-ciphertext')
 
     viewership.made_request(token)
 
-    failure_reason = chat.comment(message, token, c_response, c_token, nonce)
+    failure_reason = chat.comment(message, token, c_response, c_ciphertext, nonce)
 
     viewership.preset_comment_iframe[token] = {'note': failure_reason, 'message': message if failure_reason else ''}
     return comment_iframe(token=token)

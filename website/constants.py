@@ -1,4 +1,4 @@
-import json
+import toml
 import os
 import secrets
 from flask import current_app
@@ -13,14 +13,14 @@ STREAM_PIDFILE = os.path.join(SEGMENTS_DIR, 'pid.txt')
 DIR_STATIC = os.path.join(ROOT, 'website', 'static')
 DIR_STATIC_EXTERNAL = os.path.join(DIR_STATIC, 'external')
 
-CONFIG_FILE = os.path.join(ROOT, 'config.json')
-CONFIG = json.load(open(CONFIG_FILE))
-
 BROADCASTER_TOKEN = secrets.token_hex(8)
 
-VIDEOJS_ENABLED_BY_DEFAULT = False
+CONFIG_FILE = os.path.join(ROOT, 'config.toml')
+CONFIG = toml.load(open(CONFIG_FILE))
 
-HLS_TIME     = 8    # seconds per segment
+CAPTCHA_FONTS = CONFIG['captcha']['fonts']
+
+HLS_TIME = CONFIG['stream']['hls_time']    # seconds per segment
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
@@ -33,10 +33,17 @@ CHAT_MAX_STORAGE = 1024
 CHAT_SCROLLBACK = 100
 MESSAGE_MAX_LENGTH = 256
 
+CAPTCHA_SECRET_KEY = os.urandom(12)
+CAPTCHA_LIFETIME = 3600
+
+VIEWER_ABSENT_THRESHOLD = 86400
+
 BACKGROUND_COLOUR = b'\x22\x22\x22'
 BROADCASTER_COLOUR = b'\xff\x82\x80'
 
 SEGMENT_INIT = 'init.mp4'
+
+VIDEOJS_ENABLED_BY_DEFAULT = False
 
 # notes: messages that can appear in the comment box
 N_NONE            =  0
@@ -48,10 +55,12 @@ N_TOOFAST         =  5
 N_FLOOD           =  6
 N_CAPTCHA_MISSING =  7
 N_CAPTCHA_WRONG   =  8
-N_CAPTCHA_RANDOM  =  9
-N_CONFIRM         = 10
-N_APPEAR_OK       = 11
-N_APPEAR_FAIL     = 12
+N_CAPTCHA_USED    =  9
+N_CAPTCHA_EXPIRED = 10
+N_CAPTCHA_RANDOM  = 11
+N_CONFIRM         = 12
+N_APPEAR_OK       = 13
+N_APPEAR_FAIL     = 14
 
 NOTES = {N_NONE:            '',
          N_TOKEN_EMPTY:     'illegal token',
@@ -62,6 +71,8 @@ NOTES = {N_NONE:            '',
          N_FLOOD:           'solve this captcha',
          N_CAPTCHA_MISSING: 'please captcha',
          N_CAPTCHA_WRONG:   'you got the captcha wrong',
+         N_CAPTCHA_USED:    'captcha was used already',
+         N_CAPTCHA_EXPIRED: 'the captcha expired',
          N_CAPTCHA_RANDOM:  'a wild captcha appears',
          N_CONFIRM:         'confirm you want to send',
          N_APPEAR_OK:       'appearance got changed',

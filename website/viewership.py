@@ -4,7 +4,7 @@ import threading
 import time
 import website.utils.colour as colour
 import website.utils.tripcode as tripcode
-from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD
+from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
 
 viewers = {} # TODO: remove viewers who haven't visited for a while, or limit the size of this dictionary somehow; otherwise this dictionary can become arbitrarily large
 segment_views = {}
@@ -26,6 +26,7 @@ def default_nickname(token):
 def setdefault(token):
     if token in viewers or token == None:
         return
+    remove_absent_viewers()
     viewers[token] = {'token': token,
                       'last_comment': float('-inf'),
                       'last_segment': float('-inf'),
@@ -176,3 +177,12 @@ def get_people_list():
                 people['banned'].append(person)
 
         return people
+
+def remove_absent_viewers():
+    now = int(time.time())
+    to_pop = []
+    for token in viewers:
+        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD:
+            to_pop.append(token)
+    for token in to_pop:
+        viewers.pop(token)
