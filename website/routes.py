@@ -41,7 +41,8 @@ def index(token=None):
     response = render_template('index.html',
                                token=token,
                                use_videojs=use_videojs,
-                               start_number=resolve_segment_offset() if stream.is_online() else 0)
+                               start_number=resolve_segment_offset() if stream.is_online() else 0,
+                               hls_time=HLS_TIME)
     response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
@@ -337,6 +338,37 @@ def add_header(response):
     except KeyError:
         pass
     return response
+
+@current_app.route('/debug')
+@current_app.auth.login_required
+def debug():
+    import copy
+
+    with viewership.lock:
+        # necessary because we store colours as bytes and json can't bytes;
+        # and infinities are allowed by json.dumps but browsers don't like it
+        json_safe_viewers = copy.deepcopy(viewership.viewers)
+        for token in json_safe_viewers:
+            json_safe_viewers[token]['colour'] = f'#{json_safe_viewers[token]["colour"].hex()}'
+            for key in json_safe_viewers[token]:
+                if json_safe_viewers[token][key] == float('-inf'):
+                    json_safe_viewers[token][key] = None
+                
+        result = {
+            'viewership': {
+                 'segment_views': viewership.segment_views,
+                 'video_was_corrupted': list(viewership.video_was_corrupted),
+                 'viewers': json_safe_viewers,
+                 'preset_comment_iframe': viewership.preset_comment_iframe
+            },
+            'chat': {
+                'captchas': chat.captchas,
+                'messages': list(chat.messages),
+                'nonces': chat.nonces
+            }
+        }
+
+    return result
 
 @current_app.route('/teapot')
 def teapot():

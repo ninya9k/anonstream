@@ -23,7 +23,7 @@ def behead_chat():
 
 def new_nonce():
     now = int(time.time())
-    nonce = secrets.token_hex(8)
+    nonce = secrets.token_hex(6)
     with viewership.lock:
         remove_expired_nonces()
         nonces[nonce] = now
