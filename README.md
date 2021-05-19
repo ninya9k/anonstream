@@ -66,8 +66,10 @@ The FFmpeg command in `stream.sh` was based on [this series of articles by Marti
 ### video encoding
 `-c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p`
 
-### date and time in the top left
+### video filters
 `-filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6"`
+* `scale=$VIDEO_WIDTH:$VIDEO_HEIGHT` scales the video to the desired size
+* `drawtext...` draws the date and time in the top left
 * you might need to change the font `/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf` if you're on macOS and definitely if you're on Windows
 
 ### audio encoding
