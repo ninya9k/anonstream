@@ -70,6 +70,13 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     if viewers[token]['banned']:
         return N_BANNED
 
+    # check that the commenter hasn't acidentally sent the same request twice
+    remove_expired_nonces()
+    try:
+        nonces.pop(nonce)
+    except KeyError:
+        return N_CONFIRM
+
     # check captcha
     if not viewers[token]['verified']:
         if c_response and c_ciphertext:
@@ -106,12 +113,6 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
         viewers[token]['verified'] = False
         return N_FLOOD
 
-    remove_expired_nonces()
-    try:
-        nonces.pop(nonce)
-    except KeyError:
-        return N_CONFIRM
-
     dt = datetime.utcfromtimestamp(now)
     messages.appendleft({'text': text,
                          'viewer': viewers[token],
@@ -131,8 +132,7 @@ def comment(text, token, c_response, c_ciphertext, nonce):
         failure_reason = _comment(text, token, c_response, c_ciphertext, nonce)
         viewership.setdefault(BROADCASTER_TOKEN)
         viewers[BROADCASTER_TOKEN]['verified'] = True
-    if failure_reason != N_NONE:
-        print(f'Comment submission FAILED with note {NOTES[failure_reason]!r}')
+    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]})', 'SUCCEEDED' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
     return failure_reason
 
 def mod_chat(message_ids, hide, ban, ban_and_purge):
