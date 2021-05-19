@@ -25,7 +25,8 @@
               vertical-align: middle;
               display: inline-block;
           }
-          .message {margin-left: 0.5em;overflow-wrap: break-word;unicode-bidi: isolate;}
+          .barrier {display:inline-block;margin-right:0.5em;}
+          .message {overflow-wrap: break-word;unicode-bidi: isolate;}
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;word-break: keep-all;}
           .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
 
@@ -108,7 +109,7 @@
                     {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
                         ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div
                     {% endif %}{% endwith %}
-                    ><span class="message">{{ message['text'] }}</span>
+                    ><div class="barrier"></div><span class="message">{{ message['text'] }}</span>
                 {% endif %}
             </div>
         {% endif %}
