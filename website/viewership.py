@@ -29,23 +29,23 @@ def setdefault(token):
         return
     with lock:
         remove_absent_viewers()
-        viewers[token] = {'token': token,
-                          'last_comment': float('-inf'),
-                          'last_segment': float('-inf'),
-                          'last_request': float('-inf'),
-                          'first_request': float('-inf'),
-                          'verified': False,
-                          'recent_comments': [],
-                          'nickname': None,
-                          'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
-                          'banned': False,
-                          'tripcode': tripcode.default(),
-                          'broadcaster': False}
-        viewers[token]['tag'] = colour.tag(token)
-        if token == BROADCASTER_TOKEN:
-            viewers[token]['broadcaster'] = True
-            viewers[token]['colour'] = BROADCASTER_COLOUR
-            viewers[token]['verified'] = True
+    viewers[token] = {'token': token,
+                      'last_comment': float('-inf'),
+                      'last_segment': float('-inf'),
+                      'last_request': float('-inf'),
+                      'first_request': float('-inf'),
+                      'verified': False,
+                      'recent_comments': [],
+                      'nickname': None,
+                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
+                      'banned': False,
+                      'tripcode': tripcode.default(),
+                      'broadcaster': False}
+    viewers[token]['tag'] = colour.tag(token)
+    if token == BROADCASTER_TOKEN:
+        viewers[token]['broadcaster'] = True
+        viewers[token]['colour'] = BROADCASTER_COLOUR
+        viewers[token]['verified'] = True
 
 # TODO: generalise this and reduce the number of keys in last_request; comment is used for flood detection and the rest is for get_user_list
 def made_request(token):
