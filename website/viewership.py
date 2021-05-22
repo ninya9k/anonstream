@@ -183,9 +183,8 @@ def get_people_list():
 def remove_absent_viewers():
     now = int(time.time())
     to_pop = []
-    with lock:
-        for token in viewers:
-            if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token):
-                to_pop.append(token)
-        for token in to_pop:
-            viewers.pop(token)
+    for token in viewers:
+        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token):
+            to_pop.append(token)
+    for token in to_pop:
+        viewers.pop(token)
