@@ -27,8 +27,7 @@ def default_nickname(token):
 def setdefault(token):
     if token in viewers or token == None:
         return
-    with lock:
-        remove_absent_viewers()
+    remove_absent_viewers()
     viewers[token] = {'token': token,
                       'last_comment': float('-inf'),
                       'last_segment': float('-inf'),
@@ -187,4 +186,7 @@ def remove_absent_viewers():
         if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token):
             to_pop.append(token)
     for token in to_pop:
-        viewers.pop(token)
+        try:
+            viewers.pop(token)
+        except KeyError:
+            pass

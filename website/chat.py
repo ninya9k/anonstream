@@ -24,9 +24,8 @@ def behead_chat():
 def new_nonce():
     now = int(time.time())
     nonce = secrets.token_hex(6)
-    with viewership.lock:
-        remove_expired_nonces()
-        nonces[nonce] = now
+    remove_expired_nonces()
+    nonces[nonce] = now
     return nonce
 
 def remove_expired_captchas():
@@ -37,7 +36,10 @@ def remove_expired_captchas():
         if timestamp < now - CAPTCHA_LIFETIME:
             to_pop.append(ciphertext)
     for ciphertext in to_pop:
-        captchas.pop(ciphertext)
+        try:
+            captchas.pop(ciphertext)
+        except KeyError:
+            pass
 
 def remove_expired_nonces():
     now = int(time.time())
@@ -47,7 +49,10 @@ def remove_expired_nonces():
         if timestamp < now - CAPTCHA_LIFETIME:
             to_pop.append(nonce)
     for nonce in to_pop:
-        nonces.pop(nonce)
+        try:
+            nonces.pop(nonce)
+        except KeyError:
+            pass
 
 def _comment(text, token, c_response, c_ciphertext, nonce):
     now = int(time.time())
