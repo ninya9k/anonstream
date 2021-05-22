@@ -1,7 +1,7 @@
 const t0 = Date.now() / 1000;
-const playbackTimeout = 20.0; // seconds until playback should have begun
+const playbackTimeout = 16.0; // seconds until playback should have begun
 
-const segmentDuration = 8.0; // seconds per segment
+const segmentDuration = parseFloat(document.getElementById("hls-time").value); // seconds per segment
 const latencyThreshold = 180; // notify the viewer once they cross this threshold
 const segmentThreshold = latencyThreshold / segmentDuration;
 

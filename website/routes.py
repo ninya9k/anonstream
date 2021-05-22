@@ -1,4 +1,4 @@
-from flask import current_app, render_template, send_from_directory, request, abort, Response, redirect, url_for
+from flask import current_app, render_template, send_from_directory, request, abort, Response, redirect, url_for, make_response
 from werkzeug import wrap_file
 import os
 import time
@@ -344,12 +344,18 @@ def add_header(response):
 def debug():
     import copy
 
+    # necessary because we store colours as bytes and json can't bytes;
+    class JSONEncoder(json.encoder.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, bytes):
+                return f'#{obj.hex()}'
+            return json.encoder.JSONEncoder.default(obj)
+
+
     with viewership.lock:
-        # necessary because we store colours as bytes and json can't bytes;
-        # and infinities are allowed by json.dumps but browsers don't like it
+        # necessary because infinities are allowed by json.dumps but browsers don't like it
         json_safe_viewers = copy.deepcopy(viewership.viewers)
         for token in json_safe_viewers:
-            json_safe_viewers[token]['colour'] = f'#{json_safe_viewers[token]["colour"].hex()}'
             for key in json_safe_viewers[token]:
                 if json_safe_viewers[token][key] == float('-inf'):
                     json_safe_viewers[token][key] = None
@@ -368,7 +374,14 @@ def debug():
             }
         }
 
-    return result
+    response = make_response(json.dumps(result, cls=JSONEncoder))
+    response.mimetype = 'application/json'
+
+    # so that you are logged in if the very first thing you do is go to /debug, then you go to /
+    if get_token() != BROADCASTER_TOKEN:
+        response.set_cookie('token', BROADCASTER_TOKEN)
+
+    return response
 
 @current_app.route('/teapot')
 def teapot():

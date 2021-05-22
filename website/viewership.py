@@ -4,6 +4,7 @@ import threading
 import time
 import website.utils.colour as colour
 import website.utils.tripcode as tripcode
+import website.chat as chat
 from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
 
 viewers = {} # TODO: remove viewers who haven't visited for a while, or limit the size of this dictionary somehow; otherwise this dictionary can become arbitrarily large
@@ -26,24 +27,25 @@ def default_nickname(token):
 def setdefault(token):
     if token in viewers or token == None:
         return
-    remove_absent_viewers()
-    viewers[token] = {'token': token,
-                      'last_comment': float('-inf'),
-                      'last_segment': float('-inf'),
-                      'last_request': float('-inf'),
-                      'first_request': float('-inf'),
-                      'verified': False,
-                      'recent_comments': [],
-                      'nickname': None,
-                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
-                      'banned': False,
-                      'tripcode': tripcode.default(),
-                      'broadcaster': False}
-    viewers[token]['tag'] = colour.tag(token)
-    if token == BROADCASTER_TOKEN:
-        viewers[token]['broadcaster'] = True
-        viewers[token]['colour'] = BROADCASTER_COLOUR
-        viewers[token]['verified'] = True
+    with lock:
+        remove_absent_viewers()
+        viewers[token] = {'token': token,
+                          'last_comment': float('-inf'),
+                          'last_segment': float('-inf'),
+                          'last_request': float('-inf'),
+                          'first_request': float('-inf'),
+                          'verified': False,
+                          'recent_comments': [],
+                          'nickname': None,
+                          'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
+                          'banned': False,
+                          'tripcode': tripcode.default(),
+                          'broadcaster': False}
+        viewers[token]['tag'] = colour.tag(token)
+        if token == BROADCASTER_TOKEN:
+            viewers[token]['broadcaster'] = True
+            viewers[token]['colour'] = BROADCASTER_COLOUR
+            viewers[token]['verified'] = True
 
 # TODO: generalise this and reduce the number of keys in last_request; comment is used for flood detection and the rest is for get_user_list
 def made_request(token):
@@ -181,8 +183,9 @@ def get_people_list():
 def remove_absent_viewers():
     now = int(time.time())
     to_pop = []
-    for token in viewers:
-        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD:
-            to_pop.append(token)
-    for token in to_pop:
-        viewers.pop(token)
+    with lock:
+        for token in viewers:
+            if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token):
+                to_pop.append(token)
+        for token in to_pop:
+            viewers.pop(token)

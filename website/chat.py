@@ -132,7 +132,7 @@ def comment(text, token, c_response, c_ciphertext, nonce):
         failure_reason = _comment(text, token, c_response, c_ciphertext, nonce)
         viewership.setdefault(BROADCASTER_TOKEN)
         viewers[BROADCASTER_TOKEN]['verified'] = True
-    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]})', 'SUCCEEDED' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
+    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]}, broadcaster={viewers[token]["broadcaster"]})', 'SUCCEEDED' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
     return failure_reason
 
 def mod_chat(message_ids, hide, ban, ban_and_purge):
@@ -229,3 +229,6 @@ def decorate(messages):
 
     # revert back to original ordering
     messages.reverse()
+
+def viewer_messages_exist(token):
+    return any(message['viewer']['token'] == token for message in messages)
