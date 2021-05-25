@@ -17,6 +17,8 @@ captchas = {} # captchas that have been used already
 viewers = viewership.viewers
 nonces = {}
 
+# TODO: PMs / whispers (?)
+
 def behead_chat():
     while len(messages) > CHAT_MAX_STORAGE:
         messages.pop()
@@ -55,32 +57,7 @@ def remove_expired_nonces():
             pass
 
 def _comment(text, token, c_response, c_ciphertext, nonce):
-    now = int(time.time())
-    if not token:
-        return N_TOKEN_EMPTY
-    if not text:
-        return N_MESSAGE_EMPTY
-    if len(text) >= MESSAGE_MAX_LENGTH:
-        return N_MESSAGE_LONG
-
-    viewership.setdefault(token)
-
-    # remove record of old comments
-    for t in viewers[token]['recent_comments'].copy():
-        if t < now - FLOOD_PERIOD:
-            viewers[token]['recent_comments'].remove(t)
-
-    pprint(viewers)
-
-    if viewers[token]['banned']:
-        return N_BANNED
-
-    # check that the commenter hasn't acidentally sent the same request twice
-    remove_expired_nonces()
-    try:
-        nonces.pop(nonce)
-    except KeyError:
-        return N_CONFIRM
+    # TODO: if multiple errors, give out the least annoying one, e.g. N_CAPTCHA_MISSING is far more annoying than N_MESSAGE_EMPTY
 
     # check captcha
     if not viewers[token]['verified']:
@@ -108,6 +85,38 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
             captchas[c_ciphertext] = c_timestamp
         else:
             return N_CAPTCHA_MISSING
+
+    now = int(time.time())
+    if not token:
+        return N_TOKEN_EMPTY
+    if not text:
+        # some people may think that you can type in the captcha first to get
+        # rid of it before sending any message; this enables that behaviour
+        if not viewers[token]['viewers']['verified']:
+            viewers[token]['viewers']['verified'] = True
+            return N_NONE
+        return N_MESSAGE_EMPTY
+    if len(text) >= MESSAGE_MAX_LENGTH:
+        return N_MESSAGE_LONG
+
+    viewership.setdefault(token)
+
+    # remove record of old comments
+    for t in viewers[token]['recent_comments'].copy():
+        if t < now - FLOOD_PERIOD:
+            viewers[token]['recent_comments'].remove(t)
+
+    pprint(viewers)
+
+    if viewers[token]['banned']:
+        return N_BANNED
+
+    # check that the commenter hasn't acidentally sent the same request twice
+    remove_expired_nonces()
+    try:
+        nonces.pop(nonce)
+    except KeyError:
+        return N_CONFIRM
 
     if secrets.randbelow(50) == 0:
         viewers[token]['verified'] = False

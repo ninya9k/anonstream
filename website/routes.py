@@ -374,7 +374,7 @@ def debug():
             }
         }
 
-    response = make_response(json.dumps(result, cls=JSONEncoder))
+    response = make_response(json.dumps(result, cls=JSONEncoder).replace('": -Infinity', '": null')) # this is such a horrible hack I apologise that you saw it
     response.mimetype = 'application/json'
 
     # so that you are logged in if the very first thing you do is go to /debug, then you go to /

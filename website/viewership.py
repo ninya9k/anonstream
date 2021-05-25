@@ -7,10 +7,24 @@ import website.utils.tripcode as tripcode
 import website.chat as chat
 from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
 
-viewers = {} # TODO: remove viewers who haven't visited for a while, or limit the size of this dictionary somehow; otherwise this dictionary can become arbitrarily large
+viewers = {}
 segment_views = {}
 video_was_corrupted = set()
 lock = threading.Lock()
+
+# for debugging
+#class FakeLock:
+#    def __enter__(self, *args):
+#        pass
+#    def __exit__(self, *args):
+#        pass
+#    def acquire(self):
+#        pass
+#    def release(self):
+#        pass
+#
+#
+#lock = FakeLock()
 
 #When a viewer leaves a comment, they make a POST request to /comment; either
 #you can redirect back to /comment-box or you can respond there without
@@ -183,7 +197,7 @@ def remove_absent_viewers():
     now = int(time.time())
     to_pop = []
     for token in viewers:
-        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token):
+        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token) and not viewer[token]['banned']:
             to_pop.append(token)
     for token in to_pop:
         try:
