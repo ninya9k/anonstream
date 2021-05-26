@@ -95,8 +95,8 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     if not text:
         # some people may think that you can type in the captcha first to get
         # rid of it before sending any message; this enables that behaviour
-        if not viewers[token]['viewers']['verified']:
-            viewers[token]['viewers']['verified'] = True
+        if not viewers[token]['verified']:
+            viewers[token]['verified'] = True
             return N_NONE
         return N_MESSAGE_EMPTY
     if len(text) >= MESSAGE_MAX_LENGTH:
