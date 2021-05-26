@@ -59,6 +59,10 @@ def remove_expired_nonces():
 def _comment(text, token, c_response, c_ciphertext, nonce):
     # TODO: if multiple errors, give out the least annoying one, e.g. N_CAPTCHA_MISSING is far more annoying than N_MESSAGE_EMPTY
 
+    pprint(viewers)
+
+    now = int(time.time())
+
     # check captcha
     if not viewers[token]['verified']:
         if c_response and c_ciphertext:
@@ -86,7 +90,6 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
         else:
             return N_CAPTCHA_MISSING
 
-    now = int(time.time())
     if not token:
         return N_TOKEN_EMPTY
     if not text:
@@ -105,8 +108,6 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     for t in viewers[token]['recent_comments'].copy():
         if t < now - FLOOD_PERIOD:
             viewers[token]['recent_comments'].remove(t)
-
-    pprint(viewers)
 
     if viewers[token]['banned']:
         return N_BANNED
