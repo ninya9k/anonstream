@@ -147,7 +147,7 @@ def comment(text, token, c_response, c_ciphertext, nonce):
         failure_reason = _comment(text, token, c_response, c_ciphertext, nonce)
         viewership.setdefault(BROADCASTER_TOKEN)
         viewers[BROADCASTER_TOKEN]['verified'] = True
-    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]}, broadcaster={viewers[token]["broadcaster"]})', 'SUCCEEDED' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
+    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]}, broadcaster={viewers[token]["broadcaster"]})', 'SUCCEEDED' if failure_reason == N_NONE and text else 'CLEARED CAPTCHA' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
     return failure_reason
 
 def mod_chat(message_ids, hide, ban, ban_and_purge):
@@ -170,7 +170,6 @@ def mod_chat(message_ids, hide, ban, ban_and_purge):
         viewers[BROADCASTER_TOKEN]['banned'] = False
 
 def mod_users(tokens, banned):
-    print('A' * 10, tokens, banned)
     with viewership.lock:
         for token in tokens:
             viewers[token]['banned'] = banned

@@ -8,7 +8,7 @@ import time
 import base64
 import math
 
-CAPTCHA_CHARSET = '346qwertypagkxvbm'
+CAPTCHA_CHARSET = '346wertypagkxvbm'
 CAPTCHA_LENGTH = 3
 CAPTCHA = ImageCaptcha(width=72, height=30, fonts=CAPTCHA_FONTS, font_sizes=(24, 27, 30))
 

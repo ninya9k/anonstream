@@ -197,7 +197,7 @@ def remove_absent_viewers():
     now = int(time.time())
     to_pop = []
     for token in viewers:
-        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token) and not viewer[token]['banned']:
+        if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token) and not viewers[token]['banned']:
             to_pop.append(token)
     for token in to_pop:
         try:

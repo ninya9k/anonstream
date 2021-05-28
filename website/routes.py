@@ -141,6 +141,7 @@ def segments():
 
     file_wrapper = wrap_file(request.environ, concatenated_segments)
     response = Response(file_wrapper, mimetype='video/mp4')
+    response.headers['Connection'] = 'close'
     response.headers['Cache-Control'] = 'no-store'
     response.set_cookie('token', token)
     return response

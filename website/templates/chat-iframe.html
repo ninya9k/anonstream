@@ -92,6 +92,7 @@
 {% endif %}
 
     <!-- TODO: mobile tooltip / title -->
+    <!-- TODO: have a light background with border-radius appear when hovering over a comment -->
     {% for message in messages %}
         {% if message.get('special') == 'date' %}
             <div class="date rotate">{{ message['content'] }}</div>
