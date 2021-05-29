@@ -174,6 +174,9 @@ def mod_users(tokens, banned):
         for token in tokens:
             viewers[token]['banned'] = banned
 
+        viewership.setdefault(BROADCASTER_TOKEN)
+        viewers[BROADCASTER_TOKEN]['banned'] = False
+
 def get_captcha(token):
     viewership.setdefault(token)
     if viewers[token]['verified']:
