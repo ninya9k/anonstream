@@ -39,6 +39,7 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 * CSS is spaghetti (e.g. the PureCSS framework is used sometimes when it might not need be)
 * AFAIK the FFmpeg command in `stream.sh` only works on Linux, change it for other OSs
 * Slow (if videojs is enabled). Using videojs is slower because you have to make many separate GET requests, without it you only need to make one. If you lower the HLS segment size to something like 2 seconds, you get very low latency without videojs (smallest i've got is 3 seconds) but with videojs the stream becomes unwatchable because of the overhead of each GET request you have to make. The stream delay is >30 seconds with videojs and >3 seconds without it. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI. ([This article](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-part-8-reducing-delay/) explains what causes HLS to have latency.)
+* Slow chat (uses meta refresh); will be better once websockets is implemented (only with JavaScript enabled though)
 
 
 * Doesn't use low-latency HLS
