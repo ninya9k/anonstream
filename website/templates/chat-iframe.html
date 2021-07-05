@@ -106,11 +106,11 @@
                     {% if message['viewer']['broadcaster'] %}
                         ><span class="camera" title="Broadcaster">🎥</span
                     {% endif %}
-                    ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
+                    ><span class="name" style="color:#{{ message['viewer']['colour'].hex() }};">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span><div class="barrier"></div
                     {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
-                        ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div
+                        ><div class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</div><div class="barrier"></div
                     {% endif %}{% endwith %}
-                    ><div class="barrier"></div><span class="message">{{ message['text'] }}</span>
+                    ><span class="message">{{ message['text'] }}</span>
                 {% endif %}
             </div>
         {% endif %}
