@@ -88,7 +88,6 @@ class ConcatenatedSegments:
             if self.should_close_connection():
                 raise SegmentUnavailable(f'told to close while reading {self.segment}')
 
-            #chunk_chunk = self.segments_cache.read(segment=self.segment, read_size=n - len(chunk), instance_id=self.instance_id)
             try:
                 with open(os.path.join(SEGMENTS_DIR, self.segment), 'rb') as fp:
                     fp.seek(self.segment_read_offset)
@@ -125,7 +124,7 @@ class ConcatenatedSegments:
             # This is very likely to happen if you become extremely delayed.
             # It's also likely to happen if the reason for the
             # discontinuity is the livestream restarting.
-            # If you use the cache this becomes very unlikely to happen in
+            # If you cache segments this becomes very unlikely to happen in
             # either case. However, appending fragments from the restarted
             # stream corrupts the video; and skipping ahead lots of fragments
             # will make the video pause for the number of fragments that were
