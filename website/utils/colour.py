@@ -34,7 +34,7 @@ def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
         score = float('inf') if len(avoid) == 0 else sum(_contrast(colour, c) for c in avoid) / len(avoid)
         if colour in avoid:
             score = float('-inf')
-        if 2 < score:
+        if 2.5 < score:
             return colour
         if best_score == None or score > best_score:
             best_colour = colour

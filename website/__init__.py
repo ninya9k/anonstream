@@ -22,6 +22,7 @@ def create_app():
 
     @app.auth.verify_password
     def verify_password(username, password):
+        username = username.casefold()
         if username == 'broadcaster' and password == broadcaster_pw:
             return username
 

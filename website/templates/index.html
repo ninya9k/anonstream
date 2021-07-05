@@ -11,6 +11,8 @@
         <!-- https://unpkg.com/@videojs/http-streaming@2.7.1/dist/videojs-http-streaming.min.js -->
         <script src="/static/external/videojs-http-streaming.min.js"></script>
         {% endif %}
+        <!-- https://cdn.socket.io/4.0.1/socket.io.min.js -->
+        <!-- <script src="/static/external/socket.io.min.js"></script> -->
         <style>
             .two-thirds, .one-third {
                 width: 100%;
@@ -108,11 +110,12 @@
                         <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token, users=0) }}"></iframe></noscript></div>
                         <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
                     </div>
-                    <iframe style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
+                    <iframe id="comment-box" style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
                 </div>
             </div>
         </div>
         <script>
+            /* replace noscript frame URLs with with-script versions */
             function replaceFrameURL(frameContainerId, newUrl, newId, newName) {
                 const frameContainer = document.getElementById(frameContainerId);
                 const oldFrame = frameContainer.querySelector("*");
@@ -125,6 +128,7 @@
             replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
             replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
 
+            /* make the people button change between users view and chat view */
             const chat = document.getElementById("chat");
             const usersToggle  = document.getElementById("users-toggle");
             usersToggle.onchange = function() {

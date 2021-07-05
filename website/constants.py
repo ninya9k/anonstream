@@ -16,11 +16,13 @@ DIR_STATIC_EXTERNAL = os.path.join(DIR_STATIC, 'external')
 BROADCASTER_TOKEN = secrets.token_hex(8)
 
 CONFIG_FILE = os.path.join(ROOT, 'config.toml')
-CONFIG = toml.load(open(CONFIG_FILE))
+with open(CONFIG_FILE) as fp:
+    CONFIG = toml.load(fp)
 
-CAPTCHA_FONTS = CONFIG['captcha']['fonts']
+# these two are accessed through `CONFIG`; they're just here for completeness
+#CAPTCHA_FONTS = CONFIG['captcha']['fonts']
+#HLS_TIME = CONFIG['stream']['hls_time']    # seconds per segment
 
-HLS_TIME = CONFIG['stream']['hls_time']    # seconds per segment
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds

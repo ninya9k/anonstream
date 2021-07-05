@@ -28,7 +28,7 @@
           .barrier {display:inline-block;margin-right:0.5em;}
           .message {overflow-wrap: break-word;unicode-bidi: isolate;}
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;word-break: keep-all;}
-          .time {font-size: 80%;color: gray;vertical-align:middle;margin-right:0.5em;}
+          .time {font-size: 80%;color: gray;vertical-align:middle;}
 
           {% if include_user_list %}
           #users {color:white;}
@@ -102,7 +102,7 @@
                     {% if broadcaster %}
                         <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
                     {% endif %}
-                    <span class="time" title="{{ message['timestamp'] }}">{{ message['time'] }}</span
+                    <span class="time" title="{{ message['timestamp'] }}">{{ message['time'] }}</span><div class="barrier"></div
                     {% if message['viewer']['broadcaster'] %}
                         ><span class="camera" title="Broadcaster">🎥</span
                     {% endif %}

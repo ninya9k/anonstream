@@ -10,8 +10,6 @@ import website.viewership as viewership
 from website.constants import BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_STORAGE, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, CAPTCHA_LIFETIME, \
                               NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_USED, N_CAPTCHA_EXPIRED, N_CAPTCHA_RANDOM, N_CONFIRM, N_APPEAR_OK, N_APPEAR_FAIL
 
-from pprint import pprint
-
 messages = deque() # messages are stored from most recent on the left to least recent on the right
 captchas = {} # captchas that have been used already
 viewers = viewership.viewers
@@ -58,8 +56,6 @@ def remove_expired_nonces():
 
 def _comment(text, token, c_response, c_ciphertext, nonce):
     # TODO: if multiple errors, give out the least annoying one, e.g. N_CAPTCHA_MISSING is far more annoying than N_MESSAGE_EMPTY
-
-    pprint(viewers)
 
     now = int(time.time())
 
@@ -147,7 +143,8 @@ def comment(text, token, c_response, c_ciphertext, nonce):
         failure_reason = _comment(text, token, c_response, c_ciphertext, nonce)
         viewership.setdefault(BROADCASTER_TOKEN)
         viewers[BROADCASTER_TOKEN]['verified'] = True
-    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]}, broadcaster={viewers[token]["broadcaster"]})', 'SUCCEEDED' if failure_reason == N_NONE and text else 'CLEARED CAPTCHA' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}')
+    debug_comment_state = 'SUCCEEDED' if failure_reason == N_NONE and text else 'CLEARED CAPTCHA' if failure_reason == N_NONE else f'FAILED with note {NOTES[failure_reason]!r}'
+    print(f'Comment submission (token={token}, name={viewers[token]["nickname"]!r}, tag={viewers[token]["tag"]}, broadcaster={viewers[token]["broadcaster"]})', debug_comment_state)
     return failure_reason
 
 def mod_chat(message_ids, hide, ban, ban_and_purge):

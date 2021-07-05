@@ -1,11 +1,11 @@
 import os
 import time
-from website.constants import HLS_TIME, SEGMENTS_DIR, SEGMENT_INIT, VIEW_COUNTING_PERIOD
+from website.constants import CONFIG, SEGMENTS_DIR, SEGMENT_INIT, VIEW_COUNTING_PERIOD
 from website.utils.stream import _is_segment, _segment_number, _get_segments
 
 SEGMENT = 'stream{number}.m4s'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
-STREAM_TIMEOUT = HLS_TIME * 2 # consider the stream offline after this many seconds without a new segment
+STREAM_TIMEOUT = lambda: CONFIG['stream']['hls_time'] * 2 # consider the stream offline after this many seconds without a new segment
 
 def resolve_segment_offset(segment_offset=1):
     '''
@@ -39,7 +39,7 @@ def get_next_segment(after, start_segment):
             except ValueError:
                 pass
 
-        if time.time() - start >= STREAM_TIMEOUT:
+        if time.time() - start >= STREAM_TIMEOUT():
             if after == None:
                 raise SegmentUnavailable('timeout waiting for initial segment {SEGMENT_INIT}')
             elif after == SEGMENT_INIT:

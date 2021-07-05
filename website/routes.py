@@ -1,4 +1,4 @@
-from flask import current_app, render_template, send_from_directory, request, abort, Response, redirect, url_for, make_response
+from flask import current_app, render_template, send_from_directory, request, abort, Response, redirect, url_for, make_response, send_file
 from werkzeug import wrap_file
 import os
 import time
@@ -6,11 +6,12 @@ import secrets
 import json
 import datetime
 import re
+import toml
 
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
-from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, HLS_TIME, NOTES, N_NONE, MESSAGE_MAX_LENGTH
+from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, CONFIG, CONFIG_FILE, NOTES, N_NONE, MESSAGE_MAX_LENGTH
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
 RE_WHITESPACE = re.compile(r'\s+')
@@ -42,7 +43,7 @@ def index(token=None):
                                token=token,
                                use_videojs=use_videojs,
                                start_number=resolve_segment_offset() if stream.is_online() else 0,
-                               hls_time=HLS_TIME)
+                               hls_time=CONFIG['stream']['hls_time'])
     response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
@@ -51,22 +52,6 @@ def index(token=None):
 @current_app.auth.login_required
 def broadcaster():
     return index(token=BROADCASTER_TOKEN)
-
-## simple version, just reads the file from disk
-#@current_app.route('/stream.m3u8')
-#def playlist():
-#    if not stream.is_online():
-#        return abort(404)
-#
-#    token = get_token() or new_token()
-#    try:
-#        viewership.video_was_corrupted.remove(token)
-#    except KeyError:
-#        pass
-#    response = send_from_directory(SEGMENTS_DIR, 'stream.m3u8', add_etags=False)
-#    response.headers['Cache-Control'] = 'no-cache'
-#    response.set_cookie('token', token)
-#    return response
 
 @current_app.route('/stream.m3u8')
 def playlist():
@@ -80,10 +65,10 @@ def playlist():
     viewership.made_request(token)
 
     try:
-        file_wrapper = wrap_file(request.environ, stream.TokenPlaylist(token))
+        token_playlist = stream.TokenPlaylist(token)
     except FileNotFoundError:
         return abort(404)
-    response = Response(file_wrapper, mimetype='application/x-mpegURL')
+    response = send_file(token_playlist, mimetype='application/x-mpegURL', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     return response
 
@@ -129,8 +114,9 @@ def segments():
         pass
     viewership.made_request(token)
 
-    start_number = request.args.get('segment', type=int) if 'segment' in request.args else resolve_segment_offset()
-
+    start_number = request.args.get('segment', type=int)
+    if start_number == None:
+        start_number = resolve_segment_offset()
     try:
         concatenated_segments = ConcatenatedSegments(start_number=start_number,
                                                      segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
@@ -139,9 +125,7 @@ def segments():
     except FileNotFoundError:
         return abort(404)
 
-    file_wrapper = wrap_file(request.environ, concatenated_segments)
-    response = Response(file_wrapper, mimetype='video/mp4')
-    response.headers['Connection'] = 'close'
+    response = send_file(concatenated_segments, mimetype='video/mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-store'
     response.set_cookie('token', token)
     return response
@@ -265,7 +249,7 @@ def settings():
 def mod_chat():
     message_ids = request.form.getlist('message_id[]')
     chat.mod_chat(message_ids, request.form.get('hide'), request.form.get('ban'), request.form.get('ban_purge'))
-    return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform: scaleY(-1);">it is done</div>'
+    return f'<meta http-equiv="refresh" content="0;url={url_for("chat_iframe")}"><div style="font-weight:bold;color:white;transform:scaleY(-1);">it is done</div>'
 
 @current_app.route('/mod/users', methods=['POST'])
 @current_app.auth.login_required
@@ -379,6 +363,24 @@ def debug():
     response.mimetype = 'application/json'
 
     # so that you are logged in if the very first thing you do is go to /debug, then you go to /
+    if get_token() != BROADCASTER_TOKEN:
+        response.set_cookie('token', BROADCASTER_TOKEN)
+
+    return response
+
+@current_app.route('/reload')
+@current_app.auth.login_required
+def reload():
+    '''
+    Re-read config.toml
+    '''
+    with open(CONFIG_FILE) as fp:
+        config = toml.load(fp)
+    CONFIG['captcha']['fonts'] = config['captcha']['fonts']
+    CONFIG['stream']['hls_time'] = config['stream']['hls_time']
+
+    # this exists for the same reason as in /debug
+    response = make_response(CONFIG)
     if get_token() != BROADCASTER_TOKEN:
         response.set_cookie('token', BROADCASTER_TOKEN)
 

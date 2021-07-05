@@ -2,7 +2,7 @@ import base64
 import io
 import secrets
 from captcha.image import ImageCaptcha
-from website.constants import BACKGROUND_COLOUR, CAPTCHA_FONTS, CAPTCHA_SECRET_KEY
+from website.constants import BACKGROUND_COLOUR, CONFIG, CAPTCHA_SECRET_KEY
 import werkzeug.security
 import time
 import base64
@@ -10,7 +10,7 @@ import math
 
 CAPTCHA_CHARSET = '346wertypagkxvbm'
 CAPTCHA_LENGTH = 3
-CAPTCHA = ImageCaptcha(width=72, height=30, fonts=CAPTCHA_FONTS, font_sizes=(24, 27, 30))
+CAPTCHA = ImageCaptcha(width=72, height=30, fonts=CONFIG['captcha']['fonts'], font_sizes=(24, 27, 30))
 
 class FakeCiphertext(Exception):
     pass

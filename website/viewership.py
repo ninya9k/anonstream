@@ -5,7 +5,7 @@ import time
 import website.utils.colour as colour
 import website.utils.tripcode as tripcode
 import website.chat as chat
-from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, HLS_TIME, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
+from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, CONFIG, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
 
 viewers = {}
 segment_views = {}
@@ -139,6 +139,7 @@ def count_segment_views(exclude_token_views=True):
             _previous_n_views = _n_views
         total_viewers += n
 
+    HLS_TIME = CONFIG['stream']['hls_time']
     # this assumes every viewer views exactly VIEW_COUNTING_PERIOD / HLS_TIME segments
     average_viewers = sum(sum(streak) for streak in streaks) * HLS_TIME / VIEW_COUNTING_PERIOD
 
