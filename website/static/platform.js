@@ -12,7 +12,11 @@ const videojsEnabled = parseInt(document.getElementById("videojs-enabled").value
 let firstSegment;
 
 if ( !videojsEnabled ) {
-    firstSegment = parseInt(/segment=(\d+)/.exec(video.src)[1]);
+    try {
+        firstSegment = parseInt(/segment=(\d+)/.exec(video.src)[1]);
+    } catch ( error ) {
+        firstSegment = null; // happens when the stream is offline
+    }
 }
 
 let token, streamTitle, viewerCount, streamStatus, streamLight, refreshButton, radialLoader;

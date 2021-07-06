@@ -13,12 +13,38 @@
   position: relative;
   padding-bottom: calc(100% * 9 / 16);
 }
-#stream video, #videojs {
+#stream > video, #videojs, #offline {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+#offline > div:last-child {
+  position: absolute;
+  top: calc(50% - 0.607em);
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 400%;
+  text-shadow: 0 0 8px #000,0 0 128px #000;
+}
+#offline > div:first-child {
+  background-image: url("/static/noise.png");
+  height: 100%;
+  width: 100%;
+  animation: noise-x 7s steps(14) infinite, noise-y 11s linear infinite;
+  background-size: cover;
+  filter: blur(2px) brightness(40%) contrast(70%);
+}
+@keyframes noise-x {
+  0%   {background-position-x:   0%;}
+  100% {background-position-x: 100%;}
+}
+@keyframes noise-y {
+  0%   {background-position-y:   0%;}
+  100% {background-position-y: 100%;}
 }
 
 #chat-border {

@@ -37,12 +37,14 @@ def index(token=None):
     except KeyError:
         pass
     use_videojs = bool(request.args.get('videojs', default=int(VIDEOJS_ENABLED_BY_DEFAULT), type=int))
+    online = stream.is_online()
     viewership.made_request(token)
 
     response = render_template('index.html',
                                token=token,
                                use_videojs=use_videojs,
-                               start_number=resolve_segment_offset() if stream.is_online() else 0,
+                               online=online,
+                               start_number=resolve_segment_offset() if online else 0,
                                hls_time=CONFIG['stream']['hls_time'])
     response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
