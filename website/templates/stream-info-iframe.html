@@ -208,7 +208,8 @@
         </div>
         <script>
             {% if embed_images %}
-            window.location.replace("{{ url_for('stream_info', token=token) }}");
+            // this doesn't work as intended; if the user switches javascript from off to on, the parent doesn't suddenly get javascript functionality unless the page is refreshed, so there's no point doing a redirect to the update-it-with-javascript version of this page atm
+            //window.location.replace("{{ url_for('stream_info', token=token) }}");
             {% endif %}
 
             /* ensure that svg only appears when scripts are enabled */
