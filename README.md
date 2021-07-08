@@ -13,7 +13,7 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 
 ## Dependencies
 * Tor
-* FFmpeg
+* FFmpeg or OBS Studio
 * [Flask](https://github.com/pallets/flask)
 * [captcha](https://github.com/lepture/captcha)
 * [Flask-HTTPAuth](https://github.com/miguelgrinberg/Flask-HTTPAuth) (to identify the broadcaster in chat)
@@ -50,61 +50,85 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 * Flask creates a website interface for the stream
 * tor makes the website accessible at an onion address
 
-## Explanation of the FFmpeg command in `stream.sh`
-
-The FFmpeg command in `stream.sh` was based on [this series of articles by Martin Riedl](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-overview/).
-
-### video input (differs between OSs)
-`-thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y`
-* `-thread_queue_size 2048` prevents ffmpeg from giving some warnings
-* `-video_size "$BOX_WIDTH"x"$BOX_HEIGHT"` sets the size of the video
-* `-framerate $FRAMERATE` sets the framerate of the video
-* `-f x11grab` tells ffmpeg to use the `x11grab` device, used for recording the screen on Linux
-* `-i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y` sets the x- and y-offset for the screen recording
-
-### audio input (differs between OSs)
-`-thread_queue_size 2048 -f pulse -i default`
-
-### video encoding
-`-c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p`
-
-### video filters
-`-filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6"`
-* `scale=$VIDEO_WIDTH:$VIDEO_HEIGHT` scales the video to the desired size
-* `drawtext...` draws the date and time in the top left
-* you might need to change the font `/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf` if you're on macOS and definitely if you're on Windows
-
-### audio encoding
-`-c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS`
-
-### HLS configuration
-`-f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4`
-
-### strip all metadata
-`-map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact`
-
-### output
-`stream/stream.m3u8`
+<details>
+<summary>Explanation of the FFmpeg command in `stream.sh`
+</summary>
+<div>The FFmpeg command in `stream.sh` was based on [this series of articles by Martin Riedl](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-overview/).
+</div>
+<br>
+<div><b>video input (differs between OSs)</b></div>
+<div>• `-thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y`</div>
+<div>• `-thread_queue_size 2048` prevents ffmpeg from giving some warnings</div>
+<div>• `-video_size "$BOX_WIDTH"x"$BOX_HEIGHT"` sets the size of the video</div>
+<div>• `-framerate $FRAMERATE` sets the framerate of the video</div>
+<div>• `-f x11grab` tells ffmpeg to use the `x11grab` device, used for recording the screen on Linux</div>
+<div>• `-i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y` sets the x- and y-offset for the screen recording</div>
+<br>
+<div><b>audio input (differs between OSs)</b></div>
+<div>`-thread_queue_size 2048 -f pulse -i default`</div>
+<br>
+<div><b>video encoding</b></div>
+<div>`-c:v libx264 -b:v "$VIDEO_BITRATE"k -tune zerolatency -preset slower -g $FRAMERATE -sc_threshold 0 -pix_fmt yuv420p`</div>
+<br>
+<div><b>video filters</b></div>
+<div>• `-filter:v scale=$VIDEO_WIDTH:$VIDEO_HEIGHT,"drawtext=fontfile=/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf:text='%{gmtime}':fontcolor=white@0.75:box=1:boxborderw=2:boxcolor=black@0.5:fontsize=24:x=8:y=6"`</div>
+<div>• `scale=$VIDEO_WIDTH:$VIDEO_HEIGHT` scales the video to the desired size</div>
+<div>• `drawtext...` draws the date and time in the top left</div>
+<div>• you might need to change the font `/usr/share/fonts/truetype/freefont/FreeMonoBold.ttf` if you're on macOS and definitely if you're on Windows</div>
+<br>
+<div><b>audio encoding</b></div>
+<div>`-c:a aac -b:a "$AUDIO_BITRATE"k -ac $AUDIO_CHANNELS`</div>
+<br>
+<div><b>HLS configuration</b></div>
+<div>`-f hls -hls_init_time 0 -hls_time $HLS_TIME -hls_list_size $HLS_LIST_SIZE -hls_flags delete_segments -hls_segment_type fmp4`</div>
+<br>
+<div><b>strip all metadata</b></div>
+<div>`-map_metadata -1 -fflags +bitexact -flags:v +bitexact -flags:a +bitexact`
+</div>
+<br>
+<div><b>output</b></div>
+<div>`stream/stream.m3u8`</div>
+</details>
 
 ## Tutorial
 
-To run this yourself, get this source code. As the project currently exists you might need to change some things:
+You can either use [OBS Studio](https://obsproject.com/download), or you can use the FFmpeg command in `stream.sh`. OBS Studio is easier.
 
+### Option 1: OBS Studio
+Skip the auto-configuration wizard if it appears because you won't be streaming to any third party service.
+Click Settings > Output and change `Output Mode` to `Advanced`. Then go to the Recording tab and apply these settings:
+
+|   |   |
+|---|---|
+| `Type` | `Custom Output (FFmpeg)` |
+| `FFmpeg Output Type` | `Output to File` |
+| `File path or URL` | `$PROJECT_ROOT/stream` where `$PROJECT_ROOT` is the root folder of this project |
+| `Container Format` | `hls` |
+| `Muxer Settings (if any)` | `hls_init_time=0 hls_time=2 hls_list_size=120 hls_flags=delete_segments hls_segment_type=fmp4` |
+| `Video bitrate` | `300 Kbps` (or whatever you want) |
+| `Keyframe interval (frames)` | `30` (the same as your framerate, or exactly half) |
+| `Video Encoder` | either leave it default or select an H.264 hardware encoder that matches your graphics card (e.g. `nvenc_h264` for Nvidia, [see here](https://trac.ffmpeg.org/wiki/HWAccelIntro)) |
+| `Audio Bitrate` | `96 Kbps` (or whatever you want) |
+| `Audio Encoder` | `aac` |
+
+Next go to Settings > Advanced > Recording. In `Filename Formatting` type `stream` and check `Overwrite if file exists`.
+That's it.
+
+### Option 2: modify `stream.sh` yourself
 `stream.sh` as it exists in this repo is set up to record your screen and system audio on Linux. See https://trac.ffmpeg.org/wiki/Capture/Desktop for the syntax for different OSs.
 
-* If you're on Windows `stream.sh` will be wrong for you and so will all the fonts in `config.json`. `stream.sh` uses `$$` to get its process ID, you'll have to use the Windows equivalent.
-* If you're on macOS `stream.sh` might need to be changed a bit and you might not have the fonts in `config.json`.
-* If you're on Linux `stream.sh` will probably be alright but you might not have all the fonts in `config.json`.
-
-As an aside: you can change the command in stream.sh to record anything you want, it doesn't have to be just your screen and system audio. If you want to change stuff around, just know that all that's required is: (1) `stream/pid.txt` contains `stream.sh`'s process ID, (2) `stream/start.txt` contains the time the stream started, (3) HLS segments appear as `stream/stream*.m4s`, (4) `stream/init.mp4` is the inital HLS segment, and (5) `stream/stream.m3u8` is the HLS playlist. (All this is taken care of in `stream.sh` by default.)
+As an aside: you can change the command in stream.sh to record anything you want, it doesn't have to be just your screen and system audio. If you want to change stuff around, just know that all that's required is: (1) HLS segments appear as `stream/stream*.m4s`, (2) `stream/init.mp4` is the inital HLS segment, and (3) `stream/stream.m3u8` is the HLS playlist. (All this is taken care of in `stream.sh` by default.)
 
 Assuming your FFmpeg command is working, this is what you have to do.
 
 ### Start streaming
 
+Before you start streaming you need to edit `config.toml`. That file has a list of fonts used by the captcha, and you might not have them. Replace them with some fonts you do have.
+
 #### FFmpeg
 
-Go to the project root and type `sh stream.sh`. This starts the livestream.
+If you're using OBS Studio, click Start Recording (**not** Start Streaming). If you're using the script instead, then go to the project root and type `sh stream.sh`.
+This starts the livestream.
 
 #### Flask
 Go to the project root and type `flask run`. This starts the websever.

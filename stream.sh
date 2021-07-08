@@ -20,9 +20,6 @@ HLS_LIST_SIZE=$(echo $DELETION_THRESHOLD / $HLS_TIME | bc)
 mkdir -p stream
 rm stream/*
 
-# This shell script's process ID, so we can tell if the stream is online or not
-echo $$ > stream/pid.txt
-
 # This exists so we can corrupt video streams of viewers who are too delayed
 ffmpeg -f lavfi -i color=size="$BOX_WIDTH"x"$BOX_HEIGHT":rate=$FRAMERATE:color=black \
     -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
@@ -32,9 +29,6 @@ ffmpeg -f lavfi -i color=size="$BOX_WIDTH"x"$BOX_HEIGHT":rate=$FRAMERATE:color=b
     stream/corrupt.m3u8
 rm stream/corrupt.m3u8 stream/init.mp4
 mv stream/corrupt0.m4s stream/corrupt.m4s
-
-# The current time, so we know when the stream started
-date +%s > stream/start.txt
 
 # This is the command you should edit
 ffmpeg -thread_queue_size 2048 -video_size "$BOX_WIDTH"x"$BOX_HEIGHT" -framerate $FRAMERATE -f x11grab -i :0.0+$BOX_OFFSET_X,$BOX_OFFSET_Y \

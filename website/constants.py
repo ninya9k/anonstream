@@ -7,8 +7,6 @@ ROOT = os.path.dirname(current_app.root_path)
 SEGMENTS_DIR   = os.path.join(ROOT, 'stream')
 SEGMENTS_M3U8  = os.path.join(SEGMENTS_DIR, 'stream.m3u8')
 STREAM_TITLE   = os.path.join(ROOT, 'title.txt')
-STREAM_START   = os.path.join(SEGMENTS_DIR, 'start.txt')
-STREAM_PIDFILE = os.path.join(SEGMENTS_DIR, 'pid.txt')
 
 DIR_STATIC = os.path.join(ROOT, 'website', 'static')
 DIR_STATIC_EXTERNAL = os.path.join(DIR_STATIC, 'external')
@@ -22,6 +20,7 @@ with open(CONFIG_FILE) as fp:
 # these two are accessed through `CONFIG`; they're just here for completeness
 #CAPTCHA_FONTS = CONFIG['captcha']['fonts']
 #HLS_TIME = CONFIG['stream']['hls_time']    # seconds per segment
+# TODO: always read hls_time from stream.m3u8
 
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
 CHAT_TIMEOUT = 5    # seconds between chat messages
@@ -46,6 +45,11 @@ BROADCASTER_COLOUR = b'\xff\x82\x80'
 SEGMENT_INIT = 'init.mp4'
 
 VIDEOJS_ENABLED_BY_DEFAULT = False
+
+# if stream.m3u8 is not modified for this duration, consider the stream offline
+# even if #EXT-X-ENDLIST is not present in the file. if this happens something
+# has gone wrong in FFmpeg so we should turn off the stream.
+STALE_PLAYLIST_THRESHOLD = 30
 
 # notes: messages that can appear in the comment box
 N_NONE            =  0

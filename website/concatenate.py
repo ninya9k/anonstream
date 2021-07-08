@@ -1,7 +1,7 @@
 import os
 import time
 from website.constants import CONFIG, SEGMENTS_DIR, SEGMENT_INIT, VIEW_COUNTING_PERIOD
-from website.utils.stream import _is_segment, _segment_number, _get_segments
+from website.utils.stream import _is_segment, _segment_number, get_segments, is_online
 
 SEGMENT = 'stream{number}.m4s'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
@@ -11,7 +11,7 @@ def resolve_segment_offset(segment_offset=1):
     '''
     Returns the number of the segment at `segment_offset` (1 is most recent segment)
     '''
-    segments = _get_segments(sort=True)
+    segments = get_segments()
     try:
         segment = segments[-min(segment_offset, len(segments))]
     except IndexError:
@@ -19,10 +19,12 @@ def resolve_segment_offset(segment_offset=1):
     return _segment_number(segment)
 
 def get_next_segment(after, start_segment):
+    if not is_online():
+        raise SegmentUnavailable(f'stream went offline')
     start = time.time()
     while True:
         time.sleep(1)
-        segments = _get_segments(sort=True)
+        segments = get_segments()
         if after == None:
             try:
                 if os.path.getsize(os.path.join(SEGMENTS_DIR, SEGMENT_INIT)) > 0: # FFmpeg creates an empty init.mp4 and only writes to it when the first segment exists
@@ -41,7 +43,7 @@ def get_next_segment(after, start_segment):
 
         if time.time() - start >= STREAM_TIMEOUT():
             if after == None:
-                raise SegmentUnavailable('timeout waiting for initial segment {SEGMENT_INIT}')
+                raise SegmentUnavailable(f'timeout waiting for initial segment {SEGMENT_INIT}')
             elif after == SEGMENT_INIT:
                 raise SegmentUnavailable(f'timeout waiting for start segment {start_segment}')
             else:

@@ -2,7 +2,7 @@ import os
 import re
 import time
 from flask import abort
-from website.constants import SEGMENTS_DIR, SEGMENTS_M3U8, SEGMENT_INIT, STREAM_PIDFILE, STREAM_START, STREAM_TITLE
+from website.constants import CONFIG, SEGMENTS_DIR, SEGMENTS_M3U8, SEGMENT_INIT, STREAM_TITLE, STALE_PLAYLIST_THRESHOLD
 
 RE_SEGMENT_OR_INIT = re.compile(r'\b(stream(?P<number>\d+)\.m4s|init\.mp4)\b')
 RE_SEGMENT = re.compile(r'stream(?P<number>\d+)\.m4s')
@@ -14,45 +14,42 @@ def _segment_number(fn):
 def _is_segment(fn):
     return bool(RE_SEGMENT.fullmatch(fn))
 
-def _get_segments(sort=False):
-    try:
-        m3u8 = [line.rstrip() for line in open(SEGMENTS_M3U8).readlines() if _is_segment(line.rstrip())]
-    except FileNotFoundError:
+def get_segments():
+    if playlist_is_stale():
         return []
-
-    if sort:
-        m3u8.sort(key=_segment_number)
+    m3u8 = []
+    try:
+        with open(SEGMENTS_M3U8) as fp:
+            for line in fp.readlines():
+                line = line.rstrip()
+                if _is_segment(line):
+                    m3u8.append(line)
+                # the stream has ended, return an empty list
+                elif line == '#EXT-X-ENDLIST':
+                    m3u8.clear()
+                    break
+    except FileNotFoundError:
+        m3u8.clear()
+    m3u8.sort(key=_segment_number)
     return m3u8
 
 def _is_available(fn, m3u8):
     return fn in m3u8
 
 def current_segment():
-    if is_online():
-        segments = _get_segments()
-        if len(segments) == 0:
-            return None
-        last_segment = max(segments, key=_segment_number)
-        return _segment_number(last_segment)
-    else:
-        return None
+    segments = get_segments()
+    if segments:
+        return _segment_number(segments[-1])
+    return None
+
+def playlist_is_stale():
+    try:
+        return time.time() - os.path.getmtime(SEGMENTS_M3U8) >= STALE_PLAYLIST_THRESHOLD
+    except FileNotFoundError:
+        return True
 
 def is_online():
-    # If the pidfile doesn't exist, return False
-    try:
-        pid = open(STREAM_PIDFILE).read()
-        pid = int(pid)
-    except (FileNotFoundError, ValueError):
-        return False
-
-    # If the process ID doesn't exist, return False
-    try:
-        os.kill(pid, 0)
-    except OSError:
-        return False
-
-    # Otherwise return True
-    return True
+    return bool(get_segments())
 
 def get_title():
     try:
@@ -61,11 +58,18 @@ def get_title():
         return ''
 
 def get_start(absolute=True, relative=False):
-    try:
-        start = open(STREAM_START).read()
-        start = int(start)
-    except (FileNotFoundError, ValueError):
-        start = None
+    start = None
+    # if segments exist
+    if is_online():
+        try:
+            # then the stream start at the mtime of init.mp4
+            start = os.path.getmtime(os.path.join(SEGMENTS_DIR, SEGMENT_INIT))
+        except FileNotFoundError:
+            pass
+        else:
+            # minus the length of 1 segment
+            # (because init.mp4 is written to when the first segment is created)
+            start = int(start) - CONFIG['stream']['hls_time']
 
     diff = None if start == None else int(time.time()) - start
 
@@ -76,32 +80,19 @@ def get_start(absolute=True, relative=False):
     elif relative:
         return diff
 
-
-class TokenPlaylist:
+def token_playlist(token):
     '''
     Append '?token={token}' to each segment in the playlist
     '''
-    def __init__(self, token):
-        self.token = token
-        self.fp = open(SEGMENTS_M3U8)
-        self.leftover = b''
-
-    def read(self, n):
-        if self.token == None:
-            return self.fp.read(n)
-
-        leftover = self.leftover
-        chunk = b''
-        while True:
-            line = self.fp.readline()
-            if len(line) == 0:
-                break
-            injected_line = RE_SEGMENT_OR_INIT.sub(lambda match: f'{match.group()}?token={self.token}', line)
-            chunk += injected_line.encode()
-            if len(chunk) >= n:
-                chunk, self.leftover = chunk[:n], chunk[n:]
-                break
-        return leftover + chunk
-
-    def close(self):
-        self.fp.close()
+    if playlist_is_stale():
+        return []
+    m3u8 = []
+    with open(SEGMENTS_M3U8) as fp:
+        for line in fp.readlines():
+            line = line.rstrip()
+            line = RE_SEGMENT_OR_INIT.sub(lambda match: f'{match.group()}?token={token}', line)
+            m3u8.append(line)
+            # the stream has ended, pretend this file doesn't exist
+            if line == '#EXT-X-ENDLIST':
+                raise FileNotFoundError
+    return '\n'.join(m3u8)

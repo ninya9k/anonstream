@@ -67,10 +67,11 @@ def playlist():
     viewership.made_request(token)
 
     try:
-        token_playlist = stream.TokenPlaylist(token)
+        token_playlist = stream.token_playlist(token)
     except FileNotFoundError:
         return abort(404)
-    response = send_file(token_playlist, mimetype='application/x-mpegURL', add_etags=False)
+    response = make_response(token_playlist)
+    response.mimetype = 'application/x-mpegURL'
     response.headers['Cache-Control'] = 'no-cache'
     return response
 
