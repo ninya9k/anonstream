@@ -108,19 +108,22 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     if viewers[token]['banned']:
         return N_BANNED
 
-    # check that the commenter hasn't acidentally sent the same request twice
+    # check that the commenter hasn't accidentally sent the same request twice
     remove_expired_nonces()
     try:
         nonces.pop(nonce)
     except KeyError:
         return N_CONFIRM
 
-    if secrets.randbelow(50) == 0:
+    # don't ratelimit the broadcaster
+    if viewers[token]['broadcaster']:
+        pass
+    elif secrets.randbelow(50) == 0:
         viewers[token]['verified'] = False
         return N_CAPTCHA_RANDOM
-    if now < viewers[token]['last_comment'] + CHAT_TIMEOUT:
+    elif now < viewers[token]['last_comment'] + CHAT_TIMEOUT:
         return N_TOOFAST
-    if len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
+    elif len(viewers[token]['recent_comments']) + 1 >= FLOOD_THRESHOLD:
         viewers[token]['verified'] = False
         return N_FLOOD
 

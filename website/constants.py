@@ -23,9 +23,9 @@ with open(CONFIG_FILE) as fp:
 # TODO: always read hls_time from stream.m3u8
 
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
-CHAT_TIMEOUT = 5    # seconds between chat messages
+CHAT_TIMEOUT = 3    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
-FLOOD_THRESHOLD = 3 # messages in FLOOD_PERIOD seconds
+FLOOD_THRESHOLD = 4 # messages in FLOOD_PERIOD seconds
 
 HOST_DEFAULT_NICKNAME = 'Broadcaster'
 ANON_DEFAULT_NICKNAME = 'Anonymous'
