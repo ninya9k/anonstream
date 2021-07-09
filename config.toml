@@ -7,4 +7,4 @@ fonts = [
 ]
 
 [stream]
-hls_time = 8
+hls_time = 2
