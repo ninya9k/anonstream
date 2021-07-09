@@ -123,7 +123,11 @@ Assuming your FFmpeg command is working, this is what you have to do.
 
 ### Start streaming
 
-Before you start streaming you need to edit `config.toml`. That file has a list of fonts used by the captcha, and you might not have them. Replace them with some fonts you do have.
+Before you start streaming you might need to edit `config.toml`. That file has a list of fonts used by the captcha, and you might not have them. You can either replace them with some fonts you do have, or you can download the fonts that are already listed there and make sure the paths in `config.toml` are correct:
+* FreeMono: https://ftp.gnu.org/gnu/freefont/
+* Liberation Mono: https://github.com/liberationfonts/liberation-fonts/releases
+* Ubuntu Mono: https://design.ubuntu.com/font/
+* TLWG Mono: https://linux.thai.net/pub/thailinux/software/fonts-tlwg/fonts/
 
 #### FFmpeg
 
