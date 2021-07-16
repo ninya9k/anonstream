@@ -1,4 +1,4 @@
-from flask import current_app, render_template, send_from_directory, request, abort, Response, redirect, url_for, make_response, send_file
+from flask import current_app, render_template, send_from_directory, request, abort, redirect, url_for, make_response, send_file
 from werkzeug import wrap_file
 import os
 import time
@@ -11,7 +11,7 @@ import toml
 import website.chat as chat
 import website.viewership as viewership
 import website.utils.stream as stream
-from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, CONFIG, CONFIG_FILE, NOTES, N_NONE, MESSAGE_MAX_LENGTH
+from website.constants import DIR_STATIC, DIR_STATIC_EXTERNAL, VIDEOJS_ENABLED_BY_DEFAULT, SEGMENT_INIT, CHAT_SCROLLBACK, BROADCASTER_COLOUR, BROADCASTER_TOKEN, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, CONFIG, CONFIG_FILE, NOTES, N_NONE, MESSAGE_MAX_LENGTH, BACKGROUND_COLOUR
 from website.concatenate import ConcatenatedSegments, resolve_segment_offset
 
 RE_WHITESPACE = re.compile(r'\s+')
@@ -46,7 +46,7 @@ def index(token=None):
                                online=online,
                                start_number=resolve_segment_offset() if online else 0,
                                hls_time=CONFIG['stream']['hls_time'])
-    response = Response(response) # TODO: add a view of the chat only, either as an arg here or another route
+    response = make_response(response) # TODO: add a view of the chat only, either as an arg here or another route
     response.set_cookie('token', token)
     return response
 
@@ -101,6 +101,11 @@ def segment_arbitrary(n):
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+
+    # only send segments that are listed in stream.m3u8
+    # this stops old segments from previous streams being sent
+    if f'stream{n}.m4s' not in stream.get_segments():
+        return abort(404)
     viewership.view_segment(n, token)
     response = send_from_directory(SEGMENTS_DIR, f'stream{n}.m4s', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
@@ -128,7 +133,13 @@ def segments():
     except FileNotFoundError:
         return abort(404)
 
-    response = send_file(concatenated_segments, mimetype='video/mp4', add_etags=False)
+    def generate():
+        while True:
+            chunk = concatenated_segments.read(8192)
+            if chunk == b'':
+                return
+            yield chunk
+    response = current_app.response_class(generate(), mimetype='video/mp4')
     response.headers['Cache-Control'] = 'no-store'
     response.set_cookie('token', token)
     return response
@@ -153,6 +164,7 @@ def chat_iframe():
                            default_nickname=viewership.default_nickname,
                            broadcaster=token == BROADCASTER_TOKEN,
                            broadcaster_colour=BROADCASTER_COLOUR,
+                           background_colour=BACKGROUND_COLOUR,
                            debug=request.args.get('debug'),
                            RE_WHITESPACE=RE_WHITESPACE,
                            len=len,
@@ -205,7 +217,7 @@ def comment_iframe(token=None):
                                nickname=viewers[token]['nickname'],
                                viewer=viewers[token],
                                show_settings=preset.get('show_settings', False))
-    response = Response(response)
+    response = make_response(response)
     response.set_cookie('token', token)
     return response
 
@@ -297,6 +309,7 @@ def users():
                            broadcaster=token == BROADCASTER_TOKEN,
                            debug=request.args.get('debug'),
                            broadcaster_colour=BROADCASTER_COLOUR,
+                           background_colour=BACKGROUND_COLOUR,
                            len=len)
 
 @current_app.route('/static/radial.apng')

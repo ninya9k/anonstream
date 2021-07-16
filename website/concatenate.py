@@ -5,7 +5,7 @@ from website.utils.stream import _is_segment, _segment_number, get_segments, is_
 
 SEGMENT = 'stream{number}.m4s'
 CORRUPTING_SEGMENT = 'corrupt.m4s'
-STREAM_TIMEOUT = lambda: CONFIG['stream']['hls_time'] * 2 # consider the stream offline after this many seconds without a new segment
+STREAM_TIMEOUT = lambda: CONFIG['stream']['hls_time'] * 2 + 2 # consider the stream offline after this many seconds without a new segment
 
 def resolve_segment_offset(segment_offset=1):
     '''
@@ -23,7 +23,7 @@ def get_next_segment(after, start_segment):
         raise SegmentUnavailable(f'stream went offline')
     start = time.time()
     while True:
-        time.sleep(1)
+        time.sleep(0.5)
         segments = get_segments()
         if after == None:
             try:
@@ -70,7 +70,7 @@ class ConcatenatedSegments:
     def __init__(self, start_number, segment_hook=None, corrupt_hook=None, should_close_connection=None):
         # start at this segment, after SEGMENT_INIT
         self.start_number = start_number
-        # run this function after sending each segment
+        # run this function before sending each segment (if we do it after then if someone gets the most of a segment but then stops, that wouldn't be counted, before = 0 viewers means nobody is retrieving the stream, after = slightly more accurate viewer count but 0 viewers doesn't necessarily mean nobody is retrieving the stream)
         self.segment_hook = segment_hook or (lambda n: None)
         # run this function when we send the corrupting segment
         self.corrupt_hook = corrupt_hook or (lambda: None)
@@ -83,6 +83,7 @@ class ConcatenatedSegments:
         self._closed = False
         self.segment_read_offset = 0
         self.segment = next(self.segments)
+        self.segment_hook(_segment_number(self.segment))
 
     def _read(self, n):
         chunk = b''
@@ -104,14 +105,9 @@ class ConcatenatedSegments:
                 break
 
             self.segment_read_offset = 0
-            try:
-                next_segment = next(self.segments)
-            except SegmentUnavailable:
-                self.segment_hook(_segment_number(self.segment))
-                raise
-            else:
-                self.segment_hook(_segment_number(self.segment))
-                self.segment = next_segment
+            next_segment = next(self.segments)
+            self.segment_hook(_segment_number(next_segment))
+            self.segment = next_segment
         return chunk
 
     def read(self, n):

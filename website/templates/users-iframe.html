@@ -5,10 +5,18 @@
           body {color:white;margin-top: 0;margin-bottom: 0;}
           .group {margin-bottom:1.5em;}
           .group-name {margin-bottom:0.25em;}
-          .person {margin-left: 0.5em;}
+          .person {margin: 0 0 2px 0.5em;}
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;}
-          .name {font-weight: bold;unicode-bidi: isolate;}
-          sup {margin: 0 -0.25em 0 0.125em;font-size: 90%;font-family:monospace;}
+          .name {color:var(--name-color);font-weight: bold;unicode-bidi: isolate;}
+          .name:hover{
+            background: 4px var(--name-bg-color);
+            text-shadow: 0 0 1px {{ background_colour }};
+            border-radius: 2px;
+            padding: 2px 4px;
+            margin: -2px -4px;
+            cursor: default;
+          }
+          sup {margin-right: 0.125em;font-size: 90%;font-family:monospace;}
           .tripcode {
               margin-left: 0.5em;
               padding: 0 5px;
@@ -34,6 +42,7 @@
             box-shadow: 0px 2px 4px black;
             margin: 0;
           }
+
           .unhide-margin {
             animation: unhide-margin 0s forwards 30s;
             height: 0;
@@ -48,11 +57,16 @@
               margin-bottom: 1.25em;
             }
           }
+
+        /* for text-based browsers */
+        .textonly {
+          display: none;
+        }
 </style>
 </head>
 <body>
     <a href="" style="text-decoration: none;">
-        <div class="refresh unhide-margin" style="bottom:revert;top:0;">Manual refresh required</div>
+        <div class="refresh unhide-margin" style="bottom:revert;top:0;"></div>
     </a>
     <div style="margin: 0.5em 1em;">
     {% with person = people['broadcaster'] %}
@@ -60,9 +74,10 @@
             <div class="group">
                 <div class="group-name">Broadcaster</div>
                 <div class="person">
-                    <span class="camera" title="Broadcaster">🎥</span>&NoBreak;<span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}
+                    <span class="camera" title="Broadcaster">🎥</span><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<span class="textonly"> &lt;</span><span class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</span><span class="textonly">&gt;</span>{% endif %}
                 </div>
             </div>
+            <br class="textonly">
         {% endif %}
     {% endwith %}
 {% if broadcaster %}
@@ -74,18 +89,20 @@
         <div class="group-name">Users watching ({{ len(people['watching']) }})</div>
         {% for person in people['watching'] %}
             <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
+                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<span class="textonly"> &lt;</span><span class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</span><span class="textonly">&gt;</span>{% endif %}{% endwith %}{% if person['token'] == token %}<span class="textonly"> </span><span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
             </div>
         {% endfor %}
     </div>
+    <br class="textonly">
     <div class="group">
         <div class="group-name">Users not watching ({{ len(people['not_watching']) }})</div>
         {% for person in people['not_watching'] %}
             <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
+                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<span class="textonly"> &lt;</span><span class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</span><span class="textonly">&gt;</span>{% endif %}{% endwith %}{% if person['token'] == token %}<span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
             </div>
         {% endfor %}
     </div>
+    <br class="textonly">
 {% if broadcaster %}
         <button>Ban</button>
     </form>
@@ -97,7 +114,7 @@
         <div class="group">
             {% for person in people['banned'] %}
                 <div class="person">
-                    <input type="checkbox" name="token[]" value="{{ person['token'] }}"><span class="name" style="color:#{{ person['colour'].hex() }};">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<div class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</div>{% endif %}{% endwith %}
+                    <input type="checkbox" name="token[]" value="{{ person['token'] }}"><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<span class="textonly"> &lt;</span><span class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</span><span class="textonly">&gt;</span>{% endif %}{% endwith %}
                 </div>
             {% endfor %}
         </div>

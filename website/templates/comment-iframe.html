@@ -151,6 +151,28 @@
             display: none;
         }
 
+        #to-settings::after {
+            content: "⚙️";
+        }
+        #to-chat::after {
+            content: "💬";
+        }
+        .empty-tripcode-container::after {
+            content: "(no tripcode)";
+        }
+        #cancel-password::after {
+            content: "×";
+        }
+        #remove-tripcode::after {
+            content: "×";
+        }
+        #blank-tripcode::after {
+            content: "(cleared)";
+        }
+        #undo-remove-tripcode::after {
+            content: "undo";
+        }
+
         #tripcode {
             padding: 0 5px;
             border-radius: 6px;
@@ -166,6 +188,11 @@
         .pseudolink:active, .pseudolink:hover {
             color: #00b6f0;
         }
+
+        /* for text-based browsers */
+        .textonly {
+          display: none;
+        }
         </style>
     </head>
     <body>
@@ -173,46 +200,55 @@
         <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">
             <input type="hidden" name="nonce" value="{{ nonce }}">
+            <div class="textonly">Send a message:</div>
             <input id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
             <button style="height:30px;font-weight:bold;bottom:1.8em;" class="pure-button pure-button-primary">Chat</button>
             <div class="note-space">
-                <label for="settings-toggle">⚙️</label>
+                <label for="settings-toggle" id="to-settings"></label>
                 {% if captcha %}
-                    <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}"></input>
+                    <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}" alt="Your browser doesn't support the data URI scheme."></input>
                     <input name="captcha-ciphertext" type="hidden" value="{{ captcha['ciphertext'] }}">
+                    <div class="textonly">Captcha:</div>
                     <input id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
                 {% endif %}
             </div>
         </form>
+        <br class="textonly">
         <form id="settings" action="{{ url_for('settings') }}" method="post">
             <input type="hidden" name="token" value="{{ token }}">
+            <div class="textonly">Nickname:</div>
             <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ '' if nickname == None else nickname }}">
+            <br class="textonly">
+            <span class="textonly">Set tripcode:</span>
             <input type="checkbox" id="password-toggle" name="set-tripcode">
+            <br class="textonly">
+            <span class="textonly">Remove tripcode:</span>
             <input type="checkbox" id="blank-tripcode-toggle" name="remove-tripcode">
+            <div class="textonly">Password (to set tripcode):</div>
             <input id="password" type="password" style="width:30%;" name="password" maxlength="256" placeholder="Password">
             {% if viewer['tripcode']['string'] %}
                 <label for="password-toggle">
                     <span id="tripcode-container">
-                        <span id="tripcode" style="background-color:#{{ viewer['tripcode']['background_colour'].hex() }};color:#{{ viewer['tripcode']['foreground_colour'].hex() }};">{{ viewer['tripcode']['string'] }}</span>
+                        <span class="textonly">&lt;</span><span id="tripcode" style="background-color:#{{ viewer['tripcode']['background_colour'].hex() }};color:#{{ viewer['tripcode']['foreground_colour'].hex() }};">{{ viewer['tripcode']['string'] }}</span><span class="textonly">&gt;</span>
                     </span>
                 </label>
-                <span id="blank-tripcode">(cleared)</span>
+                <span id="blank-tripcode"></span>
                 <label for="blank-tripcode-toggle">
-                    <span class="pseudolink" id="remove-tripcode">&times;</span>
-                    <span class="pseudolink" id="undo-remove-tripcode">undo</span>
+                    <span class="pseudolink" id="remove-tripcode"></span>
+                    <span class="pseudolink" id="undo-remove-tripcode"></span>
                 </label>
                 <label for="password-toggle">
-                    <span class="pseudolink" id="cancel-password">&times;</span>
+                    <span class="pseudolink" id="cancel-password"></span>
                 </label>
             {% else %}
                 <label for="password-toggle">
-                    <span class="pseudolink" id="tripcode-container">(no tripcode)</span>
-                    <span class="pseudolink" id="cancel-password">&times;</span>
+                    <span class="pseudolink empty-tripcode-container" id="tripcode-container"></span>
+                    <span class="pseudolink" id="cancel-password"></span>
                 </label>
             {% endif %}
             <div>
                 <div class="note-space">
-                    <label for="settings-toggle">💬</label>
+                    <label for="settings-toggle" id="to-chat"></label>
                     <button style="padding: 0.5em;float:right;" class="pure-button pure-button-primary smalltext">Change appearance</button>
                 </div>
             </div>

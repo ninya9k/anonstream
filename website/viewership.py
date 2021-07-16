@@ -5,7 +5,7 @@ import time
 import website.utils.colour as colour
 import website.utils.tripcode as tripcode
 import website.chat as chat
-from website.constants import ANON_DEFAULT_NICKNAME, BROADCASTER_COLOUR, BROADCASTER_TOKEN, CONFIG, HOST_DEFAULT_NICKNAME, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
+from website.constants import BROADCASTER_COLOUR, BROADCASTER_TOKEN, CONFIG, SEGMENTS_DIR, VIEW_COUNTING_PERIOD, VIEWER_ABSENT_THRESHOLD
 
 viewers = {}
 segment_views = {}
@@ -35,8 +35,8 @@ preset_comment_iframe = {}
 
 def default_nickname(token):
     if token == BROADCASTER_TOKEN:
-        return HOST_DEFAULT_NICKNAME
-    return ANON_DEFAULT_NICKNAME
+        return CONFIG['chat']['host_default_name']
+    return CONFIG['chat']['anon_default_name']
 
 def setdefault(token):
     if token in viewers or token == None:

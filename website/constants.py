@@ -27,9 +27,6 @@ CHAT_TIMEOUT = 3    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
 FLOOD_THRESHOLD = 4 # messages in FLOOD_PERIOD seconds
 
-HOST_DEFAULT_NICKNAME = 'Broadcaster'
-ANON_DEFAULT_NICKNAME = 'Anonymous'
-
 CHAT_MAX_STORAGE = 1024
 CHAT_SCROLLBACK = 100
 MESSAGE_MAX_LENGTH = 256
@@ -39,7 +36,7 @@ CAPTCHA_LIFETIME = 3600
 
 VIEWER_ABSENT_THRESHOLD = 86400
 
-BACKGROUND_COLOUR = b'\x22\x22\x22'
+BACKGROUND_COLOUR = b'\x23\x23\x23' # the same as in platform.css
 BROADCASTER_COLOUR = b'\xff\x82\x80'
 
 SEGMENT_INIT = 'init.mp4'

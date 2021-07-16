@@ -6,5 +6,12 @@ fonts = [
   "/usr/share/fonts/truetype/tlwg/TlwgMono.ttf"
 ]
 
+[chat]
+host_default_name = "Broadcaster"
+anon_default_name = "Anonymous"
+
+[secrets]
+tripcode_salt = "" # put a random value here for secure tripcodes
+
 [stream]
 hls_time = 2
