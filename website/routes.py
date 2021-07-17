@@ -390,10 +390,11 @@ def reload():
     '''
     Re-read config.toml
     '''
-    with open(CONFIG_FILE) as fp:
-        config = toml.load(fp)
-    CONFIG['captcha']['fonts'] = config['captcha']['fonts']
-    CONFIG['stream']['hls_time'] = config['stream']['hls_time']
+    with viewership.lock:
+        with open(CONFIG_FILE) as fp:
+            config = toml.load(fp)
+        for key in config:
+            CONFIG[key] = config[key]
 
     # this exists for the same reason as in /debug
     response = make_response(CONFIG)
