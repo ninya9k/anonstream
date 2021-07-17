@@ -452,8 +452,7 @@ def reload():
             CONFIG[key] = config[key]
 
     # don't send secrets over the network
-    for key in config['secrets']:
-        config['secrets'][key] = None
+    config['secrets'] = list(config['secrets'])
     response = make_response(config)
     # this exists for the same reason as in /debug
     if get_token() != BROADCASTER_TOKEN:
