@@ -199,7 +199,7 @@
             </div>
             {% if embed_images %}
                 <!-- embedding this animated png messes with the animation -->
-                <img class="bottom-right" src="{{ url_for('radial') }}">
+                <img class="bottom-right" src="{{ url_for('_static', fn='radial.apng') }}">
             {% else %}
                 <svg id="radial-loader" class="bottom-right" width="20px" height="20px" viewBox="0 0 20 20">
                     <circle class="radial-animation" cx="10" cy="10" r="5"></circle>

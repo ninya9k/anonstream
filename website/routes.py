@@ -349,7 +349,7 @@ def stream_info():
 @current_app.route('/users')
 def users():
     token = get_token()
-    viewership.made_request()
+    viewership.made_request(token)
     if not viewership.is_allowed(token):
         return abort(403)
     return render_template('users-iframe.html',
@@ -451,8 +451,11 @@ def reload():
         for key in config:
             CONFIG[key] = config[key]
 
+    # don't send secrets over the network
+    for key in config['secrets']:
+        config['secrets'][key] = None
+    response = make_response(config)
     # this exists for the same reason as in /debug
-    response = make_response(CONFIG)
     if get_token() != BROADCASTER_TOKEN:
         response.set_cookie('token', BROADCASTER_TOKEN)
 

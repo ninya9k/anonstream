@@ -11,7 +11,7 @@
           .rotate {transform: rotate(-180deg);}
           .reverse {direction: rtl;}
  
-          .comment {color:white;padding:3px 2px;overflow:hidden;}
+          .comment {color:white;padding:3px 2px;overflow:hidden;display:inline-block;width:calc(100vw - 2em);}
           .comment:hover{background-color:#333;border-radius:4px;}
           .date {color:gray;font-size:75%;text-align:center;border-bottom:1px solid #333;margin:0.5em 0 0.75em 0;cursor:default;}
 
@@ -36,7 +36,7 @@
               cursor: default;
           }
           .barrier {display:inline-block;margin-right:0.5em;}
-          .message {overflow-wrap:break-word;unicode-bidi:isolate;display:inline-block;width:calc(100vw - 2em);}
+          .message {overflow-wrap:break-word;unicode-bidi:isolate;}
           .camera {transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;word-break: keep-all;}
           .time {font-size: 80%;color: gray;vertical-align:middle;cursor:default;}
 
