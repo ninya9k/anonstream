@@ -29,16 +29,25 @@ def get_token(form=False):
         token = None
     return token
 
-@current_app.route('/')
+@current_app.route('/', methods=['GET', 'POST'])
 def index(token=None):
     token = token or get_token() or new_token()
+    viewership.made_request(token)
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        chat.set_tripcode(password, token)
+    if not viewership.is_allowed(token):
+        response = render_template('secret-club.html', token=token, tripcode=viewers[token]['tripcode'])
+        response = make_response(response, 403)
+        response.set_cookie('token', token)
+        return response
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+
     use_videojs = bool(request.args.get('videojs', default=int(VIDEOJS_ENABLED_BY_DEFAULT), type=int))
     online = stream.is_online()
-    viewership.made_request(token)
 
     response = render_template('index.html',
                                token=token,
@@ -60,11 +69,13 @@ def playlist():
     if not stream.is_online():
         return abort(404)
     token = get_token()
+    viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    viewership.made_request(token)
 
     try:
         token_playlist = stream.token_playlist(token)
@@ -79,13 +90,15 @@ def playlist():
 def segment_init():
     if not stream.is_online():
         return abort(404)
-
     token = get_token() or new_token()
+    viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    viewership.made_request(token)
+
     response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
     response.set_cookie('token', token)
@@ -95,8 +108,9 @@ def segment_init():
 def segment_arbitrary(n):
     if not stream.is_online():
         return abort(404)
-
     token = get_token()
+    if not viewership.is_allowed(token):
+        return abort(403)
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
@@ -116,11 +130,20 @@ def segments():
     if not stream.is_online():
         return abort(404)
     token = get_token() or new_token()
+    viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
     try:
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
-    viewership.made_request(token)
+
+    def should_close_connection():
+        if not stream.is_online():
+            return True
+        if not viewership.is_allowed(token):
+            return True
+        return False
 
     start_number = request.args.get('segment', type=int)
     if start_number == None:
@@ -129,7 +152,7 @@ def segments():
         concatenated_segments = ConcatenatedSegments(start_number=start_number,
                                                      segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
                                                      corrupt_hook=lambda: viewership.video_was_corrupted.add(token), # lock?
-                                                     should_close_connection=lambda: not stream.is_online())
+                                                     should_close_connection=should_close_connection)
     except FileNotFoundError:
         return abort(404)
 
@@ -148,6 +171,8 @@ def segments():
 def chat_iframe():
     token = get_token()
     viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
 
     include_user_list = bool(request.args.get('users', default=1, type=int))
     with viewership.lock: # required because another thread can change chat.messages while we're iterating through it
@@ -165,6 +190,9 @@ def chat_iframe():
                            broadcaster=token == BROADCASTER_TOKEN,
                            broadcaster_colour=BROADCASTER_COLOUR,
                            background_colour=BACKGROUND_COLOUR,
+                           stream_title=stream.get_title(),
+                           stream_viewers=viewership.count(),
+                           stream_uptime=stream.readable_uptime(),
                            debug=request.args.get('debug'),
                            RE_WHITESPACE=RE_WHITESPACE,
                            len=len,
@@ -174,6 +202,8 @@ def chat_iframe():
 def heartbeat():
     token = get_token()
     viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
     online = stream.is_online()
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
 
@@ -193,6 +223,8 @@ def heartbeat():
 def comment_iframe(token=None):
     token = token or get_token() or new_token()
     viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
 
     try:
         preset = viewership.preset_comment_iframe.pop(token)
@@ -224,12 +256,14 @@ def comment_iframe(token=None):
 @current_app.route('/comment', methods=['POST'])
 def comment():
     token = get_token(form=True) or new_token()
+    viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
+
     nonce = request.form.get('nonce')
     message = request.form.get('message', '').replace('\r', '').replace('\n', ' ').strip()
     c_response = request.form.get('captcha')
     c_ciphertext = request.form.get('captcha-ciphertext')
-
-    viewership.made_request(token)
 
     failure_reason = chat.comment(message, token, c_response, c_ciphertext, nonce)
 
@@ -243,10 +277,15 @@ def comment():
 @current_app.route('/settings', methods=['POST'])
 def settings():
     token = get_token(form=True) or new_token()
+    viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
+
     nickname = request.form.get('nickname', '')
     password = request.form.get('password', '')
 
-    viewership.made_request(token)
+    old_nickname = viewers[token]['nickname']
+    old_tripcode = viewers[token]['tripcode']
 
     note, ok = chat.set_nickname(nickname, token)
     if ok:
@@ -254,6 +293,13 @@ def settings():
             note, _ = chat.remove_tripcode(token)
         elif request.form.get('set-tripcode'):
             note, _ = chat.set_tripcode(password, token)
+
+    if not viewership.is_allowed(token):
+        if request.form.get('confirm'):
+            return redirect(url_for('index'))
+        viewers[token]['nickname'] = old_nickname
+        viewers[token]['tripcode'] = old_tripcode
+        return render_template('comment-confirm-iframe.html', token=token, nickname=old_nickname or viewership.default_nickname(token))
 
     viewership.preset_comment_iframe[token] = {'note': note, 'show_settings': True}
     return redirect(url_for('comment_iframe', token=token))
@@ -280,9 +326,11 @@ def mod_users():
 @current_app.route('/stream-info')
 def stream_info():
     token = get_token() or new_token()
-    embed_images = bool(request.args.get('embed', type=int))
-
     viewership.made_request(token)
+    if not viewership.is_allowed(token):
+        return abort(403)
+
+    embed_images = bool(request.args.get('embed', type=int))
 
     start_abs, start_rel = stream.get_start(absolute=True, relative=True)
     online = stream.is_online()
@@ -301,7 +349,9 @@ def stream_info():
 @current_app.route('/users')
 def users():
     token = get_token()
-    viewership.made_request(token)
+    viewership.made_request()
+    if not viewership.is_allowed(token):
+        return abort(403)
     return render_template('users-iframe.html',
                            token=token,
                            people=viewership.get_people_list(),
@@ -312,21 +362,26 @@ def users():
                            background_colour=BACKGROUND_COLOUR,
                            len=len)
 
-@current_app.route('/static/radial.apng')
-def radial():
-    response = send_from_directory(DIR_STATIC, 'radial.apng', mimetype='image/png', add_etags=False)
-    response.headers['Cache-Control'] = 'no-store' # caching this in any way messes with the animation
-    response.expires = response.date
-    return response
-
 @current_app.route('/static/<fn>')
 def _static(fn):
+    token = get_token()
+    if fn != 'eye.png' and not viewership.is_allowed(token):
+        return abort(403)
+
     response = send_from_directory(DIR_STATIC, fn, add_etags=False)
-    response.headers['Cache-Control'] = 'no-cache'
+    if fn == 'radial.apng':
+        response.mimetype = 'image/png'
+        response.headers['Cache-Control'] = 'no-store' # caching this in any way messes with the animation
+    elif response.status_code == 200 and not fn.endswith('.png'):
+        response.headers['Cache-Control'] = 'no-cache'
     return response
 
 @current_app.route('/static/external/<fn>')
 def third_party(fn):
+    token = get_token()
+    if not viewership.is_allowed(token):
+        return abort(403)
+
     response = send_from_directory(DIR_STATIC_EXTERNAL, fn, add_etags=False)
     response.headers['Cache-Control'] = 'public, max-age=604800, immutable'
     response.expires = response.date + datetime.timedelta(days=7)

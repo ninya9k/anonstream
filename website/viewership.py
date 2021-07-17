@@ -205,3 +205,12 @@ def remove_absent_viewers():
             viewers.pop(token)
         except KeyError:
             pass
+
+def is_allowed(token):
+    viewer = viewers.get(token)
+    if viewer and viewer.get('broadcaster'):
+        return True
+    secret_club = CONFIG['secret_club']
+    if not secret_club['active']:
+        return True
+    return viewer and viewer['tripcode']['string'] in secret_club['allowed_trips']

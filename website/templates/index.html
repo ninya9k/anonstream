@@ -120,6 +120,14 @@
                 </div>
             </div>
         </div>
+        <div class="textonly">
+            <br>
+            <div>== Quick links for text-based browsers ==</div>
+            <div>Livestream: <a href="{{ url_for('segments', token=token) }}">{{ url_for('segments', token=token) }}</a></div>
+            <div>Chat: <a href="{{ url_for('chat_iframe', token=token) }}">{{ url_for('chat_iframe', token=token) }}</a></div>
+            <div>Comment box: <a href="{{ url_for('comment_iframe', token=token) }}">{{ url_for('comment_iframe', token=token) }}</a></div>
+            <div>If the stream is in secret club mode, the <i>token</i> component is necessary.</div>
+        </div>
         <script>
             /* replace noscript frame URLs with with-script versions */
             function replaceFrameURL(frameContainerId, newUrl, newId, newName) {

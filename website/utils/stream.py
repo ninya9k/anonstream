@@ -96,3 +96,13 @@ def token_playlist(token):
             if line == '#EXT-X-ENDLIST':
                 raise FileNotFoundError
     return '\n'.join(m3u8)
+
+def readable_uptime():
+    uptime = get_start(relative=False)
+    if uptime == None:
+        return None
+    hours, uptime = divmod(uptime, 3600)
+    minutes, seconds = divmod(uptime, 60)
+    if hours:
+        return f'{hours}:{minutes:02}:{seconds:02}'
+    return f'{minutes:02}:{seconds:02}'
