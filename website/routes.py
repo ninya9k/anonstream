@@ -66,8 +66,6 @@ def broadcaster():
 
 @current_app.route('/stream.m3u8')
 def playlist():
-    if not stream.is_online():
-        return abort(404)
     token = get_token()
     viewership.made_request(token)
     if not viewership.is_allowed(token):
@@ -76,6 +74,8 @@ def playlist():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    if not stream.is_online():
+        return abort(404)
 
     try:
         token_playlist = stream.token_playlist(token)
@@ -88,8 +88,6 @@ def playlist():
 
 @current_app.route(f'/{SEGMENT_INIT}')
 def segment_init():
-    if not stream.is_online():
-        return abort(404)
     token = get_token() or new_token()
     viewership.made_request(token)
     if not viewership.is_allowed(token):
@@ -98,6 +96,8 @@ def segment_init():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    if not stream.is_online():
+        return abort(404)
 
     response = send_from_directory(SEGMENTS_DIR, f'init.mp4', add_etags=False)
     response.headers['Cache-Control'] = 'no-cache'
@@ -106,8 +106,6 @@ def segment_init():
 
 @current_app.route('/stream<int:n>.m4s')
 def segment_arbitrary(n):
-    if not stream.is_online():
-        return abort(404)
     token = get_token()
     if not viewership.is_allowed(token):
         return abort(403)
@@ -115,6 +113,8 @@ def segment_arbitrary(n):
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    if not stream.is_online():
+        return abort(404)
 
     # only send segments that are listed in stream.m3u8
     # this stops old segments from previous streams being sent
@@ -127,8 +127,6 @@ def segment_arbitrary(n):
 
 @current_app.route('/stream.mp4')
 def segments():
-    if not stream.is_online():
-        return abort(404)
     token = get_token() or new_token()
     viewership.made_request(token)
     if not viewership.is_allowed(token):
@@ -137,6 +135,8 @@ def segments():
         viewership.video_was_corrupted.remove(token)
     except KeyError:
         pass
+    if not stream.is_online():
+        return abort(404)
 
     def should_close_connection():
         if not stream.is_online():
@@ -299,6 +299,7 @@ def settings():
             return redirect(url_for('index'))
         viewers[token]['nickname'] = old_nickname
         viewers[token]['tripcode'] = old_tripcode
+        viewership.preset_comment_iframe[token] = {'note': N_NONE, 'show_settings': True}
         return render_template('comment-confirm-iframe.html', token=token, nickname=old_nickname or viewership.default_nickname(token))
 
     viewership.preset_comment_iframe[token] = {'note': note, 'show_settings': True}
