@@ -142,7 +142,7 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
                 word = escape(word)    # escape for html
                 word = re.escape(word) # escape for regex
                 regex = r'\b{}\b'.format(word)
-                markup, n = re.subn(regex, '<b class="censored">[CENSORED]</b>', markup)
+                markup, n = re.subn(regex, '<b class="censored">[CENSORED]</b>', markup, flags=re.IGNORECASE)
                 if n: reaction = key
         # enact consequences of word filters
         note = N_NONE
