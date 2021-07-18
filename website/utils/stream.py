@@ -98,7 +98,7 @@ def token_playlist(token):
     return '\n'.join(m3u8)
 
 def readable_uptime():
-    uptime = get_start(relative=False)
+    uptime = get_start(absolute=False, relative=False)
     if uptime == None:
         return None
     hours, uptime = divmod(uptime, 3600)
