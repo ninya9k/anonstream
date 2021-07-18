@@ -1,14 +1,16 @@
 import secrets
 import time
 import unicodedata
+import re
+from flask import escape, Markup
 from collections import deque
 from datetime import datetime
 
 import website.utils.captcha as captcha_util
 import website.utils.tripcode as tripcode
 import website.viewership as viewership
-from website.constants import BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_STORAGE, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, CAPTCHA_LIFETIME, \
-                              NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_USED, N_CAPTCHA_EXPIRED, N_CAPTCHA_RANDOM, N_CONFIRM, N_APPEAR_OK, N_APPEAR_FAIL
+from website.constants import CONFIG, BROADCASTER_TOKEN, MESSAGE_MAX_LENGTH, CHAT_MAX_STORAGE, CHAT_TIMEOUT, FLOOD_PERIOD, FLOOD_THRESHOLD, CAPTCHA_LIFETIME, \
+                              NOTES, N_NONE, N_TOKEN_EMPTY, N_MESSAGE_EMPTY, N_MESSAGE_LONG, N_BANNED, N_TOOFAST, N_FLOOD, N_CAPTCHA_MISSING, N_CAPTCHA_WRONG, N_CAPTCHA_USED, N_CAPTCHA_EXPIRED, N_CAPTCHA_RANDOM, N_CONFIRM, N_WORDFILTER, N_WORDFILTER_BAN, N_APPEAR_OK, N_APPEAR_FAIL
 
 messages = deque() # messages are stored from most recent on the left to least recent on the right
 captchas = {} # captchas that have been used already
@@ -127,11 +129,38 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
         viewers[token]['verified'] = False
         return N_FLOOD
 
+    # apply word filters
+    markup = escape(text)
+    filters = CONFIG['chat']['filters']
+    # ... unless it's the broadcaster talking
+    if token == BROADCASTER_TOKEN and filters['tyranny']:
+        note = N_NONE
+    else:
+        reaction = None
+        for key in ['censor', 'block', 'ban']:
+            for word in filters[key]:
+                word = escape(word)    # escape for html
+                word = re.escape(word) # escape for regex
+                regex = r'\b{}\b'.format(word)
+                markup, n = re.subn(regex, '<b class="censored">[CENSORED]</b>', markup)
+                if n: reaction = key
+        # enact consequences of word filters
+        note = N_NONE
+        if reaction == 'block':
+            note = N_WORDFILTER
+        elif reaction == 'ban' and token == BROADCASTER_TOKEN:
+            note = N_WORDFILTER
+        elif reaction == 'ban':
+            note = N_WORDFILTER_BAN
+            viewers[token]['banned'] = True
+
     dt = datetime.utcfromtimestamp(now)
-    messages.appendleft({'text': text,
+    messages.appendleft({'nomarkup': text,
+                         'markup': Markup(markup),
                          'viewer': viewers[token],
                          'id': f'{token}-{secrets.token_hex(4)}',
-                         'hidden': False,
+                         'hidden': reaction == 'block' or reaction == 'ban',
+                         'reaction': reaction,
                          'time': dt.strftime('%H:%M'),
                          'timestamp': dt.strftime('%F %T'),
                          'date': dt.strftime('%F')})
@@ -139,7 +168,7 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     viewers[token]['recent_comments'].append(now)
     viewers[token]['verified'] = True
     behead_chat()
-    return N_NONE
+    return note
 
 def comment(text, token, c_response, c_ciphertext, nonce):
     with viewership.lock:

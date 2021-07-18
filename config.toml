@@ -6,12 +6,22 @@ fonts = [
   "/usr/share/fonts/truetype/tlwg/TlwgMono.ttf"
 ]
 
-[chat]
-host_default_name = "Broadcaster"
-anon_default_name = "Anonymous"
+[chat.nickname]
+host = "Broadcaster"
+anon = "Anonymous"
+
+[chat.filters]
+ban     = [] # block message & ban poster
+block   = [] # block message
+censor  = [] # censor word in message
+tyranny = true # word filters don't apply to broadcaster
+
+[secret_club]
+active = false
+allowed_trips = [] # list of tripcodes to allow in if secret club mode is active
 
 [secrets]
-tripcode_salt = "" # put a random value here for secure tripcodes
+tripcode_salt = "" # put a long random value here for secure tripcodes
 
 [stream]
 hls_time = 2

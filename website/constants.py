@@ -18,8 +18,6 @@ with open(CONFIG_FILE) as fp:
     CONFIG = toml.load(fp)
 
 # these two are accessed through `CONFIG`; they're just here for completeness
-#CAPTCHA_FONTS = CONFIG['captcha']['fonts']
-#HLS_TIME = CONFIG['stream']['hls_time']    # seconds per segment
 # TODO: always read hls_time from stream.m3u8
 
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds
@@ -27,9 +25,9 @@ CHAT_TIMEOUT = 3    # seconds between chat messages
 FLOOD_PERIOD = 20   # seconds
 FLOOD_THRESHOLD = 4 # messages in FLOOD_PERIOD seconds
 
-CHAT_MAX_STORAGE = 1024
+CHAT_MAX_STORAGE = 8192
 CHAT_SCROLLBACK = 100
-MESSAGE_MAX_LENGTH = 256
+MESSAGE_MAX_LENGTH = 320
 
 CAPTCHA_SECRET_KEY = os.urandom(12)
 CAPTCHA_LIFETIME = 3600
@@ -62,8 +60,10 @@ N_CAPTCHA_USED    =  9
 N_CAPTCHA_EXPIRED = 10
 N_CAPTCHA_RANDOM  = 11
 N_CONFIRM         = 12
-N_APPEAR_OK       = 13
-N_APPEAR_FAIL     = 14
+N_WORDFILTER      = 13
+N_WORDFILTER_BAN  = 14
+N_APPEAR_OK       = 15
+N_APPEAR_FAIL     = 16
 
 NOTES = {N_NONE:            '',
          N_TOKEN_EMPTY:     'illegal token',
@@ -78,5 +78,7 @@ NOTES = {N_NONE:            '',
          N_CAPTCHA_EXPIRED: 'the captcha expired',
          N_CAPTCHA_RANDOM:  'a wild captcha appears',
          N_CONFIRM:         'confirm you want to send',
+         N_WORDFILTER:      'blocked by word filter',
+         N_WORDFILTER_BAN:  'banned by word filter',
          N_APPEAR_OK:       'appearance got changed',
          N_APPEAR_FAIL:     'name/pw too long; no change'}

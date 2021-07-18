@@ -13,6 +13,18 @@
  
           .comment {color:white;padding:3px 2px;overflow:hidden;display:inline-block;width:calc(100vw - 1.25em);}
           .comment:hover{background-color:#333;border-radius:4px;}
+          .censored {
+            font-weight: normal;
+            font-variant: all-small-caps;
+            font-family: monospace, monospace;
+            background: black;
+            color: transparent;
+            padding: 1px;
+            cursor: default;
+          }
+          .censored:hover {
+            color: revert;
+          }
           .date {color:gray;font-size:75%;text-align:center;border-bottom:1px solid #333;margin:0.5em 0 0.75em 0;cursor:default;}
 
           .name {color:var(--name-color);font-weight:bold;unicode-bidi:isolate;}
@@ -136,7 +148,7 @@
                     {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
                         ><span class="barrier" style="margin:0;"></span><span class="textonly"> &lt;</span><span class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</span><span class="textonly">&gt;</span
                     {% endif %}{% endwith %}
-                    ><span class="barrier"></span><br class="textonly"><span class="message">{{ message['text'] }}</span>
+                    ><span class="barrier"></span><br class="textonly"><span class="message">{{ message['markup'] }}</span>
                 {% endif %}
             </td>
         {% endif %}

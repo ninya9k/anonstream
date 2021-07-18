@@ -35,8 +35,8 @@ preset_comment_iframe = {}
 
 def default_nickname(token):
     if token == BROADCASTER_TOKEN:
-        return CONFIG['chat']['host_default_name']
-    return CONFIG['chat']['anon_default_name']
+        return CONFIG['chat']['nickname']['host']
+    return CONFIG['chat']['nickname']['anon']
 
 def setdefault(token):
     if token in viewers or token == None:
