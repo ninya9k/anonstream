@@ -132,11 +132,11 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
     # apply word filters
     markup = escape(text)
     filters = CONFIG['chat']['filters']
+    reaction = None
     # ... unless it's the broadcaster talking
     if token == BROADCASTER_TOKEN and filters['tyranny']:
         note = N_NONE
     else:
-        reaction = None
         for key in ['censor', 'block', 'ban']:
             for word in filters[key]:
                 word = escape(word) # escape for html
