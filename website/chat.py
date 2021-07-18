@@ -139,10 +139,13 @@ def _comment(text, token, c_response, c_ciphertext, nonce):
         reaction = None
         for key in ['censor', 'block', 'ban']:
             for word in filters[key]:
-                word = escape(word)    # escape for html
-                word = re.escape(word) # escape for regex
-                regex = r'\b{}\b'.format(word)
-                markup, n = re.subn(regex, '<b class="censored">[CENSORED]</b>', markup, flags=re.IGNORECASE)
+                word = escape(word) # escape for html
+                if word.startswith('re:'):
+                    regex = word[3:]
+                else:
+                    word = re.escape(word) # escape for regex
+                    regex = r'\b{}\b'.format(word)
+                markup, n = re.subn(regex, '<b class="censored">[CENSORED]</b>', markup, flags=re.IGNORECASE if filters['ignore_case'] else 0)
                 if n: reaction = key
         # enact consequences of word filters
         note = N_NONE

@@ -11,9 +11,12 @@ host = "Broadcaster"
 anon = "Anonymous"
 
 [chat.filters]
+# prepend strings with "re:" for regular expressions
+# e.g. ban = ["re:\\bmelons?\\b", "re:(https?://)?([^.]+?\\.)*?example\\.com\\S*"]
 ban     = [] # block message & ban poster
 block   = [] # block message
 censor  = [] # censor word in message
+ignore_case = true
 tyranny = true # word filters don't apply to broadcaster
 
 [secret_club]
