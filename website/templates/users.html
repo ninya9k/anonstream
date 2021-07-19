@@ -1,0 +1,52 @@
+{% with person = people['broadcaster'] %}
+  {% if person %}
+    <div class="group">
+      <div class="group-name">Broadcaster</div>
+        <div class="person">
+          {% include 'person.html' %}
+        </div>
+      </div>
+      <br class="textonly">
+  {% endif %}
+{% endwith %}
+{% if broadcaster %}
+  <form action="{{ url_for('mod_users') }}" method="post">
+    <input type="hidden" name="noscript" value="0">
+    <input type="hidden" name="banned" value="1">
+{% endif %}
+    <div class="group">
+      <div class="group-name">Users watching ({{ len(people['watching']) }})</div>
+        {% for person in people['watching'] %}
+          <div class="person">
+            {% include 'person.html' %}
+          </div>
+        {% endfor %}
+      </div>
+      <br class="textonly">
+      <div class="group">
+        <div class="group-name">Users not watching ({{ len(people['not_watching']) }})</div>
+          {% for person in people['not_watching'] %}
+            <div class="person">
+              {% include 'person.html' %}
+            </div>
+          {% endfor %}
+        </div>
+        <br class="textonly">
+{% if broadcaster %}
+  <button>Ban</button>
+  </form>
+  <div style="margin:1.75em 0 1.5em 0;border-bottom:1px solid #3f3f3f;"></div>
+  <form action="{{ url_for('mod_users') }}" method="post">
+    <input type="hidden" name="noscript" value="0">
+    <input type="hidden" name="banned" value="0">
+    <div class="group-name">Banned ({{ len(people['banned']) }})</div>
+    <div class="group">
+      {% for person in people['banned'] %}
+        <div class="person">
+          {% include 'person.html' %}
+        </div>
+      {% endfor %}
+    </div>
+    <button>Unban</button>
+  </form>
+{% endif %}

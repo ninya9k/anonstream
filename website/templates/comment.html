@@ -1,0 +1,14 @@
+{% if not message['hidden'] %}
+  {% if broadcaster %}
+    <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
+  {% endif %}
+  <span class="time" title="{{ message['timestamp'] }}">{{ message['time'] }}</span><span class="barrier"></span><span class="textonly"> </span
+  {% if message['viewer']['broadcaster'] %}
+    ><i class="camera" title="Broadcaster">🎥</i
+  {% endif %}
+  ><span class="name" style="--name-color:#{{ message['viewer']['colour'].hex() }};--name-bg-color:#{{ message['viewer']['colour'].hex() }}20;">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
+  {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
+    ><span class="barrier" style="margin:0;"></span><b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</b><b class="textonly">&gt;</b
+  {% endif %}{% endwith %}
+  ><span class="barrier"></span><br class="textonly"><span class="message">{{ message['markup'] }}</span>
+{% endif %}

@@ -1,260 +1,260 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link href="/static/external/pure-min.css" rel="stylesheet">
-        <style>
-        body {
-          margin-left:0.5em;
-          color: white;
-        }
-        input {
-          background-color: inherit;
-          color: white;
-        }
-        input#message {
-          border: 1px solid #999 !important;
-          box-shadow: inset 0 1px 3px #555 !important;
-          width: calc(100% - 0.5em);
-          margin-bottom: 0.5em;
-        }
-        input#captcha {
-          width: calc(100% - 14em);
-          vertical-align: top;
-          padding: 0.375em;
-          display: inline-block;
-          box-shadow: none;
-        }
-        button {
-          position:absolute;
-          right:0.5em;
-          padding: 0.375em 1em !important;
-        }
-        form {
-          margin: 0;
-        }
-        input[type="image"] {
-          margin-top: 0.125em;
-          cursor: help;
-        }
-        .note-space {
-          display: inline-block;
-        }
-        input[type="checkbox"] {
-            display: none;
-        }
-        label[for="settings-toggle"] {
-          cursor: pointer;
-          font-size: 150%;
-          vertical-align: top;
-          margin-right: 0.125em;
-          display: inline;
-        }
-        {% with primary   = 'settings'    if show_settings else 'comment-box' %}
-        {% with secondary = 'comment-box' if show_settings else 'settings' %}
-        form#{{ secondary }} {
-            width:0;
-            height:0;
-            overflow:hidden;
-        }
-        form#{{ secondary }} button {
-            display: none;
-        }
-        input#settings-toggle:checked ~ form#{{ primary }} {
-            width:0;
-            height:0;
-            overflow:hidden;
-        }
-        input#settings-toggle:checked ~ form#{{ primary }} button {
-            display: none;
-        }
-        input#settings-toggle:checked ~ form#{{ secondary }} {
-            width:revert;
-            height:revert;
-            overflow:revert;
-        }
-        input#settings-toggle:checked ~ form#{{ secondary }} button {
-            display: revert;
-        }
-        {% endwith %}
-        {% endwith %}
-        input#nickname {
-          padding: 0.25em;
-          display: inline-block;
-          box-shadow: none;
-          border: 1px solid #999 !important;
-          margin-bottom: 0.5em;
-        }
-        {% if note %}
-        @keyframes hide {
-          to {
-            visibility: hidden;
-            overflow: hidden;
-          }
-        }
-        @keyframes unhide {
-          to {
-            visibility: visible;
-          }
-        }
-        #note {
-          font-weight: bold;
-          color: white;
-          animation: hide 0s forwards 2s;
-          position: absolute;
-          top: 2.75rem;
-          font-size: 110%;
-        }
-        .note-space {
+  <head>
+    <meta charset="utf-8">
+    <link href="/static/external/pure-min.css" rel="stylesheet">
+    <style>
+      body {
+        margin-left:0.5em;
+        color: #f0f0f0;
+      }
+      input {
+        background-color: inherit;
+        color: #f0f0f0;
+      }
+      input#message {
+        border: 1px solid #999 !important;
+        box-shadow: inset 0 1px 3px #555 !important;
+        width: calc(100% - 0.5em);
+        margin-bottom: 0.5em;
+      }
+      input#captcha {
+        width: calc(100% - 14em);
+        vertical-align: top;
+        padding: 0.375em;
+        display: inline-block;
+        box-shadow: none;
+      }
+      button {
+        position:absolute;
+        right:0.5em;
+        padding: 0.375em 1em !important;
+      }
+      form {
+        margin: 0;
+      }
+      input[type="image"] {
+        margin-top: 0.125em;
+        cursor: help;
+      }
+      .note-space {
+        display: inline-block;
+      }
+      input[type="checkbox"] {
+        display: none;
+      }
+      label[for="settings-toggle"] {
+        cursor: pointer;
+        font-size: 150%;
+        vertical-align: top;
+        margin-right: 0.125em;
+        display: inline;
+      }
+      {% with primary   = 'settings'    if show_settings else 'comment-box' %}
+      {% with secondary = 'comment-box' if show_settings else 'settings' %}
+      form#{{ secondary }} {
+        width:0;
+        height:0;
+        overflow:hidden;
+      }
+      form#{{ secondary }} button {
+        display: none;
+      }
+      input#settings-toggle:checked ~ form#{{ primary }} {
+        width:0;
+        height:0;
+        overflow:hidden;
+      }
+      input#settings-toggle:checked ~ form#{{ primary }} button {
+        display: none;
+      }
+      input#settings-toggle:checked ~ form#{{ secondary }} {
+        width:revert;
+        height:revert;
+        overflow:revert;
+      }
+      input#settings-toggle:checked ~ form#{{ secondary }} button {
+        display: revert;
+      }
+      {% endwith %}
+      {% endwith %}
+      input#nickname {
+        padding: 0.25em;
+        display: inline-block;
+        box-shadow: none;
+        border: 1px solid #999 !important;
+        margin-bottom: 0.5em;
+      }
+      {% if note %}
+      @keyframes hide {
+        to {
           visibility: hidden;
-          animation: unhide 0s forwards 2s;
+          overflow: hidden;
         }
+      }
+      @keyframes unhide {
+        to {
+          visibility: visible;
+        }
+      }
+      #note {
+        font-weight: bold;
+        color: #f0f0f0;
+        animation: hide 0s forwards 2s;
+        position: absolute;
+        top: 2.75rem;
+        font-size: 110%;
+      }
+      .note-space {
+        visibility: hidden;
+        animation: unhide 0s forwards 2s;
+      }
+      {% endif %}
+      .smalltext {
+        font-size: 85%;
+      }
+
+      #password, #cancel-password {
+        display: none;
+      }
+      #password-toggle:checked ~ #password {
+        display: revert;
+      }
+      #password-toggle:checked ~ label[for="password-toggle"] #cancel-password {
+        display: revert;
+      }
+      #password-toggle:checked ~ label[for="password-toggle"] #tripcode-container {
+        display: none;
+      }
+      #password-toggle:checked ~ label[for="password-toggle"] #remove-tripcode {
+        display: none;
+      }
+      #password-toggle:checked ~ label[for="blank-tripcode-toggle"] {
+        display: none;
+      }
+
+      #undo-remove-tripcode {
+        display: none;
+      }
+      #blank-tripcode {
+        display: none;
+      }
+      #blank-tripcode-toggle:checked ~ #blank-tripcode {
+        display: revert;
+      }
+      #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #undo-remove-tripcode {
+        display: revert;
+      }
+      #blank-tripcode-toggle:checked ~ label[for="password-toggle"] {
+        display: none;
+      }
+      #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #remove-tripcode {
+        display: none;
+      }
+
+      #to-settings::after {
+        content: "⚙️";
+      }
+      #to-chat::after {
+        content: "💬";
+      }
+      .empty-tripcode-container::after {
+        content: "(no tripcode)";
+      }
+      #cancel-password::after {
+        content: "×";
+      }
+      #remove-tripcode::after {
+        content: "×";
+      }
+      #blank-tripcode::after {
+        content: "(cleared)";
+      }
+      #undo-remove-tripcode::after {
+        content: "undo";
+      }
+
+      #tripcode {
+        font-weight: normal;
+        padding: 0 5px;
+        border-radius: 6px;
+        font-size: 90%;
+        font-family: monospace;
+        vertical-align: middle;
+        display: inline-block;
+        cursor: pointer;
+      }
+      .pseudolink {
+        color: #a0a0a0;
+        cursor: pointer;
+      }
+      .pseudolink:active, .pseudolink:hover {
+        color: #00b6f0;
+      }
+
+      /* for text-based browsers */
+      .textonly {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="checkbox" id="settings-toggle">
+    <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
+      <input type="hidden" name="token" value="{{ token }}">
+      <input type="hidden" name="nonce" value="{{ nonce }}">
+      <div class="textonly">Send a message:</div>
+      <input id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
+      <button style="height:30px;font-weight:bold;bottom:1.8em;" class="pure-button pure-button-primary">Chat</button>
+      <div class="note-space">
+        <label for="settings-toggle" id="to-settings"></label>
+        {% if captcha %}
+          <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}" alt="Your browser doesn't support the data URI scheme."></input>
+          <input name="captcha-ciphertext" type="hidden" value="{{ captcha['ciphertext'] }}">
+          <div class="textonly">Captcha:</div>
+          <input id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
         {% endif %}
-        .smalltext {
-          font-size: 85%;
-        }
-
-        #password, #cancel-password {
-            display: none;
-        }
-        #password-toggle:checked ~ #password {
-            display: revert;
-        }
-        #password-toggle:checked ~ label[for="password-toggle"] #cancel-password {
-            display: revert;
-        }
-        #password-toggle:checked ~ label[for="password-toggle"] #tripcode-container {
-            display: none;
-        }
-        #password-toggle:checked ~ label[for="password-toggle"] #remove-tripcode {
-            display: none;
-        }
-        #password-toggle:checked ~ label[for="blank-tripcode-toggle"] {
-            display: none;
-        }
-
-        #undo-remove-tripcode {
-            display: none;
-        }
-        #blank-tripcode {
-            display: none;
-        }
-        #blank-tripcode-toggle:checked ~ #blank-tripcode {
-            display: revert;
-        }
-        #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #undo-remove-tripcode {
-            display: revert;
-        }
-        #blank-tripcode-toggle:checked ~ label[for="password-toggle"] {
-            display: none;
-        }
-        #blank-tripcode-toggle:checked ~ label[for="blank-tripcode-toggle"] #remove-tripcode {
-            display: none;
-        }
-
-        #to-settings::after {
-            content: "⚙️";
-        }
-        #to-chat::after {
-            content: "💬";
-        }
-        .empty-tripcode-container::after {
-            content: "(no tripcode)";
-        }
-        #cancel-password::after {
-            content: "×";
-        }
-        #remove-tripcode::after {
-            content: "×";
-        }
-        #blank-tripcode::after {
-            content: "(cleared)";
-        }
-        #undo-remove-tripcode::after {
-            content: "undo";
-        }
-
-        #tripcode {
-            font-weight: normal;
-            padding: 0 5px;
-            border-radius: 6px;
-            font-size: 90%;
-            font-family: monospace;
-            vertical-align: middle;
-            display: inline-block;
-            cursor: pointer;
-        }
-        .pseudolink {
-            color: #a0a0a0;
-            cursor: pointer;
-        }
-        .pseudolink:active, .pseudolink:hover {
-            color: #00b6f0;
-        }
-
-        /* for text-based browsers */
-        .textonly {
-          display: none;
-        }
-        </style>
-    </head>
-    <body>
-        <input type="checkbox" id="settings-toggle">
-        <form id="comment-box" class="pure-form" action="{{ url_for('comment') }}" method="post">
-            <input type="hidden" name="token" value="{{ token }}">
-            <input type="hidden" name="nonce" value="{{ nonce }}">
-            <div class="textonly">Send a message:</div>
-            <input id="message" class="pure-u-1 smalltext" name="message" maxlength="250" placeholder="Send a message" value="{{ message }}">
-            <button style="height:30px;font-weight:bold;bottom:1.8em;" class="pure-button pure-button-primary">Chat</button>
-            <div class="note-space">
-                <label for="settings-toggle" id="to-settings"></label>
-                {% if captcha %}
-                    <input type="image" formaction="{{ url_for('comment_iframe') }}" title="Click for a new captcha" src="{{ captcha['src'] }}" alt="Your browser doesn't support the data URI scheme."></input>
-                    <input name="captcha-ciphertext" type="hidden" value="{{ captcha['ciphertext'] }}">
-                    <div class="textonly">Captcha:</div>
-                    <input id="captcha" class="smalltext" style="height:30;" name="captcha" placeholder="Captcha">
-                {% endif %}
-            </div>
-        </form>
-        <br class="textonly">
-        <form id="settings" action="{{ url_for('settings') }}" method="post">
-            <input type="hidden" name="token" value="{{ token }}">
-            <div class="textonly">Nickname:</div>
-            <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ '' if nickname == None else nickname }}">
-            <br class="textonly">
-            <span class="textonly">Set tripcode:</span>
-            <input type="checkbox" id="password-toggle" name="set-tripcode">
-            <br class="textonly">
-            <span class="textonly">Remove tripcode:</span>
-            <input type="checkbox" id="blank-tripcode-toggle" name="remove-tripcode">
-            <div class="textonly">Password (to set tripcode):</div>
-            <input id="password" type="password" style="width:30%;" name="password" maxlength="256" placeholder="Password">
-            {% if viewer['tripcode']['string'] %}
-                <label for="password-toggle">
-                    <span id="tripcode-container">
-                        <b class="textonly">&lt;</b><b id="tripcode" style="background-color:#{{ viewer['tripcode']['background_colour'].hex() }};color:#{{ viewer['tripcode']['foreground_colour'].hex() }};">{{ viewer['tripcode']['string'] }}</b><b class="textonly">&gt;</b>
-                    </span>
-                </label>
-                <span id="blank-tripcode"></span>
-                <label for="blank-tripcode-toggle">
-                    <span class="pseudolink" id="remove-tripcode"></span>
-                    <span class="pseudolink" id="undo-remove-tripcode"></span>
-                </label>
-                <label for="password-toggle">
-                    <span class="pseudolink" id="cancel-password"></span>
-                </label>
-            {% else %}
-                <label for="password-toggle">
-                    <span class="pseudolink empty-tripcode-container" id="tripcode-container"></span>
-                    <span class="pseudolink" id="cancel-password"></span>
-                </label>
-            {% endif %}
-            <div>
-                <div class="note-space">
-                    <label for="settings-toggle" id="to-chat"></label>
-                    <button style="padding: 0.5em;float:right;" class="pure-button pure-button-primary smalltext">Change appearance</button>
-                </div>
-            </div>
-        </form>
-        <div id="note">{{ note }}</div>
-    </body>
+      </div>
+    </form>
+    <br class="textonly">
+    <form id="settings" action="{{ url_for('settings') }}" method="post">
+      <input type="hidden" name="token" value="{{ token }}">
+      <div class="textonly">Nickname:</div>
+      <input id="nickname" style="width:60%;font-weight:bold;color:#{{ viewer['colour'].hex() }};" name="nickname" maxlength="24" placeholder="{{ default }}" value="{{ '' if nickname == None else nickname }}">
+      <br class="textonly">
+      <span class="textonly">Set tripcode:</span>
+      <input type="checkbox" id="password-toggle" name="set-tripcode">
+      <br class="textonly">
+      <span class="textonly">Remove tripcode:</span>
+      <input type="checkbox" id="blank-tripcode-toggle" name="remove-tripcode">
+      <div class="textonly">Password (to set tripcode):</div>
+      <input id="password" type="password" style="width:30%;" name="password" maxlength="256" placeholder="Password">
+      {% if viewer['tripcode']['string'] %}
+        <label for="password-toggle">
+          <span id="tripcode-container">
+            <b class="textonly">&lt;</b><b id="tripcode" style="background-color:#{{ viewer['tripcode']['background_colour'].hex() }};color:#{{ viewer['tripcode']['foreground_colour'].hex() }};">{{ viewer['tripcode']['string'] }}</b><b class="textonly">&gt;</b>
+          </span>
+        </label>
+        <span id="blank-tripcode"></span>
+        <label for="blank-tripcode-toggle">
+          <span class="pseudolink" id="remove-tripcode"></span>
+          <span class="pseudolink" id="undo-remove-tripcode"></span>
+        </label>
+        <label for="password-toggle">
+          <span class="pseudolink" id="cancel-password"></span>
+        </label>
+    {% else %}
+        <label for="password-toggle">
+          <span class="pseudolink empty-tripcode-container" id="tripcode-container"></span>
+          <span class="pseudolink" id="cancel-password"></span>
+        </label>
+      {% endif %}
+      <div>
+        <div class="note-space">
+          <label for="settings-toggle" id="to-chat"></label>
+          <button style="padding:0.5em;float:right;" class="pure-button pure-button-primary smalltext">Change appearance</button>
+        </div>
+      </div>
+    </form>
+    <div id="note">{{ note }}</div>
+  </body>
 </html>

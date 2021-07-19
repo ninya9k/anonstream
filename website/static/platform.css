@@ -3,7 +3,7 @@
   margin: 0 0.5em 0.5em 0.5em;
   padding: 0.5em 0;
   border-bottom:1px solid gray;
-  font-size:125%;
+  font-size: 125%;
 }
 .hue-rotate {
   filter: hue-rotate(144deg);

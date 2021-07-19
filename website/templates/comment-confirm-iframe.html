@@ -1,34 +1,34 @@
 <html>
-    <head>
-        <style>
-            body {
-                margin-top: 0;
-                margin-bottom: 0;
-                color: #f0f0f0;
-            }
-            a, .pseudolink {
-                color: #a0a0a0;
-                text-decoration: none;
-            }
-            a:hover, .pseudolink:hover {
-                color: #00b6f0;
-            }
-            .pseudolink {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0;
-                font-size: 100%;
-            }
-        </style>
-    </head>
-    <body>
-        <form method="post" target="_parent">
-            <input type="hidden" name="confirm" value="1">
-            <input type="hidden" name="token" value="{{ token }}">
-            <input type="hidden" name="nickname" value="{{ nickname }}">
-            <input type="hidden" name="remove-tripcode" value="1">
-            <div>The stream is in secret club mode. Changing your tripcode would kick you out of the secret club. <a href="{{ url_for('comment_iframe', token=token) }}">Click here</a> to stay in the secret club, or <input type="submit" class="pseudolink" value="click here"> to get kicked out.</div>
-        </form>
-    </body>
+  <head>
+    <style>
+      body {
+        margin-top: 0;
+        margin-bottom: 0;
+        color: #f0f0f0;
+      }
+      a, .pseudolink {
+        color: #a0a0a0;
+        text-decoration: none;
+      }
+      a:hover, .pseudolink:hover {
+        color: #00b6f0;
+      }
+      .pseudolink {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        font-size: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <form method="post" target="_parent">
+      <input type="hidden" name="confirm" value="1">
+      <input type="hidden" name="token" value="{{ token }}">
+      <input type="hidden" name="nickname" value="{{ nickname }}">
+      <input type="hidden" name="remove-tripcode" value="1">
+      <div>The stream is in secret club mode. Changing your tripcode would kick you out of the secret club. <a href="{{ url_for('comment_iframe', token=token) }}">Click here</a> to stay in the secret club, or <input type="submit" class="pseudolink" value="click here"> to get kicked out.</div>
+    </form>
+  </body>
 </html>

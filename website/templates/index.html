@@ -1,173 +1,173 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link href="/static/platform.css" rel="stylesheet">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/static/platform.css" rel="stylesheet">
+    {% if use_videojs %}
+    <!-- https://unpkg.com/video.js@7.12.1/dist/video-js.min.css -->
+    <link href="/static/external/video-js.min.css" rel="stylesheet">
+    <!-- https://unpkg.com/video.js@7.12.1/dist/video.min.js -->
+    <script src="/static/external/video.min.js"></script>
+    <!-- https://unpkg.com/@videojs/http-streaming@2.7.1/dist/videojs-http-streaming.min.js -->
+    <script src="/static/external/videojs-http-streaming.min.js"></script>
+    {% endif %}
+    <!-- https://cdn.socket.io/4.0.1/socket.io.min.js -->
+    <!-- <script src="/static/external/socket.io.min.js"></script> -->
+    <style>
+      .two-thirds, .one-third {
+        width: 100%;
+      }
+      @media screen and (min-width:48em) {
+        .two-thirds {
+          width: 66.6667%;
+        }
+        .one-third {
+          width: 33.3333%;
+        }
+      }
+    </style>
+    <noscript>
+      <style>
         {% if use_videojs %}
-        <!-- https://unpkg.com/video.js@7.12.1/dist/video-js.min.css -->
-        <link href="/static/external/video-js.min.css" rel="stylesheet">
-        <!-- https://unpkg.com/video.js@7.12.1/dist/video.min.js -->
-        <script src="/static/external/video.min.js"></script>
-        <!-- https://unpkg.com/@videojs/http-streaming@2.7.1/dist/videojs-http-streaming.min.js -->
-        <script src="/static/external/videojs-http-streaming.min.js"></script>
+        #videojs {
+          display: none;
+        }
         {% endif %}
-        <!-- https://cdn.socket.io/4.0.1/socket.io.min.js -->
-        <!-- <script src="/static/external/socket.io.min.js"></script> -->
-        <style>
-            .two-thirds, .one-third {
-                width: 100%;
-            }
-            @media screen and (min-width:48em) {
-                .two-thirds {
-                    width: 66.6667%;
-                }
-                .one-third {
-                    width: 33.3333%;
-                }
-            }
-        </style>
-        <noscript>
-            <style>
-                {% if use_videojs %}
-                #videojs {
-                    display: none;
-                }
-                {% endif %}
-                #users-container {
-                    height: 0;
-                    overflow: hidden;
-                }
-                #users-toggle:checked ~ #chat-window #users-container {
-                    height: revert;
-                    overflow: revert;
-                }
-                #users-toggle:checked ~ #chat-window #chat-container {
-                    height: 0;
-                    overflow: hidden;
-                }
-                #users-toggle:checked + .banner form[target="chat"] {
-                    display: none;
-                }
-                #users-toggle:checked + .banner form[target="users"] {
-                    display: revert;
-                }
-                /* noscript acting weird with svg */
-                #svg-container {
-                    display: none;
-                }
-            </style>
-        </noscript>
-    </head>
-    <body class="dark-theme" style="margin:0;">
-        <div style="display:flex;flex-flow:row wrap;">
-            <div class="two-thirds">
-                <div id="stream">
+        #users-container {
+          height: 0;
+          overflow: hidden;
+        }
+        #users-toggle:checked ~ #chat-window #users-container {
+          height: revert;
+          overflow: revert;
+        }
+        #users-toggle:checked ~ #chat-window #chat-container {
+          height: 0;
+          overflow: hidden;
+        }
+        #users-toggle:checked + .banner form[target="chat"] {
+          display: none;
+        }
+        #users-toggle:checked + .banner form[target="users"] {
+          display: revert;
+        }
+        /* noscript acting weird with svg */
+        #svg-container {
+          display: none;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body class="dark-theme" style="margin:0;">
+    <div style="display:flex;flex-flow:row wrap;">
+      <div class="two-thirds">
+        <div id="stream">
                   {% if online %}
-                    {% if use_videojs %}
-                    <input id="videojs-enabled" type="hidden" value="1">
-                    <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
-                    <video id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
-                        <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
-                    </video>
-                    <noscript>
-                        <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
-                    </noscript>
-                    {% else %}
-                    <input id="videojs-enabled" type="hidden" value="0">
-                    <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
-                    {% endif %}
+          {% if use_videojs %}
+          <input id="videojs-enabled" type="hidden" value="1">
+          <!-- https://stackoverflow.com/questions/41014197/how-can-i-play-a-m3u8-file-video-using-the-html5-video-element -->
+          <video id="videojs" class="video-js vjs-default-skin vjs-big-play-centered" data-setup='{"controls": true, "autoplay": true }'>
+            <source src="{{ url_for('playlist', token=token) }}" type="application/x-mpegURL">
+          </video>
+          <noscript>
+            <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
+          </noscript>
+          {% else %}
+          <input id="videojs-enabled" type="hidden" value="0">
+          <video controls autoplay src="{{ url_for('segments', segment=start_number, token=token) }}"></video>
+          {% endif %}
                   {% else %}
-                    <input id="videojs-enabled" type="hidden" value="{{ '1' if use_videojs else '0' }}">
-                    <video controls autoplay></video>
-                    <div id="offline"><div></div><div>OFFLINE</div></div>
+          <input id="videojs-enabled" type="hidden" value="{{ '1' if use_videojs else '0' }}">
+          <video controls autoplay></video>
+          <div id="offline"><div></div><div>OFFLINE</div></div>
                   {% endif %}
-                </div>
-                <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info', token=token, embed=1) }}"></iframe></noscript></div>
-                <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
-            </div>
-            <div class="one-third">
-                <div id="chat-border">
-                    <!-- TODO: mobile tooltip -->
-                    <input id="users-toggle" type="checkbox" style="display: none;">
-                    <div class="banner">
-                        <div class="chat-banner-left">
-                            <label for="users-toggle" title="Users in chat">
-                                <div id="svg-container">
-                                    <svg class="users-logo" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M7 2a4 4 0 00-1.015 7.87c-.098.64-.651 1.13-1.318 1.13A2.667 2.667 0 002 13.667V18h2v-4.333c0-.368.298-.667.667-.667.908 0 1.732-.363 2.333-.953.601.59 1.425.953 2.333.953.369 0 .667.299.667.667V18h2v-4.333A2.667 2.667 0 009.333 11c-.667 0-1.22-.49-1.318-1.13A4.002 4.002 0 007 2zM5 6a2 2 0 104 0 2 2 0 00-4 0z" clip-rule="evenodd"></path><path d="M14 11.83V18h4v-3.75c0-.69-.56-1.25-1.25-1.25a.75.75 0 01-.75-.75v-.42a3.001 3.001 0 10-2 0z"></path></g>
-                                    </svg>
-                                </div>
-                                <noscript><div class="users-logo"><img src="/static/external/users.png"></div></noscript>
-                            </label>
-                        </div>
-                        <span>Stream chat</span>
-                        <form target="chat" action="{{ url_for('chat_iframe', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
-                            <input id="token" type="hidden" name="token" value="{{ token }}">
-                            <noscript><input type="hidden" name="users" value="0"></noscript>
-                            <input type="checkbox" style="display:none;" name="debug">
-                            <button class="hue-rotate" title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
-                        </form>
-                        <form target="users" action="{{ url_for('users', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
-                            <input id="token" type="hidden" name="token" value="{{ token }}">
-                            <input type="checkbox" style="display:none;" name="debug">
-                            <button title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
-                        </form>
-                    </div>
-                    <div id="chat-window">
-                        <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token, users=0) }}"></iframe></noscript></div>
-                        <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
-                    </div>
-                    <iframe id="comment-box" style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
-                </div>
-            </div>
         </div>
-        <div class="textonly">
-            <br>
-            <div>== Quick links for text-based browsers ==</div>
-            <div>Livestream: <a href="{{ url_for('segments', token=token) }}">{{ url_for('segments', token=token) }}</a></div>
-            <div>Chat: <a href="{{ url_for('chat_iframe', token=token) }}">{{ url_for('chat_iframe', token=token) }}</a></div>
-            <div>Comment box: <a href="{{ url_for('comment_iframe', token=token) }}">{{ url_for('comment_iframe', token=token) }}</a></div>
-            <div>If the stream is in secret club mode, the <i>token</i> component is necessary.</div>
+        <div id="stream-info-container"><noscript><iframe id="stream-info" src="{{ url_for('stream_info', token=token, embed=1) }}"></iframe></noscript></div>
+        <div id="source" style="margin: -2.75em 0 1.5em 1.25em;"><a href="https://gitlab.com/ninya9k/onion-livestreaming" target="_blank">source code</a></div>
+      </div>
+      <div class="one-third">
+        <div id="chat-border">
+          <!-- TODO: mobile tooltip -->
+          <input id="users-toggle" type="checkbox" style="display: none;">
+          <div class="banner">
+            <div class="chat-banner-left">
+              <label for="users-toggle" title="Users in chat">
+                <div id="svg-container">
+                  <svg class="users-logo" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M7 2a4 4 0 00-1.015 7.87c-.098.64-.651 1.13-1.318 1.13A2.667 2.667 0 002 13.667V18h2v-4.333c0-.368.298-.667.667-.667.908 0 1.732-.363 2.333-.953.601.59 1.425.953 2.333.953.369 0 .667.299.667.667V18h2v-4.333A2.667 2.667 0 009.333 11c-.667 0-1.22-.49-1.318-1.13A4.002 4.002 0 007 2zM5 6a2 2 0 104 0 2 2 0 00-4 0z" clip-rule="evenodd"></path><path d="M14 11.83V18h4v-3.75c0-.69-.56-1.25-1.25-1.25a.75.75 0 01-.75-.75v-.42a3.001 3.001 0 10-2 0z"></path></g>
+                  </svg>
+                </div>
+                <noscript><div class="users-logo"><img src="/static/external/users.png"></div></noscript>
+              </label>
+            </div>
+            <span>Stream chat</span>
+            <form target="chat" action="{{ url_for('chat_iframe', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
+              <input id="token" type="hidden" name="token" value="{{ token }}">
+              <noscript><input type="hidden" name="users" value="0"></noscript>
+              <input type="checkbox" style="display:none;" name="debug">
+              <button class="hue-rotate" title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
+            </form>
+            <form target="users" action="{{ url_for('users', token=token) }}" method="get" style="float: right;margin: 0;width: 1em;">
+              <input id="token" type="hidden" name="token" value="{{ token }}">
+              <input type="checkbox" style="display:none;" name="debug">
+              <button title="Refresh chat window" style="font-weight: bold;background: none;border: none;margin: 0;padding: 0;cursor: pointer;font-size: 100%;" type="submit" class="">🔄</button>
+            </form>
+          </div>
+          <div id="chat-window">
+            <div id="chat-container"><noscript><iframe id="chat" name="chat" src="{{ url_for('chat_iframe', token=token, users=0) }}"></iframe></noscript></div>
+            <div id="users-container"><noscript><iframe name="users" src="{{ url_for('users', token=token) }}"></iframe></noscript></div>
+          </div>
+          <iframe id="comment-box" style="height:97px;border-top:1px solid #434343;padding-top:0.5em;" src="{{ url_for('comment_iframe', token=token) }}"></iframe>
         </div>
-        <script>
-            /* replace noscript frame URLs with with-script versions */
-            function replaceFrameURL(frameContainerId, newUrl, newId, newName) {
-                const frameContainer = document.getElementById(frameContainerId);
-                const oldFrame = frameContainer.querySelector("*");
-                const newFrame = document.createElement("iframe");
-                newFrame.id = newId;
-                newFrame.name = newName;
-                newFrame.src = newUrl;
-                frameContainer.replaceChild(newFrame, oldFrame);
-            }
-            replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
-            replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
+      </div>
+    </div>
+    <div class="textonly">
+      <br>
+      <div>== Quick links for text-based browsers ==</div>
+      <div>Livestream: <a href="{{ url_for('segments', token=token) }}">{{ url_for('segments', token=token) }}</a></div>
+      <div>Chat: <a href="{{ url_for('chat_iframe', token=token) }}">{{ url_for('chat_iframe', token=token) }}</a></div>
+      <div>Comment box: <a href="{{ url_for('comment_iframe', token=token) }}">{{ url_for('comment_iframe', token=token) }}</a></div>
+      <div>If the stream is in secret club mode, the <i>token</i> component is necessary.</div>
+    </div>
+    <script>
+      /* replace noscript frame URLs with with-script versions */
+      function replaceFrameURL(frameContainerId, newUrl, newId, newName) {
+        const frameContainer = document.getElementById(frameContainerId);
+        const oldFrame = frameContainer.querySelector("*");
+        const newFrame = document.createElement("iframe");
+        newFrame.id = newId;
+        newFrame.name = newName;
+        newFrame.src = newUrl;
+        frameContainer.replaceChild(newFrame, oldFrame);
+      }
+      replaceFrameURL("stream-info-container", "{{ url_for('stream_info', token=token) }}", "stream-info", "");
+      replaceFrameURL("chat-container", "{{ url_for('chat_iframe', token=token) }}", "chat", "chat");
 
-            /* make the people button change between users view and chat view */
-            const chat = document.getElementById("chat");
-            const usersToggle  = document.getElementById("users-toggle");
-            usersToggle.onchange = function() {
-                const chatMessages = chat.contentDocument.getElementById("messages");
-                const chatUsers    = chat.contentDocument.getElementById("users");
-                if ( chatUsers == null || chatMessages == null )
-                    return;
-                /* using display: none; resets css animations, i.e. the manual refresh banner */
-                if ( usersToggle.checked ) {
-                    chatMessages.style.overflow = "hidden";
-                    chatMessages.style.height = "0";
-                    chatUsers.style.height = "unset";
-                    chatUsers.style.overflow = "unset";
-                    chat.style.transform = "revert";
-                } else {
-                    chatUsers.style.overflow = "hidden";
-                    chatUsers.style.height = "0";
-                    chatMessages.style.height = "unset";
-                    chatMessages.style.overflow = "unset";
-                    chat.style.transform = null;
-                }
-            }
-            chat.addEventListener("load", usersToggle.onchange);
-        </script>
-        <input type="hidden" id="hls-time" value="{{ hls_time }}">
-        <script src="/static/platform.js"></script>
-    </body>
+      /* make the people button change between users view and chat view */
+      const chat = document.getElementById("chat");
+      const usersToggle  = document.getElementById("users-toggle");
+      usersToggle.onchange = function() {
+        const chatMessages = chat.contentDocument.getElementById("messages");
+        const chatUsers    = chat.contentDocument.getElementById("users");
+        if ( chatUsers == null || chatMessages == null )
+          return;
+        /* using display: none; resets css animations, i.e. the manual refresh banner */
+        if ( usersToggle.checked ) {
+          chatMessages.style.overflow = "hidden";
+          chatMessages.style.height = "0";
+          chatUsers.style.height = "unset";
+          chatUsers.style.overflow = "unset";
+          chat.style.transform = "revert";
+        } else {
+          chatUsers.style.overflow = "hidden";
+          chatUsers.style.height = "0";
+          chatMessages.style.height = "unset";
+          chatMessages.style.overflow = "unset";
+          chat.style.transform = null;
+        }
+      }
+      chat.addEventListener("load", usersToggle.onchange);
+    </script>
+    <input type="hidden" id="hls-time" value="{{ hls_time }}">
+    <script src="/static/platform.js"></script>
+  </body>
 </html>

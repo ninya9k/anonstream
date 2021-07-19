@@ -150,6 +150,7 @@ def segments():
         start_number = resolve_segment_offset()
     try:
         concatenated_segments = ConcatenatedSegments(start_number=start_number,
+                                                     token=token,
                                                      segment_hook=lambda n: viewership.view_segment(n, token, check_exists=False),
                                                      corrupt_hook=lambda: viewership.video_was_corrupted.add(token), # lock?
                                                      should_close_connection=should_close_connection)
@@ -401,7 +402,7 @@ def add_header(response):
 def debug():
     import copy
 
-    # necessary because we store colours as bytes and json can't bytes;
+    # necessary because we store colours as bytes and json can't bytes
     class JSONEncoder(json.encoder.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, bytes):

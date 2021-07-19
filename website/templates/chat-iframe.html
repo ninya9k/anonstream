@@ -1,230 +1,243 @@
 <html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="conent-security-policy" content="default-src 'none'">
-        {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
-        <style>
-          body {margin: 0 0.5em;min-height: calc(100vh - 1em);}
-          #messages {transform: scaleX(-1);}
-          form {margin: 0;}
-          .inline-block {display: inline-block;}
-          .rotate {transform: rotate(-180deg);}
-          .reverse {direction: rtl;}
- 
-          .comment {color:white;padding:3px 2px;overflow:hidden;}
-          .comment:hover{background-color:#333;border-radius:4px;}
-          .censored {
-            font-weight: normal;
-            font-variant: all-small-caps;
-            font-family: monospace, monospace;
-            background: black;
-            color: transparent;
-            padding: 1px;
-            cursor: default;
-          }
-          .censored:hover {
-            color: revert;
-          }
-          .date {color:gray;font-size:75%;text-align:center;border-bottom:1px solid #333;margin:0.5em 0 0.75em 0;cursor:default;}
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="conent-security-policy" content="default-src 'none'">
+    {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
+    <style>
+      body {
+        margin: 0 0.5em;
+        min-height: calc(100vh - 1em);
+      }
+      #messages {
+        transform: scaleX(-1);
+      }
+      form {
+        margin: 0;
+      }
+      .inline-block {
+        display: inline-block;
+      }
+      .rotate {
+        transform: rotate(-180deg);
+      }
+      .reverse {
+        direction: rtl;
+      }
+      .comment {
+        color: #f0f0f0;
+        padding: 3px;
+        overflow: hidden;
+      }
+      .comment:hover{
+        background-color: #333;
+        border-radius: 4px;
+      }
+      .censored {
+        font-weight: normal;
+        font-variant: all-small-caps;
+        font-family: monospace, monospace;
+        background: black;
+        color: transparent;
+        padding: 1px;
+        cursor: default;
+      }
+      .censored:hover {
+        color: revert;
+      }
+      .date {
+        color: gray;
+        font-size: 75%;
+        text-align: center;
+        cursor: default;
+      }
+      .date > i {
+        padding: 0.25em 0 0.5em 0;
+        display: block;
+        border-bottom: 1px solid #333;
+      }
+      .name {
+        color: var(--name-color);
+        font-weight: bold;
+        unicode-bidi: isolate;
+      }
+      .name:hover{
+        background-color: var(--name-bg-color);
+        text-shadow: 0 0 1px #{{ background_colour.hex() }};
+        border-radius: 2px;
+        padding: 2px;
+        margin: -2px;
+        cursor: default;
+      }
+      sup {
+        margin-right: 0.125em;
+        font-size: 90%;
+        font-family: monospace;
+      }
+      .tripcode {
+        font-weight: normal;
+        margin-left: 0.5em;
+        padding: 0 5px;
+        border-radius: 6px;
+        font-size: 90%;
+        font-family: monospace;
+        vertical-align: middle;
+        display: inline-block;
+        cursor: default;
+      }
+      .barrier {
+        display: inline-block;
+        margin-right: 0.5em;
+      }
+      .message {
+        overflow-wrap: break-word;
+        unicode-bidi: isolate;
+      }
+      .camera {
+        font-style: normal;
+        transform: scaleX(-1);
+        text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};
+        cursor: help;
+        margin-right: 0.25em;
+        word-break: keep-all;
+      }
+      .time {
+        font-size: 80%;
+        color: gray;
+        vertical-align: middle;
+        cursor: default;
+      }
+      {% if include_user_list %}
+      #users {
+        color: #f0f0f0;
+      }
+      .group {
+        margin-bottom: 1.5em;
+      }
+      .group-name {
+        margin-bottom: 0.25em;
+      }
+      .person {
+        margin: 0 0 2px 0.5em;
+      }
+      .you {
+        font-style: normal;
+        margin-left: 0.5em;
+        color: #f0f0f0;
+      }
+      {% endif %}
 
-          .name {color:var(--name-color);font-weight:bold;unicode-bidi:isolate;}
-          .name:hover{
-            background-color: var(--name-bg-color);
-            text-shadow: 0 0 1px {{ background_colour }};
-            border-radius: 2px;
-            padding: 2px;
-            margin: -2px;
-            cursor: default;
-          }
-          sup {margin-right: 0.125em;font-size: 90%;font-family:monospace;}
-          .tripcode {
-              font-weight: normal;
-              margin-left: 0.5em;
-              padding: 0 5px;
-              border-radius: 6px;
-              font-size: 90%;
-              font-family: monospace;
-              vertical-align: middle;
-              display: inline-block;
-              cursor: default;
-          }
-          .barrier {display:inline-block;margin-right:0.5em;}
-          .message {overflow-wrap:break-word;unicode-bidi:isolate;}
-          .camera {font-style: normal;transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;word-break: keep-all;}
-          .time {font-size: 80%;color: gray;vertical-align:middle;cursor:default;}
-
-          {% if include_user_list %}
-          #users {color:white;}
-          .group {margin-bottom:1.5em;}
-          .group-name {margin-bottom:0.25em;}
-          .person {margin: 0 0 2px 0.5em;}
-          {% endif %}
-
-          input[type="submit"] {padding:0 0.25em;margin-bottom:0.5em;}
-          .refresh {
-            color: white;
-            background-color: gray;
-            position: sticky;
-          /*top: 100vh;*/ /* (when upside down etc.) placement is correct with top when there is no scrollbar */
-            bottom: 0;    /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
-            padding: 1em;
-            text-align: center;
-            font-weight: bold;
-            border-radius: 4px;
-            box-shadow: 0px 2px 4px black;
-            margin: 0;
-          }
-          .refresh::after {content: "Manual refresh required";}
-          input[type="checkbox"]{vertical-align:middle;}
-          .unhide {
-            animation: unhide 0s forwards 30s;
-            height: 0;
-            padding: 0;
-            visibility: hidden;
-          }
-          .unhide-margin {
-            animation: unhide-margin 0s forwards 30s;
-            height: 0;
-            padding: 0;
-            visibility: hidden;
-          }
-          @keyframes unhide {
-            to {
-              height: revert;
-              padding: 1em;
-              visibility: visible;
-            }
-          }
-          @keyframes unhide-margin {
-            to {
-              height: revert;
-              padding: 1em;
-              visibility: visible;
-              margin-bottom: 1.25em;
-            }
-          }
-          td{width:100vw;}
-
-          /* for text-based browsers */
-          .textonly {
-            display: none;
-          }
-        </style>
-    </head>
-    <body>
-        <div class="textonly">
-            <br>
-            <div><b>{{ stream_title }}</b></div>
-            <div>{{ stream_viewers }} viewer(s), {% if stream_uptime %}{{ stream_uptime }} uptime{% else %}offline{% endif %}</div>
-            <br>
-            <div>== Chat ==</div>
-        </div>
-<div id="messages">
-{% if broadcaster %}
-    <form action="{{ url_for('mod_chat') }}" method="post">
+      input[type="submit"] {
+        padding: 0 0.25em;
+        margin-bottom: 0.5em;
+      }
+      .refresh {
+        color: #f0f0f0;
+        background-color: gray;
+        position: sticky;
+      /*top: 100vh;*/ /* (when upside down etc.) placement is correct with top when there is no scrollbar */
+        bottom: 0;    /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
+        padding: 1em;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 4px;
+        box-shadow: 0px 2px 4px black;
+        margin: 0;
+      }
+      .refresh::after {
+        content: "Manual refresh required";
+      }
+      input[type="checkbox"] {
+        vertical-align: middle;
+      }
+      .unhide {
+        animation: unhide 0s forwards 30s;
+        height: 0;
+        padding: 0;
+        visibility: hidden;
+      }
+      .unhide-margin {
+        animation: unhide-margin 0s forwards 30s;
+        height: 0;
+        padding: 0;
+        visibility: hidden;
+      }
+      @keyframes unhide {
+        to {
+          height: revert;
+          padding: 1em;
+          visibility: visible;
+        }
+      }
+      @keyframes unhide-margin {
+        to {
+          height: revert;
+          padding: 1em;
+          visibility: visible;
+          margin-bottom: 1.25em;
+        }
+      }
+      td {
+        width: 100vw;
+      }
+      /* for text-based browsers */
+      .textonly {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="textonly">
+      <br>
+      <div><b>{{ stream_title }}</b></div>
+      <div>{{ stream_viewers }} viewer(s), {% if stream_uptime %}{{ stream_uptime }} uptime{% else %}offline{% endif %}</div>
+      <br>
+      <div>== Chat ==</div>
+    </div>
+    <div id="messages">
+      {% if broadcaster %}
+      <form action="{{ url_for('mod_chat') }}" method="post">
         <div class="reverse">
-            <input class="rotate" type="submit" name="ban" value="Ban">
-            <input class="rotate" type="submit" name="hide" value="Hide">
-            <input class="rotate" type="submit" name="ban_purge" value="Ban and hide all">
+          <input class="rotate" type="submit" name="ban" value="Ban">
+          <input class="rotate" type="submit" name="hide" value="Hide">
+          <input class="rotate" type="submit" name="ban_purge" value="Ban and hide all">
         </div>
-{% endif %}
-    <!-- TODO: mobile tooltip / title -->
-    <table border="1" frame="void" rules="rows" style="border-collapse:separate;border-spacing:0 2px;">
-    <tbody>
-    {% for message in messages %}
-        <tr>
-        {% if message.get('special') == 'date' %}
-            <td class="date rotate"><i style="font-style:normal;">{{ message['content'] }}</i></td>
-        {% else %}
-            <td class="comment rotate">
-                {% if not message['hidden'] %}
-                    {% if broadcaster %}
-                        <input type="checkbox" name="message_id[]" value="{{ message['id'] }}">
-                    {% endif %}
-                    <span class="time" title="{{ message['timestamp'] }}">{{ message['time'] }}</span><span class="barrier"></span><span class="textonly"> </span
-                    {% if message['viewer']['broadcaster'] %}
-                        ><i class="camera" title="Broadcaster">🎥</i
-                    {% endif %}
-                    ><span class="name" style="--name-color:#{{ message['viewer']['colour'].hex() }};--name-bg-color:#{{ message['viewer']['colour'].hex() }}20;">{{ RE_WHITESPACE.sub(chr(160), message['viewer']['nickname'] or default_nickname(message['viewer']['token'])) }}{% with tag = message['viewer']['nickname'] == None and not message['viewer']['broadcaster'] %}{% if tag %}<sup>{{ message['viewer']['tag'] }}</sup>{% endif %}</span
-                    {% if message['viewer']['tripcode']['string'] %}{% if tag %}><span style="margin-right:0.125em;"></span{% endif %}
-                        ><span class="barrier" style="margin:0;"></span><b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ message['viewer']['tripcode']['background_colour'].hex() }};color:#{{ message['viewer']['tripcode']['foreground_colour'].hex() }};">{{ message['viewer']['tripcode']['string'] }}</b><b class="textonly">&gt;</b
-                    {% endif %}{% endwith %}
-                    ><span class="barrier"></span><br class="textonly"><span class="message">{{ message['markup'] }}</span>
-                {% endif %}
-            </td>
-        {% endif %}
-        </tr>
-    {% endfor %}
-    </tbody>
-    </table>
-
-{% if broadcaster %}
-    </form>
-{% endif %}
-
-    <a href="" style="text-decoration: none;"><div class="refresh unhide rotate"></div></a>
-</div>
-{% if include_user_list %}
-<div class="textonly">== List of users ==</div>
-<div id="users" style="overflow: hidden;height:0;">
-        <a href="" style="text-decoration: none;">
-            <div class="refresh unhide-margin" style="bottom:revert;top:0;"></div>
-        </a>
-    <div style="margin: 0.25em 1em;">
-    {% with person = people['broadcaster'] %}
-        {% if person %}
-            <div class="group">
-                <div class="group-name">Broadcaster</div>
-                <div class="person">
-                    <i class="camera" title="Broadcaster">🎥</i><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}
-                </div>
-            </div>
-            <br class="textonly">
-        {% endif %}
-    {% endwith %}
-{% if broadcaster %}
-    <form action="{{ url_for('mod_users') }}" method="post">
-        <input type="hidden" name="noscript" value="0">
-        <input type="hidden" name="banned" value="1">
-{% endif %}
-    <div class="group">
-        <div class="group-name">Users watching ({{ len(people['watching']) }})</div>
-        {% for person in people['watching'] %}
-            <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}{% if person['token'] == token %}<span class="textonly"> </span><span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    <br class="textonly">
-    <div class="group">
-        <div class="group-name">Users not watching ({{ len(people['not_watching']) }})</div>
-        {% for person in people['not_watching'] %}
-            <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}{% if person['token'] == token %}<span class="textonly"> </span><span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    <br class="textonly">
-{% if broadcaster %}
-        <button>Ban</button>
-    </form>
-    <div style="margin:1.75em 0 1.5em 0;border-bottom:1px solid #3f3f3f;"></div>
-    <form action="{{ url_for('mod_users') }}" method="post">
-        <input type="hidden" name="noscript" value="0">
-        <input type="hidden" name="banned" value="0">
-        <div class="group-name">Banned ({{ len(people['banned']) }})</div>
-        <div class="group">
-            {% for person in people['banned'] %}
-                <div class="person">
-                    <input type="checkbox" name="token[]" value="{{ person['token'] }}"><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}
-                </div>
+      {% endif %}
+        <!-- TODO: mobile tooltip / title -->
+        <table border="1" frame="void" rules="rows" style="border-collapse:separate;border-spacing:0 2px;">
+          <tbody>
+            {% for message in messages %}
+            <tr>
+              {% if message.get('special') == 'date' %}
+              <td class="date rotate">
+                <i style="font-style:normal;">{{ message['content'] }}
+                </i>
+              </td>
+              {% else %}
+              <td class="comment rotate">
+                {% include 'comment.html' %}
+              </td>
+              {% endif %}
+            </tr>
             {% endfor %}
-        </div>
-        <button>Unban</button>
-    </form>
-{% endif %}
-</div>
-</div>
-{% endif %}
-    </body>
+          </tbody>
+        </table>
+      {% if broadcaster %}
+      </form>
+      {% endif %}
+      <a href="" style="text-decoration:none;">
+        <div class="refresh unhide rotate"></div>
+      </a>
+    </div>
+    {% if include_user_list %}
+    <div class="textonly">== List of users ==</div>
+    <div id="users" style="overflow:hidden;height:0;">
+      <a href="" style="text-decoration:none;">
+        <div class="refresh unhide-margin" style="bottom:revert;top:0;"></div>
+      </a>
+      <div style="margin: 0.5em 1em;">
+        {% include 'users.html' %}
+      </div>
+    </div>
+    {% endif %}
+  </body>
 </html>

@@ -17,7 +17,6 @@ CONFIG_FILE = os.path.join(ROOT, 'config.toml')
 with open(CONFIG_FILE) as fp:
     CONFIG = toml.load(fp)
 
-# these two are accessed through `CONFIG`; they're just here for completeness
 # TODO: always read hls_time from stream.m3u8
 
 VIEW_COUNTING_PERIOD = 30   # count views from the last x seconds

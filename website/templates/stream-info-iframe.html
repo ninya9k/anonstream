@@ -1,223 +1,256 @@
 <html>
-    <head>
-        {% if not embed_images %}<noscript><meta http-equiv="refresh" content="0;url={{ url_for('stream_info', token=token, embed=1) }}"></noscript>{% endif %}
-        <noscript><meta http-equiv="refresh" content="20"></noscript>
-        <link href="/static/external/pure-min.css" rel="stylesheet">
-        <style>
-            html {color: white;}            
-            #stream-title {
-              display:inline-block;
-              width:calc(100% - 20px - 6.75em);
-              font-size:150%;
-              font-weight: bold;
-              margin-bottom: 0.375em;
-              word-wrap: break-word;
-            }
-            #stream-light {
-              height: 0.625em;
-              width: 0.625em;
-              border-radius: 50%;
-              display: inline-block;
-              margin-right:0.125em;
-            }
-            #stream-status {vertical-align: text-bottom;}
-            .refresh-button {font-weight:bold;margin-left:0.25em;padding: 0.25em 0.375em 0.25em 0.375em;color: white;}
-            .hue-rotate {filter: hue-rotate(136deg);}
-            .icon {
-                margin-top:-1pt;
-            }
+  <head>
+    {% if not embed_images %}<noscript><meta http-equiv="refresh" content="0;url={{ url_for('stream_info', token=token, embed=1) }}"></noscript>{% endif %}
+    <noscript><meta http-equiv="refresh" content="20"></noscript>
+    <link href="/static/external/pure-min.css" rel="stylesheet">
+    <style>
+      body {
+        color: #f0f0f0;
+      }
+      #stream-title {
+        display: inline-block;
+        width: calc(100% - 20px - 6.75em);
+        font-size: 150%;
+        font-weight: bold;
+        margin-bottom: 0.375em;
+        word-wrap: break-word;
+      }
+      #stream-light {
+        height: 0.625em;
+        width: 0.625em;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.125em;
+      }
+      #stream-status {
+        vertical-align: text-bottom;
+      }
+      .refresh-button {
+        font-weight: bold;
+        margin-left: 0.25em;
+        padding: 0.25em 0.375em 0.25em 0.375em;
+        color: white;
+      }
+      .hue-rotate {
+        filter: hue-rotate(136deg);
+      }
+      .icon {
+        margin-top: -1pt;
+      }
 
-            {% if stream_uptime != None %}
-            .digit {overflow: hidden;display:inline-block;height:2em;}
-            .digit div {height:2em;}
+      {% if stream_uptime != None %}
+      .digit {
+        overflow: hidden;
+        display: inline-block;
+        height: 2em;
+      }
+      .digit div {
+        height:2em;
+      }
 
-            .seconds-ones   {animation: count10      10s step-end -{{ stream_uptime }}s infinite;}
-            .seconds-tens   {animation: count6       60s step-end -{{ stream_uptime }}s infinite;}
-            .minutes-ones   {animation: count10     600s step-end -{{ stream_uptime }}s infinite;}
-            .minutes-tens   {animation: count6     3600s step-end -{{ stream_uptime }}s infinite;}
-            .hours-ones     {animation: count10   36000s step-end -{{ stream_uptime }}s infinite;}
-            .hours-tens     {animation: count10  360000s step-end -{{ stream_uptime }}s infinite;}
-            .hours-hundreds {animation: count10 3600000s step-end -{{ stream_uptime }}s infinite;}
+      .seconds-ones   {animation: count10      10s step-end -{{ stream_uptime }}s infinite;}
+      .seconds-tens   {animation: count6       60s step-end -{{ stream_uptime }}s infinite;}
+      .minutes-ones   {animation: count10     600s step-end -{{ stream_uptime }}s infinite;}
+      .minutes-tens   {animation: count6     3600s step-end -{{ stream_uptime }}s infinite;}
+      .hours-ones     {animation: count10   36000s step-end -{{ stream_uptime }}s infinite;}
+      .hours-tens     {animation: count10  360000s step-end -{{ stream_uptime }}s infinite;}
+      .hours-hundreds {animation: count10 3600000s step-end -{{ stream_uptime }}s infinite;}
 
-            .digit-hours-separator {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
-            .digit-hours-ones      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
-            .digit-hours-tens      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 36000 - stream_uptime }}s;}
-            .digit-hours-hundreds  {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 360000 - stream_uptime }}s;}
+      .digit-hours-separator {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
+      .digit-hours-ones      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 3600 - stream_uptime }}s;}
+      .digit-hours-tens      {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 36000 - stream_uptime }}s;}
+      .digit-hours-hundreds  {width: 0;overflow: hidden;animation: unhide 0s forwards {{ 360000 - stream_uptime }}s;}
 
-            .timer {animation: hide 0s forwards {{ 3600000 - stream_uptime }}s;}
-            .timer-overflow {width: 0; overflow: hidden; animation: unhide 0s forwards {{ 3600000 - stream_uptime }}s;}
+      .timer {
+        animation: hide 0s forwards {{ 3600000 - stream_uptime }}s;
+      }
+      .timer-overflow {
+        width: 0;
+        overflow: hidden;
+        animation: unhide 0s forwards {{ 3600000 - stream_uptime }}s;
+      }
 
-            @keyframes hide {
-              to {width: 0;height:0;visibility:hidden;}
-            }
-            @keyframes unhide {
-              to {width: revert;}
-            }
-            @keyframes count10 {
-               0% {margin-top:  -0em;}
-              10% {margin-top:  -2em;}
-              20% {margin-top:  -4em;}
-              30% {margin-top:  -6em;}
-              40% {margin-top:  -8em;}
-              50% {margin-top: -10em;}
-              60% {margin-top: -12em;}
-              70% {margin-top: -14em;}
-              80% {margin-top: -16em;}
-              90% {margin-top: -18em;}
-            }
-            @keyframes count6 {
-               0.0000% {margin-top:  -0em;}
-              16.6667% {margin-top:  -2em;}
-              33.3333% {margin-top:  -4em;}
-              50.0000% {margin-top:  -6em;}
-              66.6667% {margin-top:  -8em;}
-              83.3333% {margin-top: -10em;}
-            }
-            {% endif %}
-            .bottom-right {
-                position: absolute;
-                bottom: 10px;
-                right: 10px;
-            }
-            {% if not embed_images %}
-            #radial-loader {
-                transform: rotate(-90deg) scaleY(-1);
-            }
-            #radial-loader circle {
-                stroke: #3f3f3f;
-                fill: none;
-                stroke-dasharray: 32;
-                stroke-dashoffset: 0;
-                stroke-width: 10;
-            }
-            .radial-animation {
-                animation: radial 20s linear forwards;
-            }
-            .radial-animation-duration {
-                animation-duration: 20s;
-            }
-            @keyframes radial {
-                from {stroke-dashoffset: 0;}
-                to   {stroke-dashoffset: 32;}
-            }
-            {% endif %}
-        </style>
-    </head>
-    <body>
-        <div style="margin: 0.5em;margin-bottom: 0;">
-            <div id="stream-title">{{ title }}</div>
-            <!-- TODO: make stream stats align vertically with stream title -->
-            <div id="stream-stats" style="display:inline;">
-                <div id="uptime" style="float:right;color:lightgray;">
-                    {% if stream_uptime != None %}
-                        <noscript>
-                            <div class="timer">
-                                <span class="digit digit-hours-tens">
-                                    <div class="hours-tens">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                </span
-                                ><span class="digit digit-hours-ones">
-                                    <div class="hours-ones">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                    <div>6</div>
-                                    <div>7</div>
-                                    <div>8</div>
-                                    <div>9</div>
-                                </span
-                                ><span class="digit digit-hours-separator">:</span
-                                ><span class="digit digit-minutes-tens">
-                                    <div class="minutes-tens">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                </span
-                                ><span class="digit">
-                                    <div class="minutes-ones">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                    <div>6</div>
-                                    <div>7</div>
-                                    <div>8</div>
-                                    <div>9</div>
-                                </span
-                                ><span class="digit">:</span
-                                ><span class="digit">
-                                    <div class="seconds-tens">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                </span
-                                ><span class="digit">
-                                    <div class="seconds-ones">0</div>
-                                    <div>1</div>
-                                    <div>2</div>
-                                    <div>3</div>
-                                    <div>4</div>
-                                    <div>5</div>
-                                    <div>6</div>
-                                    <div>7</div>
-                                    <div>8</div>
-                                    <div>9</div>
-                                </span>
-                            </div>
-                            <div class="timer-overflow">1000+ hours</div>
-                        </noscript>
-                    {% endif %}
-                </div>
-                <div style="float:right;color:#ff8280;margin-right:0.5em;">
-                    {% if embed_images %}<img class="icon" src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC">{% else %}<svg class="icon" style="display:none;fill:#{{ broadcaster_colour.hex() }};" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg>{% endif %}</span><span id="viewer-count" style="margin-left: 0.125em;vertical-align:top;">{{ viewer_count }}</span>
-                </div>
-            </div>
-            <div>
-                {% if not online %}
-                    <span id="stream-light" style="background-color:red"></span>
-                    <span id="stream-status">The stream has ended.</span>
-                {% elif video_was_corrupted %}
-                    <span id="stream-light" style="background-color:yellow"></span>
-                    <span id="stream-status">The stream is online but you're not receiving it. Try refreshing the page.</span>
-                {% else %}
-                    <span id="stream-light" style="background-color:green"></span>
-                    <span id="stream-status">The stream is online.</span>
-                {% endif %}
-                <a id="refresh-stream-button" class="refresh-button pure-button pure-button-primary" style="display: none;">Reload</a>
-                <a id="refresh-page-button" class="refresh-button hue-rotate pure-button pure-button-primary" style="display: none;">Refresh</a>
-            </div>
-            {% if embed_images %}
-                <!-- embedding this animated png messes with the animation -->
-                <img class="bottom-right" src="{{ url_for('_static', fn='radial.apng') }}">
-            {% else %}
-                <svg id="radial-loader" class="bottom-right" width="20px" height="20px" viewBox="0 0 20 20">
-                    <circle class="radial-animation" cx="10" cy="10" r="5"></circle>
-                </svg>
-            {% endif %}
+      @keyframes hide {
+        to {
+          width: 0;
+          height: 0;
+          visibility: hidden;
+        }
+      }
+      @keyframes unhide {
+        to {
+          width: revert;
+        }
+      }
+      @keyframes count10 {
+         0% {margin-top:  -0em;}
+        10% {margin-top:  -2em;}
+        20% {margin-top:  -4em;}
+        30% {margin-top:  -6em;}
+        40% {margin-top:  -8em;}
+        50% {margin-top: -10em;}
+        60% {margin-top: -12em;}
+        70% {margin-top: -14em;}
+        80% {margin-top: -16em;}
+        90% {margin-top: -18em;}
+      }
+      @keyframes count6 {
+         0.0000% {margin-top:  -0em;}
+        16.6667% {margin-top:  -2em;}
+        33.3333% {margin-top:  -4em;}
+        50.0000% {margin-top:  -6em;}
+        66.6667% {margin-top:  -8em;}
+        83.3333% {margin-top: -10em;}
+      }
+      {% endif %}
+      .bottom-right {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+      }
+      {% if not embed_images %}
+      #radial-loader {
+        transform: rotate(-90deg) scaleY(-1);
+      }
+      #radial-loader circle {
+        stroke: #3f3f3f;
+        fill: none;
+        stroke-dasharray: 32;
+        stroke-dashoffset: 0;
+        stroke-width: 10;
+      }
+      .radial-animation {
+        animation: radial 20s linear forwards;
+      }
+      .radial-animation-duration {
+        animation-duration: 20s;
+      }
+      @keyframes radial {
+        from {
+          stroke-dashoffset: 0;
+        }
+        to {
+          stroke-dashoffset: 32;
+        }
+      }
+      {% endif %}
+    </style>
+  </head>
+  <body>
+    <div style="margin: 0.5em;margin-bottom: 0;">
+      <div id="stream-title">{{ title }}</div>
+      <!-- TODO: make stream stats align vertically with stream title -->
+      <div id="stream-stats" style="display:inline;">
+        <div id="uptime" style="float:right;color:lightgray;">
+          {% if stream_uptime != None %}
+            <noscript>
+              <div class="timer">
+                <span class="digit digit-hours-tens">
+                  <div class="hours-tens">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                </span
+                ><span class="digit digit-hours-ones">
+                  <div class="hours-ones">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                  <div>6</div>
+                  <div>7</div>
+                  <div>8</div>
+                  <div>9</div>
+                </span
+                ><span class="digit digit-hours-separator">:</span
+                ><span class="digit digit-minutes-tens">
+                  <div class="minutes-tens">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                </span
+                ><span class="digit">
+                  <div class="minutes-ones">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                  <div>6</div>
+                  <div>7</div>
+                  <div>8</div>
+                  <div>9</div>
+                </span
+                ><span class="digit">:</span
+                ><span class="digit">
+                  <div class="seconds-tens">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                </span
+                ><span class="digit">
+                  <div class="seconds-ones">0</div>
+                  <div>1</div>
+                  <div>2</div>
+                  <div>3</div>
+                  <div>4</div>
+                  <div>5</div>
+                  <div>6</div>
+                  <div>7</div>
+                  <div>8</div>
+                  <div>9</div>
+                </span>
+              </div>
+              <div class="timer-overflow">1000+ hours</div>
+            </noscript>
+          {% endif %}
         </div>
-        <script>
-            {% if embed_images %}
-            // this doesn't work as intended; if the user switches javascript from off to on, the parent doesn't suddenly get javascript functionality unless the page is refreshed, so there's no point doing a redirect to the update-it-with-javascript version of this page atm
-            //window.location.replace("{{ url_for('stream_info', token=token) }}");
-            {% endif %}
+        <div style="float:right;color:#ff8280;margin-right:0.5em;">
+          {% if embed_images %}<img class="icon" src="data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAe1BMVEUAAAD/g3//goD/goD/goD/goD/gYD/goD/goD/goD/gID/g4H/g4D/goD/goD/goD/goD/goD/goD/goD/gYH/g4H/gX//g3//goD/gYH/hIT/goD/goD/gID/goD/goD/goD/goD/goD/gn//g4P/goD/hID/hID/goDBgARyAAAAKHRSTlMATr/198CIh/l2GndMvvPq8rl4vUF7hEbGSxuzsgaJ5u3l8awlrTo8jDgUwAAAAIZJREFUGNOVz9kWwTAQgOFpUJFQ+67aVPG//xO6aMsEF8zVnO/MKvJvJKbXHySxpQAwjOqwI+e8ZazQ4EVEPBOFGU5ExJEpnHY4Uzhv2hcsFa6w/mORrJuTNvGhWwO7/dtHhyOcnIL8XABlCYQ0Vz9Wl7q+VkDaYuDWNd0JbQavUc/8K/4WDwFjDHPCOfZuAAAAAElFTkSuQmCC">{% else %}<svg class="icon" style="display:none;fill:#{{ broadcaster_colour.hex() }};" width="20px" height="20px" version="1.1" viewBox="0 0 20 20" x="0px" y="0px"><g><path fill-rule="evenodd" d="M5 7a5 5 0 116.192 4.857A2 2 0 0013 13h1a3 3 0 013 3v2h-2v-2a1 1 0 00-1-1h-1a3.99 3.99 0 01-3-1.354A3.99 3.99 0 017 15H6a1 1 0 00-1 1v2H3v-2a3 3 0 013-3h1a2 2 0 001.808-1.143A5.002 5.002 0 015 7zm5 3a3 3 0 110-6 3 3 0 010 6z" clip-rule="evenodd"></path></g></svg>{% endif %}</span><span id="viewer-count" style="margin-left: 0.125em;vertical-align:top;">{{ viewer_count }}</span>
+        </div>
+      </div>
+      <div>
+        {% if not online %}
+          <span id="stream-light" style="background-color:red"></span>
+          <span id="stream-status">The stream has ended.</span>
+        {% elif video_was_corrupted %}
+          <span id="stream-light" style="background-color:yellow"></span>
+          <span id="stream-status">The stream is online but you're not receiving it. Try refreshing the page.</span>
+        {% else %}
+          <span id="stream-light" style="background-color:green"></span>
+          <span id="stream-status">The stream is online.</span>
+        {% endif %}
+        <a id="refresh-stream-button" class="refresh-button pure-button pure-button-primary" style="display: none;">Reload</a>
+        <a id="refresh-page-button" class="refresh-button hue-rotate pure-button pure-button-primary" style="display: none;">Refresh</a>
+      </div>
+      {% if embed_images %}
+        <!-- embedding this animated png messes with the animation -->
+        <img class="bottom-right" src="{{ url_for('_static', fn='radial.apng') }}">
+      {% else %}
+        <svg id="radial-loader" class="bottom-right" width="20px" height="20px" viewBox="0 0 20 20">
+          <circle class="radial-animation" cx="10" cy="10" r="5"></circle>
+        </svg>
+      {% endif %}
+    </div>
+    <script>
+      {% if embed_images %}
+      // this doesn't work as intended; if the user switches javascript from off to on, the parent doesn't suddenly get javascript functionality unless the page is refreshed, so there's no point doing a redirect to the update-it-with-javascript version of this page atm
+      //window.location.replace("{{ url_for('stream_info', token=token) }}");
+      {% endif %}
 
-            /* ensure that svg only appears when scripts are enabled */
-            for ( element of document.querySelectorAll("svg") ) {
-                element.style.display = null;
-            }
-            var streamAbsoluteStart = {{ stream_start_abs_json }};
-            var streamRelativeStart = {{ stream_start_rel_json }};
-        </script>
-    </body>
+      /* ensure that svg only appears when scripts are enabled */
+      for ( element of document.querySelectorAll("svg") ) {
+        element.style.display = null;
+      }
+      var streamAbsoluteStart = {{ stream_start_abs_json }};
+      var streamRelativeStart = {{ stream_start_rel_json }};
+    </script>
+  </body>
 </html>

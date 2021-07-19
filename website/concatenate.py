@@ -18,9 +18,9 @@ def resolve_segment_offset(segment_offset=1):
         return 0
     return _segment_number(segment)
 
-def get_next_segment(after, start_segment):
+def get_next_segment(after, start_segment, token=None):
     if not is_online():
-        raise SegmentUnavailable(f'stream went offline')
+        raise SegmentUnavailable(f'stream went offline', token)
     start = time.time()
     while True:
         time.sleep(0.5)
@@ -43,33 +43,36 @@ def get_next_segment(after, start_segment):
 
         if time.time() - start >= STREAM_TIMEOUT():
             if after == None:
-                raise SegmentUnavailable(f'timeout waiting for initial segment {SEGMENT_INIT}')
+                raise SegmentUnavailable(f'timeout waiting for initial segment {SEGMENT_INIT}', token)
             elif after == SEGMENT_INIT:
-                raise SegmentUnavailable(f'timeout waiting for start segment {start_segment}')
+                raise SegmentUnavailable(f'timeout waiting for start segment {start_segment}', token)
             else:
-                raise SegmentUnavailable(f'timeout searching after {after}')
+                raise SegmentUnavailable(f'timeout searching after {after}', token)
 
 class SegmentUnavailable(Exception):
     pass
 
 
 class SegmentsIterator:
-    def __init__(self, start_segment, skip_init_segment=False):
+    def __init__(self, start_segment, token=None, skip_init_segment=False):
         self.start_segment = start_segment
+        self.token = token
         self.segment = SEGMENT_INIT if skip_init_segment else None
 
     def __iter__(self):
         return self
 
     def __next__(self):
-        self.segment = get_next_segment(self.segment, self.start_segment)
+        self.segment = get_next_segment(self.segment, self.start_segment, token=self.token)
         return self.segment
 
 
 class ConcatenatedSegments:
-    def __init__(self, start_number, segment_hook=None, corrupt_hook=None, should_close_connection=None):
+    def __init__(self, start_number, token=None, segment_hook=None, corrupt_hook=None, should_close_connection=None):
         # start at this segment, after SEGMENT_INIT
         self.start_number = start_number
+        # the token of the viewer the stream is being sent to
+        self.token = token
         # run this function before sending each segment (if we do it after then if someone gets the most of a segment but then stops, that wouldn't be counted, before = 0 viewers means nobody is retrieving the stream, after = slightly more accurate viewer count but 0 viewers doesn't necessarily mean nobody is retrieving the stream)
         self.segment_hook = segment_hook or (lambda n: None)
         # run this function when we send the corrupting segment
@@ -78,7 +81,7 @@ class ConcatenatedSegments:
         self.should_close_connection = should_close_connection or (lambda: None)
 
         start_segment = SEGMENT.format(number=start_number)
-        self.segments = SegmentsIterator(start_segment=start_segment)
+        self.segments = SegmentsIterator(start_segment=start_segment, token=self.token)
 
         self._closed = False
         self.segment_read_offset = 0
@@ -89,14 +92,14 @@ class ConcatenatedSegments:
         chunk = b''
         while True:
             if self.should_close_connection():
-                raise SegmentUnavailable(f'told to close while reading {self.segment}')
+                raise SegmentUnavailable(f'told to close while reading {self.segment}', self.token)
 
             try:
                 with open(os.path.join(SEGMENTS_DIR, self.segment), 'rb') as fp:
                     fp.seek(self.segment_read_offset)
                     chunk_chunk = fp.read(n - len(chunk))
             except FileNotFoundError:
-                raise SegmentUnavailable(f'deleted while reading {self.segment}')
+                raise SegmentUnavailable(f'deleted while reading {self.segment}', self.token)
 
             self.segment_read_offset += len(chunk_chunk)
             chunk += chunk_chunk
@@ -137,7 +140,7 @@ class ConcatenatedSegments:
     def _corrupt(self, n):
         # TODO: make this corrupt more reliably (maybe it has to follow a full segment?)
         # Doesn't corrupt when directly after init.mp4
-        print('ConcatenatedSegments._corrupt')
+        print('ConcatenatedSegments._corrupt', self.token)
         self.corrupt_hook()
         self.close()
         try:

@@ -1,128 +1,105 @@
 <html>
-<head>
-{% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
-<style>
-          body {color:white;margin-top: 0;margin-bottom: 0;}
-          .group {margin-bottom:1.5em;}
-          .group-name {margin-bottom:0.25em;}
-          .person {margin: 0 0 2px 0.5em;}
-          .camera {font-style: normal;transform: scaleX(-1);text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};cursor: help;margin-right:0.25em;}
-          .name {color:var(--name-color);font-weight: bold;unicode-bidi: isolate;}
-          .name:hover{
-            background: 4px var(--name-bg-color);
-            text-shadow: 0 0 1px {{ background_colour }};
-            border-radius: 2px;
-            padding: 2px 4px;
-            margin: -2px -4px;
-            cursor: default;
-          }
-          sup {margin-right: 0.125em;font-size: 90%;font-family:monospace;}
-          .tripcode {
-              font-weight: normal;
-              margin-left: 0.5em;
-              padding: 0 5px;
-              border-radius: 6px;
-              font-size: 90%;
-              font-family: monospace;
-              vertical-align: middle;
-              display: inline-block;
-              cursor: default;
-          }
-          form {
-            margin: 0;
-          }
-          .refresh {
-            color: white;
-            background-color: gray;
-            position: sticky;
-            top: 0;      /* (when upside down etc.) placement is correct with top when there is no scrollbar */
-          /*bottom: 0;*/ /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
-            padding: 1em;
-            text-align: center;
-            font-weight: bold;
-            border-radius: 4px;
-            box-shadow: 0px 2px 4px black;
-            margin: 0;
-          }
-
-          .unhide-margin {
-            animation: unhide-margin 0s forwards 30s;
-            height: 0;
-            padding: 0;
-            visibility: hidden;
-          }
-          @keyframes unhide-margin {
-            to {
-              height: revert;
-              padding: 1em;
-              visibility: visible;
-              margin-bottom: 1.25em;
-            }
-          }
-
-        /* for text-based browsers */
-        .textonly {
-          display: none;
+  <head>
+    {% if not debug %}<meta http-equiv="refresh" content="8">{% endif %}
+    <style>
+      body {
+        color: #f0f0f0;
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+      .group {
+        margin-bottom: 1.5em;
+      }
+      .group-name {
+        margin-bottom: 0.25em;
+      }
+      .person {
+        margin: 0 0 2px 0.5em;
+      }
+      .you {
+        font-style: normal;
+        margin-left: 0.5em;
+        color: #f0f0f0;
+      }
+      .camera {
+        font-style: normal;
+        transform: scaleX(-1);
+        text-shadow: 0px 0px 6px #{{ broadcaster_colour.hex() }};
+        cursor: help;
+        margin-right: 0.25em;
+      }
+      .name {
+        color: var(--name-color);
+        font-weight: bold;
+        unicode-bidi: isolate;
+      }
+      .name:hover{
+        background: 4px var(--name-bg-color);
+        text-shadow: 0 0 1px #{{ background_colour.hex() }};
+        border-radius: 2px;
+        padding: 2px 4px;
+        margin: -2px -4px;
+        cursor: default;
+      }
+      sup {
+        margin-right: 0.125em;
+        font-size: 90%;
+        font-family:monospace;
+      }
+      .tripcode {
+        font-weight: normal;
+        margin-left: 0.5em;
+        padding: 0 5px;
+        border-radius: 6px;
+        font-size: 90%;
+        font-family: monospace;
+        vertical-align: middle;
+        display: inline-block;
+        cursor: default;
+      }
+      form {
+        margin: 0;
+      }
+      .refresh {
+        color: #f0f0f0;
+        background-color: gray;
+        position: sticky;
+        top: 0;      /* (when upside down etc.) placement is correct with top when there is no scrollbar */
+      /*bottom: 0;*/ /* (when upside down etc.) placement is correct with bottom when there is a scrollbar */
+        padding: 1em;
+        text-align: center;
+        font-weight: bold;
+        border-radius: 4px;
+        box-shadow: 0px 2px 4px black;
+        margin: 0;
+      }
+      .unhide-margin {
+        animation: unhide-margin 0s forwards 30s;
+        height: 0;
+        padding: 0;
+        visibility: hidden;
+      }
+      @keyframes unhide-margin {
+        to {
+          height: revert;
+          padding: 1em;
+          visibility: visible;
+          margin-bottom: 1.25em;
         }
-</style>
-</head>
-<body>
+      }
+      /* for text-based browsers */
+      .textonly {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
     <a href="" style="text-decoration: none;">
-        <div class="refresh unhide-margin" style="bottom:revert;top:0;"></div>
+      <div class="refresh unhide-margin" style="bottom:revert;top:0;">
+      </div>
     </a>
     <div style="margin: 0.5em 1em;">
-    {% with person = people['broadcaster'] %}
-        {% if person %}
-            <div class="group">
-                <div class="group-name">Broadcaster</div>
-                <div class="person">
-                    <i class="camera" title="Broadcaster">🎥</i><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}</span>{% if person['tripcode']['string'] %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}
-                </div>
-            </div>
-            <br class="textonly">
-        {% endif %}
-    {% endwith %}
-{% if broadcaster %}
-    <form action="{{ url_for('mod_users') }}" method="post">
-        <input type="hidden" name="noscript" value="1">
-        <input type="hidden" name="banned" value="1">
-{% endif %}
-    <div class="group">
-        <div class="group-name">Users watching ({{ len(people['watching']) }})</div>
-        {% for person in people['watching'] %}
-            <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}{% if person['token'] == token %}<span class="textonly"> </span><span class="textonly"> </span><span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
-            </div>
-        {% endfor %}
+      {% include 'users.html' %}
     </div>
-    <br class="textonly">
-    <div class="group">
-        <div class="group-name">Users not watching ({{ len(people['not_watching']) }})</div>
-        {% for person in people['not_watching'] %}
-            <div class="person">
-                {% if broadcaster %}<input type="checkbox" name="token[]" value="{{ person['token'] }}">{% endif %}<span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}{% if person['token'] == token %}<span class="textonly"> </span><span style="margin-left:0.5em;color:white;">(You)</span>{% endif %}
-            </div>
-        {% endfor %}
-    </div>
-    <br class="textonly">
-{% if broadcaster %}
-        <button>Ban</button>
-    </form>
-    <div style="margin:1.75em 0 1.5em 0;border-bottom:1px solid #3f3f3f;"></div>
-    <form action="{{ url_for('mod_users') }}" method="post">
-        <input type="hidden" name="noscript" value="1">
-        <input type="hidden" name="banned" value="0">
-        <div class="group-name">Banned ({{ len(people['banned']) }})</div>
-        <div class="group">
-            {% for person in people['banned'] %}
-                <div class="person">
-                    <input type="checkbox" name="token[]" value="{{ person['token'] }}"><span class="name" style="--name-color:#{{ person['colour'].hex() }};--name-bg-color:#{{ person['colour'].hex() }}20;">{{ person['nickname'] or default_nickname(person['token']) }}{% with tag = person['nickname'] == None %}{% if tag %}<sup>{{ person['tag'] }}</sup>{% endif %}</span>{% if person['tripcode']['string'] %}{% if tag %}<span style="margin-right:0.125em;"></span>{% endif %}<b class="textonly"> &lt;</b><b class="tripcode" style="background-color:#{{ person['tripcode']['background_colour'].hex() }};color:#{{ person['tripcode']['foreground_colour'].hex() }};">{{ person['tripcode']['string'] }}</b><b class="textonly">&gt;</b>{% endif %}{% endwith %}
-                </div>
-            {% endfor %}
-        </div>
-        <button>Unban</button>
-    </form>
-{% endif %}
-</div>
-</body>
+  </body>
 </html>
