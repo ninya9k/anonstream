@@ -38,10 +38,11 @@ def default_nickname(token):
         return CONFIG['chat']['nickname']['host']
     return CONFIG['chat']['nickname']['anon']
 
-def setdefault(token):
+def setdefault(token, now=None):
     if token in viewers or token == None:
         return
     remove_absent_viewers()
+    now = now or int(time.time())
     viewers[token] = {'token': token,
                       'last_comment': float('-inf'),
                       'last_segment': float('-inf'),
@@ -50,7 +51,7 @@ def setdefault(token):
                       'verified': False,
                       'recent_comments': [],
                       'nickname': None,
-                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers)),
+                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers if now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD)),
                       'banned': False,
                       'tripcode': tripcode.default(),
                       'broadcaster': False}
@@ -65,7 +66,7 @@ def made_request(token):
     if token == None:
         return
     now = int(time.time())
-    setdefault(token)
+    setdefault(token, now=now)
     if viewers[token]['first_request'] == float('-inf'):
         viewers[token]['first_request'] = now
     viewers[token]['last_request'] = now
