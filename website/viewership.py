@@ -41,8 +41,15 @@ def default_nickname(token):
 def setdefault(token, now=None):
     if token in viewers or token == None:
         return
-    remove_absent_viewers()
     now = now or int(time.time())
+    visible_viewers = set()
+    with lock:
+        for message in chat.messages:
+            visible_viewers.add(message['viewer']['token'])
+        for _token in viewers:
+            if now - viewers[_token]['last_request'] < VIEW_COUNTING_PERIOD:
+                visible_viewers.add(_token)
+    remove_absent_viewers(now=now)
     viewers[token] = {'token': token,
                       'last_comment': float('-inf'),
                       'last_segment': float('-inf'),
@@ -51,7 +58,7 @@ def setdefault(token, now=None):
                       'verified': False,
                       'recent_comments': [],
                       'nickname': None,
-                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers if now - viewers[token]['last_request'] < VIEW_COUNTING_PERIOD)),
+                      'colour': colour.gen_colour(token.encode(), *(viewers[token]['colour'] for token in viewers if token in visible_viewers)),
                       'banned': False,
                       'tripcode': tripcode.default(),
                       'broadcaster': False}
@@ -195,8 +202,8 @@ def get_people_list():
 
         return people
 
-def remove_absent_viewers():
-    now = int(time.time())
+def remove_absent_viewers(now=None):
+    now = now or int(time.time())
     to_pop = []
     for token in viewers:
         if viewers[token]['last_request'] < now - VIEWER_ABSENT_THRESHOLD and not chat.viewer_messages_exist(token) and not viewers[token]['banned']:

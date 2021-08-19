@@ -28,31 +28,37 @@ def _gen_colour(seed, background=BACKGROUND_COLOUR):
     '''
     Returns a colour with sufficient contrast to the background colour
     '''
-    for _ in range(16): # this loop exits on the first iteration 99.99% of the time (literally)
+    CONTRAST_LOW, CONTRAST_HIGH = 1.5, 3.0
+    CONTRAST_MIDDLE = (CONTRAST_LOW + CONTRAST_HIGH) / 2
+    best_colour, best_score = None, None
+    # this loop exits on the first iteration 99.99% of the time (literally)
+    for _ in range(4):
         seed = hashlib.sha256(seed).digest()
         for i in range(0, len(seed) - len(seed) % 3, 3):
             colour = seed[i:i+3]
-            if 1.5 < _contrast(colour, background) < 3:
+            colour_contrast = _contrast(colour, background)
+            if CONTRAST_LOW < _contrast(colour, background) < CONTRAST_HIGH:
+                best_colour = colour
                 break
-    return colour, seed
+            score = abs(colour_contrast - CONTRAST_MIDDLE)
+            if best_score == None or score < best_score:
+                best_colour, best_score = colour, score
+    return best_colour, seed
 
 def gen_colour(seed, background=BACKGROUND_COLOUR, *avoid):
     '''
     Returns a colour with sufficient contrast to the background colour
-    Tries to make the colour contrast with all the colours in `avoid`
-    This function hasn't been analysed for efficiency or anything
+    Tries to make the colour a little different from all the colours in `avoid`
     '''
     best_colour, best_score = None, None
-    for _ in range(1024):
+    for _ in range(4):
         colour, seed = _gen_colour(seed, background)
         if len(avoid) == 0:
             score = float('inf')
         elif colour in avoid:
             score = float('-inf')
         else:
-            score = sum(_contrast(colour, c) for c in avoid) / len(avoid)
-        if 2.5 < score:
-            return colour
+            score = sum(_distance_sq(colour, c) for c in avoid) / len(avoid)
         if best_score == None or score > best_score:
             best_colour, best_score = colour, score
     return best_colour
