@@ -42,7 +42,6 @@ This works on Linux, and should work on macOS and Windows with some tweaking. Lo
 * Slow (if videojs is enabled). Using videojs is slower because you have to make many separate GET requests, without it you only need to make one. If you lower the HLS segment size to something like 2 seconds, you get very low latency without videojs (smallest i've got is 3 seconds) but with videojs the stream becomes unwatchable because of the overhead of each GET request you have to make. The stream delay is >30 seconds with videojs and >3 seconds without it. Hopefully this will decrease when congestion control gets into Tor: https://youtu.be/watch?v=zQDbfHSjbnI. ([This article](https://www.martin-riedl.de/2020/04/17/using-ffmpeg-as-a-hls-streaming-server-part-8-reducing-delay/) explains what causes HLS to have latency.)
 * Slow chat (uses meta refresh); will be better once websockets is implemented (only with JavaScript enabled though)
 * Doesn't use low-latency HLS
-* There's a bug that causes the server to refuse to respond to any more requests. It happens after it's been up for a few days, and inexplicably in some other circumstances. I don't know why it happens, it's probably something to do with `/stream.mp4` or `concatenate.py`.
 * Scrolling direction is reversed in the chat because of the css trickery involved there, unsure if it can be fixed
 
 ## How it works
