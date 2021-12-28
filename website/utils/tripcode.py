@@ -9,7 +9,7 @@ def default():
     return {'string': None, 'background_colour': None, 'foreground_colour': None}
 
 def tripcode_salt():
-    return CONFIG['secrets']['tripcode_salt'].encode() or b'\0'
+    return CONFIG['secrets']['tripcode_salt'] or '\0'
 
 def gen_tripcode(password):
     tripcode = default()
