@@ -13,7 +13,7 @@ def tripcode_salt():
 
 def gen_tripcode(password):
     tripcode = default()
-    pwhash = werkzeug.security._hash_internal('pbkdf2:sha256', tripcode_salt(), password)[0]
+    pwhash = werkzeug.security._hash_internal('pbkdf2:sha256:150000', tripcode_salt(), password)[0]
     tripcode_data = bytes.fromhex(pwhash)[:6]
     tripcode['string'] = base64.b64encode(tripcode_data).decode()
     tripcode['background_colour'] = website.utils.colour.gen_colour(tripcode_data, BACKGROUND_COLOUR)
