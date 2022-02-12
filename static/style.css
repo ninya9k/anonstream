@@ -1,0 +1,122 @@
+:root {
+  --text-color: white;
+
+  --main-bg-color: #18181a;
+  --chat-bg-color: #232327;
+
+  --border-width: 1px;
+  --chat-width: 320px;
+
+  --main-border: var(--border-width) solid #38383d;
+  --chat-border: var(--border-width) solid #4a4a4f;
+
+  --aspect-x: 16;
+  --aspect-y: 9;
+
+  --pure-video-height: calc(100vw * var(--aspect-y) / var(--aspect-x));
+  --video-height: max(144px, min(75vh, var(--pure-video-height)));
+}
+body {
+  margin: 0;
+  background-color: var(--main-bg-color);
+  color: var(--text-color);
+  font-family: sans-serif;
+  height: 100vh;
+  display: grid;
+  grid-auto-rows: var(--video-height) min-content min-content 1fr min-content;
+  grid-template-areas:
+    "stream"
+    "toggle"
+    "info"
+    "chat"
+    "footer";
+}
+a {
+  color: #42a5d7;
+}
+#stream {
+  background: black;
+  width: 100%;
+  height: var(--video-height);
+  grid-area: stream;
+}
+#info {
+  display: none;
+  border-top: var(--main-border);
+  box-sizing: border-box;
+  padding: 0.5ch 1ch;
+  font-size: 18pt;
+  overflow-y: scroll;
+  grid-area: info;
+}
+#chat {
+  display: none;
+  background-color: var(--chat-bg-color);
+  border-top: var(--chat-border);
+  grid-area: chat;
+}
+#chat__header {
+  text-align: center;
+  padding: 1ch 0;
+  border-bottom: var(--chat-border);
+}
+#toggle {
+  grid-area: toggle;
+  border-top: var(--main-border);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+#toggle > a {
+  text-align: center;
+  padding: 1ch;
+  font-variant: all-small-caps;
+  text-decoration: none;
+  color: inherit;
+  background-color: #74479c;
+  border: 2px outset #8a2be2;
+}
+footer {
+  grid-area: footer;
+  text-align: center;
+  padding: 0.5ch;
+  border-top: var(--main-border);
+  font-size: 9pt;
+}
+#info:target, #both:target > #info,
+#chat:target, #both:target > #chat {
+  display: initial;
+}
+#info:target ~ #toggle > [href="#info"],
+#chat:target ~ #toggle > [href="#chat"],
+#both:target > #toggle > [href="#both"] {
+  background-color: #9943e9;
+  border-style: inset;
+}
+@media (min-width: 720px) {
+  :root {
+    --pure-video-height: calc((100vw - var(--chat-width) - var(--border-width)) * var(--aspect-y) / var(--aspect-x));
+  }
+  body {
+    grid-auto-rows: var(--video-height) 1fr min-content;
+    grid-auto-columns: 1fr 320px;
+    grid-template-areas:
+      "stream chat"
+      "info chat"
+      "footer chat";
+  }
+  #toggle {
+    display: none;
+  }
+  #stream {
+    height: var(--video-height);
+  }
+  #info {
+    display: initial;
+  }
+  #chat {
+    display: initial;
+    border-top: none;
+    border-left: var(--chat-border);
+    min-height: 100vh;
+  }
+}
