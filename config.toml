@@ -1,2 +1,3 @@
-secret = "test"
+secret_key = "test"
 auth_username = "broadcaster"
+segments_dir = "stream/"

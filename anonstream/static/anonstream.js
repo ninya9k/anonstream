@@ -112,18 +112,21 @@ const connect_websocket = () => {
         websocket_backoff = 2000; // 2 seconds
     });
     ws.addEventListener("close", (event) => {
+        console.log("websocket closed", event);
         chat_form_submit.disabled = true;
         chat_live_ball.style.borderColor = "maroon";
         chat_live_status.innerText = "Disconnected from chat";
-        setTimeout(connect_websocket, websocket_backoff);
-        websocket_backoff = Math.min(32000, websocket_backoff * 2);
-        console.log("websocket closed", event);
+        if (!ws.successor) {
+            ws.successor = true;
+            setTimeout(connect_websocket, websocket_backoff);
+            websocket_backoff = Math.min(32000, websocket_backoff * 2);
+        }
     });
     ws.addEventListener("error", (event) => {
+        console.log("websocket error", event);
         chat_form_submit.disabled = true;
         chat_live_ball.style.borderColor = "maroon";
         chat_live_status.innerText = "Error connecting to chat";
-        console.log("websocket error", event);
     });
     ws.addEventListener("message", on_websocket_message);
 }

@@ -19,7 +19,7 @@ async def websocket_outbound(queue):
         payload = await queue.get()
         await websocket.send_json(payload)
 
-async def websocket_inbound(secret, connected_websockets, chat, token):
+async def websocket_inbound(connected_websockets, token, secret, chat):
     while True:
         receipt = await websocket.receive_json()
         receipt, error = parse(chat.keys(), secret, receipt)
