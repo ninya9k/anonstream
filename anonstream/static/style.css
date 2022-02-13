@@ -159,8 +159,8 @@ a {
   font-variant: all-small-caps;
   text-decoration: none;
   color: inherit;
-  background-color: #753ba8;
-  border: 2px outset #8a2be2;
+  background-color: #3674bf;
+  border: 2px outset #3584e4;
 }
 
 footer {
@@ -183,7 +183,7 @@ footer {
 #info:target ~ #toggle > [href="#info"],
 #chat:target ~ #toggle > [href="#chat"],
 #both:target > #toggle > [href="#both"] {
-  background-color: #9943e9;
+  background-color: #3065a6;
   border-style: inset;
 }
 

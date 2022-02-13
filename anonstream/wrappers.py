@@ -1,6 +1,6 @@
 from functools import wraps
 
-from quart import current_app
+from quart import current_app, request, abort, make_response
 from werkzeug.security import check_password_hash
 
 from anonstream.utils.token import generate_token
@@ -11,16 +11,23 @@ def check_auth(context):
         auth is not None
         and auth.type == "basic"
         and auth.username == current_app.config["AUTH_USERNAME"]
-        and check_password_hash(auth.password, current_app.config["AUTH_PWHASH"])
+        and check_password_hash(current_app.config["AUTH_PWHASH"], auth.password)
     )
 
 def auth_required(f):
     @wraps(f)
     async def wrapper(*args, **kwargs):
         if check_auth(request):
-            return await func(*args, **kwargs)
-        else:
-            abort(401)
+            return await f(*args, **kwargs)
+        hint = 'The broadcaster should log in with the credentials printed ' \
+               'in their terminal.'
+        body = (
+            f'<p>{hint}</p>'
+            if request.authorization is None else
+             '<p>Wrong username or password. Refresh the page to try again.</p>'
+            f'<p>{hint}</p>'
+        )
+        return body, 401, {'WWW-Authenticate': 'Basic'}
 
     return wrapper
 
