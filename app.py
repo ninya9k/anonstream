@@ -1,10 +1,9 @@
-from quart import Quart, render_template
+import asyncio
+import anonstream
 
-app = Quart(__name__)
-
-@app.route('/')
-async def home():
-    return await render_template('home.html')
+async def main():
+    app = await anonstream.create_app()
+    await app.run_task(port=5051, debug=True)
 
 if __name__ == '__main__':
-    app.run(port=5051)
+    asyncio.run(main())

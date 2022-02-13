@@ -16,6 +16,7 @@
   --pure-video-height: calc(100vw * var(--aspect-y) / var(--aspect-x));
   --video-height: max(144px, min(75vh, var(--pure-video-height)));
 }
+
 body {
   margin: 0;
   background-color: var(--main-bg-color);
@@ -23,7 +24,7 @@ body {
   font-family: sans-serif;
   height: 100vh;
   display: grid;
-  grid-auto-rows: var(--video-height) min-content min-content 1fr min-content;
+  grid-auto-rows: var(--video-height) auto min-content 1fr auto;
   grid-template-areas:
     "stream"
     "toggle"
@@ -34,32 +35,118 @@ body {
 a {
   color: #42a5d7;
 }
+
 #stream {
   background: black;
   width: 100%;
   height: var(--video-height);
   grid-area: stream;
 }
+
 #info {
-  display: none;
   border-top: var(--main-border);
   box-sizing: border-box;
-  padding: 0.5ch 1ch;
-  font-size: 18pt;
+  padding: 0.75ch 1ch;
   overflow-y: scroll;
   grid-area: info;
 }
+#info__title {
+  font-size: 18pt;
+}
+
 #chat {
-  display: none;
+  display: grid;
+  grid-auto-rows: auto 1fr auto;
   background-color: var(--chat-bg-color);
   border-top: var(--chat-border);
+  border-bottom: var(--chat-border);
   grid-area: chat;
+  height: 50vh;
+  min-height: 24ch;
 }
 #chat__header {
   text-align: center;
   padding: 1ch 0;
+  margin-bottom: 1ch;
   border-bottom: var(--chat-border);
 }
+#chat-form {
+  display: grid;
+  grid-template: auto 2rem / auto 8ch;
+  grid-gap: 0.75ch;
+  margin: 1ch;
+}
+#chat-form__submit {
+  grid-column: 2 / span 1;
+}
+#chat-form__message {
+  grid-column: 1 / span 2;
+  background-color: #434347;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  transition: 0.25s;
+  max-height: 16ch;
+  min-height: 2.25ch;
+  padding: 1.5ch;
+  color: #c3c3c7;
+  resize: vertical;
+}
+#chat-form__message:not(:focus):hover {
+  border-color: #737377;
+}
+#chat-form__message:focus {
+  background-color: black;
+  border-color: #3584e4;
+}
+#chat__messages {
+  margin: 0 1ch;
+  overflow-y: auto;
+  position: relative;
+}
+#chat-messages {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-height: 100%;
+  position: absolute;
+  bottom: 0;
+  font-size: 11pt;
+}
+.chat-message {
+  padding: 0.5ch 0.75ch ;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+.chat-message:hover {
+  background-color: #434347;
+}
+.chat-message__name {
+  font-weight: bold;
+  color: attr("data-color");
+  cursor: default;
+}
+.chat-message__text {
+  overflow-wrap: anywhere;
+}
+#chat-live {
+  font-size: 9pt;
+  line-height: 2rem;
+}
+#chat-live__ball {
+  border: 4px solid maroon;
+  border-radius: 4px;
+  display: inline-block;
+  margin-right: 2px;
+  animation: 3s infinite glow;
+}
+@keyframes glow {
+    0% {filter: brightness(100%)}
+   50% {filter: brightness(150%)}
+  100% {filter: brightness(100%)}
+}
+
 #toggle {
   grid-area: toggle;
   border-top: var(--main-border);
@@ -72,19 +159,26 @@ a {
   font-variant: all-small-caps;
   text-decoration: none;
   color: inherit;
-  background-color: #74479c;
+  background-color: #753ba8;
   border: 2px outset #8a2be2;
 }
+
 footer {
   grid-area: footer;
   text-align: center;
-  padding: 0.5ch;
-  border-top: var(--main-border);
+  padding: 0.75ch;
+  background: linear-gradient(#38383d, #1d1d20 16%);
   font-size: 9pt;
 }
-#info:target, #both:target > #info,
+
+#info, #chat {
+  display: none;
+}
+#info:target, #both:target > #info {
+  display: block;
+}
 #chat:target, #both:target > #chat {
-  display: initial;
+  display: grid;
 }
 #info:target ~ #toggle > [href="#info"],
 #chat:target ~ #toggle > [href="#chat"],
@@ -92,12 +186,13 @@ footer {
   background-color: #9943e9;
   border-style: inset;
 }
+
 @media (min-width: 720px) {
   :root {
     --pure-video-height: calc((100vw - var(--chat-width) - var(--border-width)) * var(--aspect-y) / var(--aspect-x));
   }
   body {
-    grid-auto-rows: var(--video-height) 1fr min-content;
+    grid-auto-rows: var(--video-height) 1fr auto;
     grid-auto-columns: 1fr 320px;
     grid-template-areas:
       "stream chat"
@@ -111,11 +206,11 @@ footer {
     height: var(--video-height);
   }
   #info {
-    display: initial;
+    display: block;
   }
   #chat {
-    display: initial;
-    border-top: none;
+    display: grid;
+    border: none;
     border-left: var(--chat-border);
     min-height: 100vh;
   }
