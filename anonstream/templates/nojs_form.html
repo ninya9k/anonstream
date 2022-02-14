@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      --padding: 1ch;
+    }
+    body {
+      margin: 0;
+      height: 13ch;
+      color: white;
+    }
+    a {
+      color: #42a5d7;
+    }
+    label {
+      cursor: pointer;
+    }
+    .tripcode {
+      padding: 0 4px;
+      border-radius: 7px;
+      font-family: monospace;
+      align-self: center;
+    }
+
+    #notice {
+      padding: var(--margin);
+      text-align: center;
+      color: white;
+      text-decoration: none;
+      height: 100%;
+      box-sizing: border-box;
+      align-items: center;
+    }
+    #notice h1 {
+      font-size: 18pt;
+      margin: 0;
+    }
+
+    #chat-form, #appearance-form {
+      padding: var(--padding);
+      height: 100%;
+      box-sizing: border-box;
+      grid-gap: 0.75ch;
+    }
+    #chat-form {
+      display: grid;
+      grid: auto 2rem / auto 8ch;
+      grid-gap: 0.75ch;
+    }
+    #chat-form__message {
+      resize: none;
+      grid-column: 1 / span 2;
+      background-color: #434347;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      transition: 0.25s;
+      padding: 1.5ch;
+      color: #c3c3c7;
+    }
+    #chat-form__message:not(:focus):hover {
+      border-color: #737377;
+    }
+    #chat-form__message:focus {
+      background-color: black;
+      border-color: #3584e4;
+    }
+
+    #appearance-form {
+      grid-auto-rows: 1fr 1fr 2rem;
+      grid-auto-columns: min-content 1fr min-content;
+    }
+    #appearance-form__label-password,
+    #appearance-form__password,
+    #password-column,
+    #hide-password {
+      grid-row: 2;
+    }
+    #appearance-form__buttons {
+      grid-column: 1 / span 3;
+      display: grid;
+      grid-template-columns: auto 8ch;
+    }
+
+    #password-toggle,
+    #appearance-form__password {
+      display: none;
+    }
+    #hide-password {
+      visibility: hidden;
+    }
+    #password-toggle:checked + #cleared-toggle:not(:checked) ~ #appearance-form__password {
+      display: inline;
+    }
+    #password-toggle:checked + #cleared-toggle:not(:checked) ~ #hide-password {
+      visibility: visible;
+    }
+    #password-toggle:checked + #cleared-toggle:not(:checked) + #password-column {
+      display: none;
+    }
+
+    #cleared-toggle,
+    #cleared,
+    #hide-cleared {
+      display: none;
+    }
+    #cleared-toggle:checked + #password-column > #cleared,
+    #cleared-toggle:checked + #password-column > #hide-cleared {
+      display: inline;
+    }
+    #cleared-toggle:checked + #password-column > #tripcode,
+    #cleared-toggle:checked + #password-column > #show-cleared {
+      display: none;
+    }
+
+    #notice, #appearance-form {
+      display: none;
+    }
+    #anchor:target > #chat-form {
+      display: none;
+    }
+    #anchor:target > #appearance-form {
+      display: grid;
+    }
+    #notice:target {
+        display: grid;
+    }
+    #notice:target + #chat-form,
+    #notice:target ~ #appearance-form {
+      display: none;
+    }
+  </style>
+</head>
+<body id="anchor">
+  <a href="#chat-form" id="notice">
+    <header><h1>No notice</h1></header>
+    <small>Click to dismiss</small>
+  </a>
+  </article>
+  <form id="chat-form" action="/chat/message">
+    <input type="hidden" name="token" value="{{ user.token }}">
+    <textarea id="chat-form__message" name="text" placeholder="Send a message..." required rows="1"></textarea>
+    <div id="chat-form__exit"><a href="#anchor">Settings</a></div>
+    <input id="chat-form__submit" type="submit" value="Chat">
+  </form>
+  <form id="appearance-form" action="/chat/appearance">
+    <input type="hidden" name="token" value="{{ user.token }}">
+    <label for="appearance-form__name">Name:</label>
+    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}">
+    <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
+    <input id="password-toggle" name="set-tripcode" type="checkbox">
+    <input id="cleared-toggle" name="clear-tripcode" type="checkbox">
+    <div id="password-column">
+      {% if user.tripcode == none %}
+        <label class="show-password tripcode" for="password-toggle">(no tripcode)</label>
+      {% else %}
+        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};">{{ user.tripcode.digest }}</label>
+        <label id="show-cleared" for="cleared-toggle">&cross;</label>
+        <div id="cleared" class="tripcode">(cleared)</div>
+        <label id="hide-cleared" for="cleared-toggle">undo</label>
+      {% endif %}
+    </div>
+    <input id="appearance-form__password" name="password" type="password"></div>
+    <label id="hide-password" for="password-toggle">&cross;</label>
+    <div id="appearance-form__buttons">
+      <div><a href="#chat-form">Return to chat</a></div>
+      <input type="submit" value="Update">
+    </div>
+  </form>
+</body>
+</html>

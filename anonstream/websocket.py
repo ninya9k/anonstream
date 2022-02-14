@@ -2,6 +2,7 @@ import asyncio
 
 from quart import websocket
 
+from anonstream.stream import get_stream_title, get_stream_uptime
 from anonstream.chat import add_chat_message
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse
@@ -10,8 +11,8 @@ async def websocket_outbound(queue):
     payload = {
         'type': 'init',
         'nonce': generate_nonce(),
-        'title': 'Stream title',
-        'uptime': None,
+        'title': get_stream_title(),
+        'uptime': get_stream_uptime(),
         'chat': [],
     }
     await websocket.send_json(payload)
@@ -19,7 +20,7 @@ async def websocket_outbound(queue):
         payload = await queue.get()
         await websocket.send_json(payload)
 
-async def websocket_inbound(connected_websockets, token, secret, chat):
+async def websocket_inbound(queue, connected_websockets, token, secret, chat):
     while True:
         receipt = await websocket.receive_json()
         receipt, error = parse(chat.keys(), secret, receipt)
@@ -36,7 +37,6 @@ async def websocket_inbound(connected_websockets, token, secret, chat):
                 'nonce': nonce,
                 'next': generate_nonce(),
             }
-        queue = connected_websockets[token]
         await queue.put(payload)
 
         if error is None:
@@ -46,5 +46,5 @@ async def websocket_inbound(connected_websockets, token, secret, chat):
                 'name': 'Anonymous',
                 'text': text,
             }
-            for queue in connected_websockets.values():
-                await queue.put(payload)
+            for other_queue in connected_websockets:
+                await other_queue.put(payload)

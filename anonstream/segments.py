@@ -8,8 +8,11 @@ import aiofiles
 
 RE_SEGMENT = re.compile(r'^(?P<index>\d+)\.ts$')
 
+class Offline(Exception):
+    pass
+
 class DirectoryCache:
-    def __init__(self, directory, ttl=0.5):
+    def __init__(self, directory, ttl=1.0):
         self.directory = directory
         self.ttl = ttl
         self.expires = None
@@ -41,7 +44,10 @@ class CatSegments:
     def __init__(self, directory_cache, token):
         self.directory_cache = directory_cache
         self.token = token
-        self.index = max(self.directory_cache.segments())
+        try:
+            self.index = max(self.directory_cache.segments())
+        except ValueError: # max of empty sequence, i.e. there are no segments
+            raise Offline
 
     async def stream(self):
         while True:

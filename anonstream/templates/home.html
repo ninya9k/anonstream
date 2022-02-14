@@ -4,18 +4,18 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="/static/style.css" type="text/css">
 </head>
-<body id="both" data-token="{{ token }}">
-  <video id="stream" src="/stream.mp4" controls></video>
+<body id="both" data-token="{{ user.token }}">
+  <video id="stream" src="{{ url_for('stream', token=user.token) }}" controls></video>
   <article id="info">
-    <noscript><iframe id="info_js" data-js="false"></iframe></noscript>
+    <noscript><iframe id="info_nojs" src="{{ url_for('nojs_info', token=user.token) }}" data-js="false"></iframe></noscript>
   </article>
   <aside id="chat">
     <header id="chat__header">Stream chat</header>
     <article id="chat__messages">
-      <noscript><iframe id="chat-messages_nojs" data-js="false"></iframe></noscript>
+      <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat', token=user.token) }}" data-js="false"></iframe></noscript>
     </article>
     <section id="chat__form">
-      <noscript><iframe id="chat-form_nojs" data-js="false"></iframe></noscript>
+      <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_form', token=user.token, _anchor='notice') }}" data-js="false"></iframe></noscript>
     </section>
   </aside>
   <nav id="toggle">

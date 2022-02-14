@@ -1,3 +1,5 @@
 secret_key = "test"
 auth_username = "broadcaster"
 segments_dir = "stream/"
+default_host_name = "Broadcaster"
+default_anon_name = "Anonymous"

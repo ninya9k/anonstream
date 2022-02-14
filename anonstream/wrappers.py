@@ -1,9 +1,10 @@
+import time
 from functools import wraps
 
 from quart import current_app, request, abort, make_response
 from werkzeug.security import check_password_hash
 
-from anonstream.utils.token import generate_token
+from anonstream.utils.users import generate_token, generate_user
 
 def check_auth(context):
     auth = context.authorization
@@ -31,15 +32,23 @@ def auth_required(f):
 
     return wrapper
 
-def with_token_from(context):
-    def with_token_from_context(f):
+def with_user_from(context):
+    def with_user_from_context(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
-            if check_auth(context):
+            broadcaster = check_auth(context)
+            if broadcaster:
                 token = current_app.config['AUTH_TOKEN']
             else:
                 token = context.args.get('token') or generate_token()
-            return await f(token, *args, **kwargs)
+            timestamp = int(time.time())
+            user = current_app.users.get(token)
+            if user is not None:
+                user['seen']['last'] = timestamp
+            else:
+                user = generate_user(token, broadcaster, timestamp)
+            return await f(user, *args, **kwargs)
 
         return wrapper
-    return with_token_from_context
+
+    return with_user_from_context

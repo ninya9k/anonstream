@@ -5,7 +5,7 @@ from collections import OrderedDict
 from quart import Quart
 from werkzeug.security import generate_password_hash
 
-from anonstream.utils.token import generate_token
+from anonstream.utils.users import generate_token
 from anonstream.segments import DirectoryCache
 
 async def create_app():
@@ -22,8 +22,11 @@ async def create_app():
     app.config['AUTH_USERNAME'] = config['auth_username']
     app.config['AUTH_PWHASH'] = auth_pwhash
     app.config['AUTH_TOKEN'] = generate_token()
+    app.config['DEFAULT_HOST_NAME'] = config['default_host_name']
+    app.config['DEFAULT_ANON_NAME'] = config['default_anon_name']
     app.chat = OrderedDict()
-    app.websockets = {}
+    app.users = {}
+    app.websockets = set()
     app.segments_directory_cache = DirectoryCache(config['segments_dir'])
 
     async with app.app_context():
