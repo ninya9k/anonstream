@@ -170,21 +170,21 @@
     <label for="appearance-form__name">Name:</label>
     <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
-    <input id="password-toggle" name="set-tripcode" type="checkbox">
-    <input id="cleared-toggle" name="clear-tripcode" type="checkbox">
+    <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
+    <input id="cleared-toggle" name="clear-tripcode" type="checkbox" accesskey="c">
     <div id="password-column">
       {% if user.tripcode == none %}
         <span class="tripcode">(no tripcode)</span>
-        <label for="password-toggle" class="show-password pseudolink" accesskey="s">set</label>
+        <label for="password-toggle" class="show-password pseudolink">set</label>
       {% else %}
-        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};" accesskey="s">{{ user.tripcode.digest }}digest</label>
-        <label id="show-cleared" for="cleared-toggle" class="pseudolink" accesskey="c">&cross;</label>
+        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};">{{ user.tripcode.digest }}digest</label>
+        <label id="show-cleared" for="cleared-toggle" class="pseudolink">&cross;</label>
         <div id="cleared" class="tripcode">(cleared)</div>
-        <label id="hide-cleared" for="cleared-toggle" class="pseudolink" accesskey="c">undo</label>
+        <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>
       {% endif %}
     </div>
     <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)">
-    <label id="hide-password" for="password-toggle" class="pseudolink" accesskey="s">&cross;</label>
+    <label id="hide-password" for="password-toggle" class="pseudolink">&cross;</label>
     <div id="appearance-form__buttons">
       <div><a href="#chat">Return to chat</a></div>
       <input type="submit" value="Update">
