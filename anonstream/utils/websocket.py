@@ -1,19 +1,23 @@
-from anonstream.utils.chat import generate_message_id
+from anonstream.utils.chat import create_message, NonceReuse
 
-def parse(message_ids, secret, receipt):
+class Malformed(Exception):
+    pass
+
+def parse_websocket_data(message_ids, secret, receipt):
     if not isinstance(receipt, dict):
-        return None, 'not a json object'
+        raise Malformed('not a json object')
 
-    message = receipt.get('message')
-    if not isinstance(message, str):
-        return None, 'malformed chat message'
+    comment = receipt.get('comment')
+    if not isinstance(comment, str):
+        raise Malformed('malformed comment')
 
     nonce = receipt.get('nonce')
     if not isinstance(nonce, str):
-        return None, 'malformed nonce'
+        raise Malformed('malformed nonce')
 
-    message_id = generate_message_id(secret, nonce)
-    if message_id in message_ids:
-        return None, 'nonce already used'
+    try:
+        message = create_message(message_ids, secret, nonce, comment)
+    except NonceReuse:
+        raise Malformed('nonce already used')
 
-    return (message, nonce, message_id), None
+    return message

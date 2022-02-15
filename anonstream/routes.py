@@ -1,12 +1,14 @@
 import asyncio
 
-from quart import current_app, request, render_template, make_response, redirect, websocket
+from quart import current_app, request, render_template, make_response, redirect, websocket, url_for
 
 from anonstream.stream import get_stream_title
 from anonstream.segments import CatSegments, Offline
-from anonstream.users import get_default_name
+from anonstream.users import get_default_name, add_notice, pop_notice
 from anonstream.wrappers import with_user_from, auth_required
 from anonstream.websocket import websocket_outbound, websocket_inbound
+from anonstream.chat import add_chat_message, Rejected
+from anonstream.utils.chat import create_message, generate_nonce, NonceReuse
 
 @current_app.route('/')
 @with_user_from(request)
@@ -69,8 +71,51 @@ async def nojs_chat(user):
 @current_app.route('/chat/form.html')
 @with_user_from(request)
 async def nojs_form(user):
+    notice_id = request.args.get('notice', type=int)
+    prefer_chat_form = request.args.get('landing') != 'appearance'
     return await render_template(
         'nojs_form.html',
         user=user,
+        notice=pop_notice(user, notice_id),
+        prefer_chat_form=prefer_chat_form,
+        nonce=generate_nonce(),
         default_name=get_default_name(user),
     )
+
+@current_app.post('/chat/message')
+@with_user_from(request)
+async def nojs_submit_message(user):
+    form = await request.form
+    comment = form.get('comment', '')
+    nonce = form.get('nonce', '')
+
+    try:
+        message_id, _, _ = create_message(
+            message_ids=current_app.chat.keys(),
+            secret=current_app.config['SECRET_KEY'],
+            nonce=nonce,
+            comment=comment,
+        )
+    except NonceReuse:
+        notice_id = add_notice(user, 'Discarded suspected duplicate message')
+    else:
+        try:
+            await add_chat_message(
+                current_app.chat,
+                current_app.websockets,
+                user['token'],
+                message_id,
+                comment
+            )
+        except Rejected as e:
+            notice, *_ = e.args
+            notice_id = add_notice(user, notice)
+        else:
+            notice_id = None
+
+    return redirect(url_for('nojs_form', token=user['token'], notice=notice_id))
+
+@current_app.post('/chat/appearance')
+@with_user_from(request)
+async def nojs_submit_appearance(user):
+    pass

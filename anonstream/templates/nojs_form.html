@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <style>
     :root {
+      --link-color: #42a5d7;
       --padding: 1ch;
     }
     body {
@@ -12,20 +13,29 @@
       color: white;
     }
     a {
-      color: #42a5d7;
+      color: var(--link-color);
     }
-    label {
+    .pseudolink {
+      color: var(--link-color);
       cursor: pointer;
+    }
+    .pseudolink:hover {
+      text-decoration: underline;
     }
     .tripcode {
       padding: 0 4px;
       border-radius: 7px;
       font-family: monospace;
-      align-self: center;
+      cursor: default;
+    }
+    #tripcode {
+      cursor: pointer;
+      margin-right: 4px;
     }
 
     #notice {
-      padding: var(--margin);
+      display: grid;
+      padding: var(--padding);
       text-align: center;
       color: white;
       text-decoration: none;
@@ -36,6 +46,7 @@
     #notice h1 {
       font-size: 18pt;
       margin: 0;
+      line-height: 1.25;
     }
 
     #chat-form, #appearance-form {
@@ -49,7 +60,7 @@
       grid: auto 2rem / auto 8ch;
       grid-gap: 0.75ch;
     }
-    #chat-form__message {
+    #chat-form__comment {
       resize: none;
       grid-column: 1 / span 2;
       background-color: #434347;
@@ -59,10 +70,10 @@
       padding: 1.5ch;
       color: #c3c3c7;
     }
-    #chat-form__message:not(:focus):hover {
+    #chat-form__comment:not(:focus):hover {
       border-color: #737377;
     }
-    #chat-form__message:focus {
+    #chat-form__comment:focus {
       background-color: black;
       border-color: #3584e4;
     }
@@ -114,38 +125,48 @@
       display: none;
     }
 
-    #notice, #appearance-form {
+    #appearance-form {
       display: none;
     }
-    #anchor:target > #chat-form {
-      display: none;
-    }
-    #anchor:target > #appearance-form {
+    #appearance:target ~ #appearance-form {
       display: grid;
     }
-    #notice:target {
-        display: grid;
-    }
-    #notice:target + #chat-form,
-    #notice:target ~ #appearance-form {
+    #appearance:target ~ #chat-form {
       display: none;
     }
+    #chat:target ~ #appearance-form {
+      display: none;
+    }
+    {% if notice != none %}
+      #chat-form {
+        display: none;
+      }
+      #chat:target ~ #chat-form {
+        display: grid;
+      }
+      #chat:target ~ #notice,
+      #appearance:target ~ #notice {
+        display: none;
+      }
+    {% endif %}
   </style>
 </head>
-<body id="anchor">
-  <a href="#chat-form" id="notice">
-    <header><h1>No notice</h1></header>
-    <small>Click to dismiss</small>
-  </a>
-  </article>
-  <form id="chat-form" action="/chat/message">
-    <input type="hidden" name="token" value="{{ user.token }}">
-    <textarea id="chat-form__message" name="text" placeholder="Send a message..." required rows="1"></textarea>
-    <div id="chat-form__exit"><a href="#anchor">Settings</a></div>
-    <input id="chat-form__submit" type="submit" value="Chat">
+<body>
+  <div id="chat"></div>
+  <div id="appearance"></div>
+  {% if notice != none %}
+    <a id="notice" {% if prefer_chat_form %}href="#chat"{% else %}href="#appearance"{% endif %}>
+      <header><h1>{{ notice }}</h1></header>
+      <small>Click to dismiss</small>
+    </a>
+  {% endif %}
+  <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
+    <input type="hidden" name="nonce" value="{{ nonce }}">
+    <textarea id="chat-form__comment" name="comment" placeholder="Send a message..." required rows="1" tabindex="1"></textarea>
+    <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
+    <input id="chat-form__submit" type="submit" value="Chat" tabindex="2">
   </form>
-  <form id="appearance-form" action="/chat/appearance">
-    <input type="hidden" name="token" value="{{ user.token }}">
+  <form id="appearance-form" action="/{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label for="appearance-form__name">Name:</label>
     <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
@@ -153,18 +174,19 @@
     <input id="cleared-toggle" name="clear-tripcode" type="checkbox">
     <div id="password-column">
       {% if user.tripcode == none %}
-        <label class="show-password tripcode" for="password-toggle">(no tripcode)</label>
+        <span class="tripcode">(no tripcode)</span>
+        <label for="password-toggle" class="show-password pseudolink" accesskey="s">set</label>
       {% else %}
-        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};">{{ user.tripcode.digest }}</label>
-        <label id="show-cleared" for="cleared-toggle">&cross;</label>
+        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};" accesskey="s">{{ user.tripcode.digest }}digest</label>
+        <label id="show-cleared" for="cleared-toggle" class="pseudolink" accesskey="c">&cross;</label>
         <div id="cleared" class="tripcode">(cleared)</div>
-        <label id="hide-cleared" for="cleared-toggle">undo</label>
+        <label id="hide-cleared" for="cleared-toggle" class="pseudolink" accesskey="c">undo</label>
       {% endif %}
     </div>
-    <input id="appearance-form__password" name="password" type="password"></div>
-    <label id="hide-password" for="password-toggle">&cross;</label>
+    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)">
+    <label id="hide-password" for="password-toggle" class="pseudolink" accesskey="s">&cross;</label>
     <div id="appearance-form__buttons">
-      <div><a href="#chat-form">Return to chat</a></div>
+      <div><a href="#chat">Return to chat</a></div>
       <input type="submit" value="Update">
     </div>
   </form>

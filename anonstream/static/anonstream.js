@@ -8,7 +8,7 @@ const jsmarkup_chat_messages = '<ul id="chat-messages_js" data-js="true"></ul>';
 const jsmarkup_chat_form = `\
   <form id="chat-form_js" data-js="true" action="/chat" method="post">
     <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
-    <textarea id="chat-form_js__message" name="message" maxlength="512" required placeholder="Send a message..." rows="1"></textarea>
+    <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1"></textarea>
     <div id="chat-live">
       <span id="chat-live__ball"></span>
       <span id="chat-live__status">Not connected to chat</span>
@@ -45,24 +45,24 @@ const on_websocket_message = (event) => {
     const receipt = JSON.parse(event.data);
     switch (receipt.type) {
         case "error":
-            console.log("server sent error via websocket", receipt);
+            console.log("ws error", receipt);
             break;
 
         case "init":
-            console.log("init", receipt);
+            console.log("ws init", receipt);
             chat_form_nonce.value = receipt.nonce;
             info_title.innerText = receipt.title;
             break;
 
         case "title":
-            console.log("title", receipt);
+            console.log("ws title", receipt);
             info_title.innerText = receipt.title;
             break;
 
         case "ack":
-            console.log("ack", receipt);
+            console.log("ws ack", receipt);
             if (chat_form_nonce.value === receipt.nonce) {
-                chat_form_message.value = "";
+                chat_form_comment.value = "";
             } else {
                 console.log("nonce does not match ack", chat_form_nonce, receipt);
             }
@@ -70,7 +70,15 @@ const on_websocket_message = (event) => {
             chat_form_nonce.value = receipt.next;
             break;
 
+        case "reject":
+            console.log("ws reject", receipt);
+            alert(`Rejected: ${receipt.notice}`);
+            chat_form_submit.disabled = false;
+            break;
+
         case "chat":
+            console.log("ws chat", receipt);
+
             const chat_message = document.createElement("li");
             chat_message.classList.add("chat-message");
 
@@ -80,13 +88,13 @@ const on_websocket_message = (event) => {
             //chat_message_name.dataset.color = receipt.color; // not working in any browser
             chat_message_name.style.color = receipt.color;
 
-            const chat_message_text = document.createElement("span");
-            chat_message_text.classList.add("chat-message__text");
-            chat_message_text.innerText = receipt.text;
+            const chat_message_markup = document.createElement("span");
+            chat_message_markup.classList.add("chat-message__markup");
+            chat_message_markup.innerHTML = receipt.markup;
 
             chat_message.insertAdjacentElement("beforeend", chat_message_name);
             chat_message.insertAdjacentHTML("beforeend", ":&nbsp;");
-            chat_message.insertAdjacentElement("beforeend", chat_message_text);
+            chat_message.insertAdjacentElement("beforeend", chat_message_markup);
 
             chat_messages.insertAdjacentElement("beforeend", chat_message);
             chat_messages_parent.scrollTo({
@@ -95,11 +103,10 @@ const on_websocket_message = (event) => {
                 behavior: "smooth",
             });
 
-            console.log("chat", receipt);
             break;
 
         default:
-            console.log("incomprehensible websocket message", message);
+            console.log("incomprehensible websocket message", receipt);
     }
 };
 const chat_live_ball = document.getElementById("chat-live__ball");
@@ -145,11 +152,11 @@ connect_websocket();
 /* override js-only chat form */
 const chat_form = document.getElementById("chat-form_js");
 const chat_form_nonce = document.getElementById("chat-form_js__nonce");
-const chat_form_message = document.getElementById("chat-form_js__message");
+const chat_form_comment = document.getElementById("chat-form_js__comment");
 const chat_form_submit = document.getElementById("chat-form_js__submit");
 chat_form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const payload = {message: chat_form_message.value, nonce: chat_form_nonce.value};
+    const payload = {comment: chat_form_comment.value, nonce: chat_form_nonce.value};
     chat_form_submit.disabled = true;
     ws.send(JSON.stringify(payload));
 });

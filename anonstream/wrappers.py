@@ -47,6 +47,7 @@ def with_user_from(context):
                 user['seen']['last'] = timestamp
             else:
                 user = generate_user(token, broadcaster, timestamp)
+                current_app.users[token] = user
             return await f(user, *args, **kwargs)
 
         return wrapper

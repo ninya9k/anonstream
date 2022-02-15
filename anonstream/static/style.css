@@ -95,7 +95,7 @@ noscript {
 #chat-form_js__submit {
   grid-column: 2 / span 1;
 }
-#chat-form_js__message {
+#chat-form_js__comment {
   grid-column: 1 / span 2;
   background-color: #434347;
   border-radius: 4px;
@@ -107,10 +107,10 @@ noscript {
   color: #c3c3c7;
   resize: vertical;
 }
-#chat-form_js__message:not(:focus):hover {
+#chat-form_js__comment:not(:focus):hover {
   border-color: #737377;
 }
-#chat-form_js__message:focus {
+#chat-form_js__comment:focus {
   background-color: black;
   border-color: #3584e4;
 }
@@ -149,7 +149,7 @@ noscript {
   color: attr("data-color");
   cursor: default;
 }
-.chat-message__text {
+.chat-message__markup {
   overflow-wrap: anywhere;
   line-height: 1.3125;
 }
