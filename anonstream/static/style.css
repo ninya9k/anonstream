@@ -220,7 +220,7 @@ footer {
   }
   body {
     grid-auto-rows: var(--video-height) 1fr auto;
-    grid-auto-columns: 1fr 320px;
+    grid-auto-columns: 1fr var(--chat-width);
     grid-template-areas:
       "stream chat"
       "info chat"

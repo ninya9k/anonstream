@@ -19,6 +19,9 @@
     a {
       color: var(--link-color);
     }
+    input:not([type]), input[type="password"] {
+      min-width: 20ch;
+    }
     .pseudolink {
       color: var(--link-color);
       cursor: pointer;
@@ -96,12 +99,6 @@
       grid-auto-rows: 1fr 1fr 2rem;
       grid-auto-columns: min-content 1fr min-content;
     }
-    #appearance-form__label-password,
-    #appearance-form__password,
-    #password-column,
-    #hide-password {
-      grid-row: 2;
-    }
     #appearance-form__buttons {
       grid-column: 1 / span 3;
       display: grid;
@@ -115,6 +112,9 @@
     }
     #appearance-form label:not(.tripcode):not(.x) {
       font-size: 11pt;
+    }
+    #hide-password {
+      align-self: center;
     }
 
     #password-toggle,
@@ -189,9 +189,10 @@
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="2" accesskey="p">
   </form>
-  <form id="appearance-form" action="/{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
+  <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
     <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}">
+    <input type="color" name="color" value="{{ user.color }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
     <input id="cleared-toggle" name="clear-tripcode" type="checkbox"{% if user.tripcode != none %} accesskey="c"{% endif %}>
@@ -207,7 +208,7 @@
       {% endif %}
     </div>
     <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)">
-    <label id="hide-password" for="password-toggle" class="pseudolink x">&cross;</label>
+    <div id="hide-password"><label for="password-toggle" class="pseudolink x">&cross;</label></div>
     <div id="appearance-form__buttons">
       <div id="appearance-form__exit"><a href="#chat">Return to chat</a></div>
       <input type="submit" value="Update">
