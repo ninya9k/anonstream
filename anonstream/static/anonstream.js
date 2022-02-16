@@ -127,12 +127,17 @@ const on_websocket_message = (event) => {
       update_user_styles();
 
       const ids = new Set(receipt.chat.map((message) => {return message.id;}));
+      const to_delete = [];
       for (const chat_message of chat_messages.children) {
-        if (!ids.has(parseInt(chat_message.dataset.id))) {
-          console.log('removing', chat_message);
-          chat_message.remove();
+        const chat_message_id = parseInt(chat_message.dataset.id);
+        if (!ids.has(chat_message_id)) {
+          to_delete.push(chat_message);
         }
       }
+      for (const chat_message of to_delete) {
+        chat_message.remove();
+      }
+
       const last_id = Math.max(...[...chat_messages.children].map((element) => parseInt(element.dataset.id)));
       for (const message of receipt.chat) {
         if (message.id > last_id) {
