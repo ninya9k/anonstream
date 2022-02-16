@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="4">
+  <style>
+    html {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      height: 100%;
+      color: #ddd;
+      font-family: sans-serif;
+      font-size: 11pt;
+    }
+    #chat-messages {
+      list-style: none;
+      margin: 0;
+      padding: 1ch 1ch 0 1ch;
+      min-height: 100%;
+      box-sizing: border-box;
+      transform: rotate(180deg);
+    }
+    .chat-message {
+      padding: 0.5ch 0.75ch;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      transform: rotate(-180deg);
+    }
+    .chat-message:hover {
+      background-color: #434347;
+    }
+    .chat-message__name {
+      overflow-wrap: anywhere;
+      font-weight: bold;
+      /* color: attr("data-color"); */
+      cursor: normal;
+    }
+    .chat-message__markup {
+      overflow-wrap: anywhere;
+      line-height: 1.3125;
+    }
+  </style>
+</head>
+<body>
+  <ul id="chat-messages">
+    {% for message in messages | reverse %}
+      <li class="chat-message">
+        {% with user = users[message.token] %}
+          <span class="chat-message__name" style="color:{{ user.color }};" data-id="{{ message.id }}">{{ user.name or get_default_name(user) }}</span>:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
+        {% endwith %}
+      </li>
+    {% endfor %}
+  </ul>
+  <div id="bottom"></div>
+</body>
+</html>

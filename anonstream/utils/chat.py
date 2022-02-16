@@ -8,13 +8,16 @@ class NonceReuse(Exception):
 def generate_nonce():
     return secrets.token_urlsafe(16)
 
-def generate_message_id(secret, nonce):
-    parts = secret + b'message-id\0' + nonce.encode()
-    digest = hashlib.sha256(parts).digest()
-    return base64.urlsafe_b64encode(digest)[:22].decode()
+def generate_nonce_hash(secret, nonce):
+    parts = secret + b'nonce-hash\0' + nonce.encode()
+    return hashlib.sha256(parts).digest()
 
-def create_message(message_ids, secret, nonce, comment):
-    message_id = generate_message_id(secret, nonce)
-    if message_id in message_ids:
-        raise NonceReuse
-    return message_id, nonce, comment
+def message_for_websocket(users, message):
+    message_keys = ('id', 'date', 'time_minutes', 'time_seconds', 'markup')
+    user_keys = ('token_hash',)
+
+    user = users[message['token']]
+    return {
+        **{key: message[key] for key in message_keys},
+        **{key: user[key] for key in user_keys},
+    }

@@ -12,3 +12,13 @@ anonymous = "Anonymous"
 
 [limits]
 notices = 32
+chat_storage = 8192
+chat_scrollback = 256
+
+[ratelimits]
+user_absence = 8
+captcha_expiry = 8
+
+[thresholds]
+idle = 12
+absent = 1800

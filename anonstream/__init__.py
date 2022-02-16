@@ -18,14 +18,25 @@ async def create_app():
     print('Broadcaster password:', auth_password)
 
     app = Quart('anonstream')
-    app.config['SECRET_KEY'] = config['secret_key'].encode()
-    app.config['AUTH_USERNAME'] = config['auth']['username']
-    app.config['AUTH_PWHASH'] = auth_pwhash
-    app.config['AUTH_TOKEN'] = generate_token()
-    app.config['DEFAULT_HOST_NAME'] = config['names']['broadcaster']
-    app.config['DEFAULT_ANON_NAME'] = config['names']['anonymous']
-    app.config['LIMIT_NOTICES'] = config['limits']['notices']
-    app.chat = OrderedDict()
+    app.config.update({
+        'SECRET_KEY': config['secret_key'].encode(),
+        'AUTH_USERNAME': config['auth']['username'],
+        'AUTH_PWHASH': auth_pwhash,
+        'AUTH_TOKEN': generate_token(),
+        'DEFAULT_HOST_NAME': config['names']['broadcaster'],
+        'DEFAULT_ANON_NAME': config['names']['anonymous'],
+        'MAX_NOTICES': config['limits']['notices'],
+        'MAX_CHAT_STORAGE': config['limits']['chat_storage'],
+        'MAX_CHAT_SCROLLBACK': config['limits']['chat_scrollback'],
+        'USER_CHECKUP_PERIOD': config['ratelimits']['user_absence'],
+        'CAPTCHA_CHECKUP_PERIOD': config['ratelimits']['captcha_expiry'],
+        'THRESHOLD_IDLE': config['thresholds']['idle'],
+        'THRESHOLD_ABSENT': config['thresholds']['absent'],
+    })
+
+    assert app.config['THRESHOLD_ABSENT'] >= app.config['THRESHOLD_IDLE']
+
+    app.chat = {'messages': OrderedDict(), 'nonce_hashes': set()}
     app.users = {}
     app.websockets = set()
     app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
