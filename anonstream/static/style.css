@@ -61,13 +61,15 @@ noscript {
 }
 #info_js {
   overflow-y: auto;
-  margin: 1ch 1.5ch;
+  padding: 1ch 1.5ch;
+  height: 100%;
 }
 #info_js__title {
   font-size: 18pt;
+  overflow-wrap: anywhere;
 }
 #info_nojs {
-  height: var(--nojs-info-height);
+  height: 100%;
 }
 
 #chat {
@@ -213,6 +215,9 @@ footer {
 #both:target #info_nojs {
   height: 9ch;
 }
+#info:target {
+  grid-row-end: chat-end;
+}
 
 @media (min-width: 720px) {
   :root {
@@ -240,8 +245,5 @@ footer {
     border: none;
     border-left: var(--chat-border);
     min-height: 100%;
-  }
-  #both:target #info_nojs {
-    height: var(--nojs-info-height);
   }
 }
