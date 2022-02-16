@@ -234,9 +234,6 @@ footer {
   #toggle {
     display: none;
   }
-  #stream {
-    height: var(--video-height);
-  }
   #info {
     display: block;
   }
@@ -245,5 +242,11 @@ footer {
     border: none;
     border-left: var(--chat-border);
     min-height: 100%;
+  }
+  #nochat:target {
+    --chat-width: 0px;
+  }
+  #nochat:target #chat {
+    display: none;
   }
 }
