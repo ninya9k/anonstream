@@ -18,3 +18,16 @@ def with_first_argument(x):
         return wrapper
 
     return with_x
+
+def try_except_log(errors, exception_class):
+    def try_except_log_specific(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except exception_class as e:
+                errors.append(e)
+
+        return wrapper
+
+    return try_except_log_specific

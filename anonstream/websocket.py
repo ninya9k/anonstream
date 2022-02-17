@@ -7,7 +7,6 @@ from anonstream.chat import broadcast, add_chat_message, Rejected
 from anonstream.user import users_for_websocket, see
 from anonstream.wrappers import with_first_argument
 from anonstream.helpers.user import is_present
-from anonstream.utils import listmap
 from anonstream.utils.chat import generate_nonce, message_for_websocket
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 
@@ -19,10 +18,10 @@ async def websocket_outbound(queue, messages, users):
         'nonce': generate_nonce(),
         'title': get_stream_title(),
         'uptime': get_stream_uptime(),
-        'chat': listmap(
+        'chat': list(map(
             with_first_argument(users)(message_for_websocket),
             messages,
-        ),
+        )),
         'users': users_for_websocket(messages, users),
         'default': {
             True: CONFIG['DEFAULT_HOST_NAME'],

@@ -5,6 +5,8 @@ from math import inf
 
 from quart import current_app
 
+from anonstream.utils.colour import generate_colour, colour_to_color
+
 CONFIG = current_app.config
 
 def generate_token_hash(token):
@@ -12,13 +14,18 @@ def generate_token_hash(token):
     digest = hashlib.sha256(parts).digest()
     return base64.b32encode(digest)[:26].lower().decode()
 
-def generate_user(secret, token, broadcaster, timestamp):
+def generate_user(token, broadcaster, timestamp):
+    colour = generate_colour(
+        seed='name\0' + token,
+        bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
+        contrast=4.53,
+    )
     return {
         'token': token,
         'token_hash': generate_token_hash(token),
         'broadcaster': broadcaster,
         'name': None,
-        'color': '#c7007f',
+        'color': colour_to_color(colour),
         'tripcode': None,
         'notices': OrderedDict(),
         'seen': {

@@ -6,6 +6,7 @@ from quart import Quart
 from werkzeug.security import generate_password_hash
 
 from anonstream.utils.user import generate_token
+from anonstream.utils.colour import color_to_colour
 from anonstream.segments import DirectoryCache
 
 async def create_app():
@@ -25,15 +26,20 @@ async def create_app():
         'AUTH_TOKEN': generate_token(),
         'DEFAULT_HOST_NAME': config['names']['broadcaster'],
         'DEFAULT_ANON_NAME': config['names']['anonymous'],
-        'MAX_NOTICES': config['limits']['notices'],
-        'MAX_CHAT_STORAGE': config['limits']['chat_storage'],
-        'MAX_CHAT_SCROLLBACK': config['limits']['chat_scrollback'],
-        'USER_CHECKUP_PERIOD': config['ratelimits']['user_absence'],
-        'CAPTCHA_CHECKUP_PERIOD': config['ratelimits']['captcha_expiry'],
+        'MAX_NOTICES': config['memory']['notices'],
+        'MAX_CHAT_MESSAGES': config['memory']['chat_messages'],
+        'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
+        'CHECKUP_PERIOD_USER': config['ratelimits']['user_absence'],
+        'CHECKUP_PERIOD_CAPTCHA': config['ratelimits']['captcha_expiry'],
         'THRESHOLD_IDLE': config['thresholds']['idle'],
         'THRESHOLD_ABSENT': config['thresholds']['absent'],
+        'CHAT_COMMENT_MAX_LENGTH': config['chat']['max_name_length'],
+        'CHAT_NAME_MAX_LENGTH': config['chat']['max_name_length'],
+        'CHAT_NAME_MIN_CONTRAST': config['chat']['min_name_contrast'],
+        'CHAT_BACKGROUND_COLOUR': color_to_colour(config['chat']['background_color']),
     })
 
+    assert app.config['MAX_CHAT_MESSAGES'] >= app.config['MAX_CHAT_SCROLLBACK']
     assert app.config['THRESHOLD_ABSENT'] >= app.config['THRESHOLD_IDLE']
 
     app.chat = {'messages': OrderedDict(), 'nonce_hashes': set()}

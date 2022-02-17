@@ -30,7 +30,7 @@
       text-decoration: underline;
     }
     .tripcode {
-      padding: 0 4px;
+      padding: 0 5px;
       border-radius: 7px;
       font-family: monospace;
       cursor: default;
@@ -40,7 +40,6 @@
     }
     #tripcode {
       cursor: pointer;
-      margin-right: 4px;
     }
     .x {
       font-size: 14pt;
@@ -60,6 +59,9 @@
       margin: 0;
       font-size: 18pt;
       line-height: 1.25;
+    }
+    #notice.verbose h1 {
+      font-size: 14pt;
     }
 
     #chat-form, #appearance-form {
@@ -110,7 +112,7 @@
     #password-column {
       display: grid;
       grid-template-columns: auto auto 1fr;
-      grid-gap: 0.25rem;
+      grid-gap: 0.375rem;
       align-items: center;
     }
     #appearance-form label:not(.tripcode):not(.x) {
@@ -181,20 +183,20 @@
   <div id="chat"></div>
   <div id="appearance"></div>
   {% if notice != none %}
-    <a id="notice" {% if prefer_chat_form %}href="#chat"{% else %}href="#appearance"{% endif %}>
+    <a id="notice" {% if verbose %}class="verbose" {% endif %}{% if prefer_chat_form %}href="#chat"{% else %}href="#appearance"{% endif %}>
       <header><h1>{{ notice }}</h1></header>
       <small>Click to dismiss</small>
     </a>
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" placeholder="Send a message..." required rows="1" tabindex="1"></textarea>
+    <textarea id="chat-form__comment" name="comment" placeholder="Send a message..." rows="1" tabindex="1" required></textarea>
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="2" accesskey="p">
   </form>
   <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
-    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}">
+    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}" maxlength="24">
     <input type="color" name="color" value="{{ user.color }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
@@ -204,13 +206,13 @@
         <span class="tripcode">(no tripcode)</span>
         <label for="password-toggle" class="show-password pseudolink">set</label>
       {% else %}
-        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background }};color:{{ user.tripcode.foreground }};">{{ user.tripcode.digest }}digest</label>
+        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</label>
         <label id="show-cleared" for="cleared-toggle" class="pseudolink x">&cross;</label>
         <div id="cleared" class="tripcode">(cleared)</div>
         <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>
       {% endif %}
     </div>
-    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)">
+    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="1024">
     <div id="hide-password"><label for="password-toggle" class="pseudolink x">&cross;</label></div>
     <div id="appearance-form__buttons">
       <div id="appearance-form__exit"><a href="#chat">Return to chat</a></div>
