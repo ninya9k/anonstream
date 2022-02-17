@@ -4,9 +4,10 @@ from functools import wraps
 from quart import current_app, request, abort, make_response
 from werkzeug.security import check_password_hash
 
-from anonstream.users import sunset, user_for_websocket
+from anonstream.user import sunset, user_for_websocket
 from anonstream.websocket import broadcast
-from anonstream.utils.users import generate_token, generate_user
+from anonstream.helpers.user import generate_user
+from anonstream.utils.user import generate_token
 
 def check_auth(context):
     auth = context.authorization

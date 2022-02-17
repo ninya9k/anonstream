@@ -15,8 +15,6 @@ async def live(user):
         queue=queue,
         messages=current_app.chat['messages'].values(),
         users=current_app.users,
-        default_host_name=current_app.config['DEFAULT_HOST_NAME'],
-        default_anon_name=current_app.config['DEFAULT_ANON_NAME'],
     )
     consumer = websocket_inbound(
         queue=queue,
@@ -24,7 +22,6 @@ async def live(user):
         users=current_app.users,
         connected_websockets=current_app.websockets,
         user=user,
-        secret=current_app.config['SECRET_KEY'],
     )
     try:
         await asyncio.gather(producer, consumer)

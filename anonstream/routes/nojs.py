@@ -1,9 +1,10 @@
 from quart import current_app, request, render_template, redirect, url_for
 
 from anonstream.stream import get_stream_title
-from anonstream.users import get_default_name, add_notice, pop_notice
+from anonstream.user import add_notice, pop_notice
 from anonstream.chat import add_chat_message, Rejected
 from anonstream.routes.wrappers import with_user_from
+from anonstream.helpers.user import get_default_name
 from anonstream.utils.chat import generate_nonce
 
 @current_app.route('/info.html')
@@ -52,7 +53,6 @@ async def nojs_submit_message(user):
             chat=current_app.chat,
             users=current_app.users,
             websockets=current_app.websockets,
-            secret=current_app.config['SECRET_KEY'],
             user=user,
             nonce=nonce,
             comment=comment,

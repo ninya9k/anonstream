@@ -1,16 +1,19 @@
 import asyncio
 
-from quart import websocket
+from quart import current_app, websocket
 
 from anonstream.stream import get_stream_title, get_stream_uptime
 from anonstream.chat import broadcast, add_chat_message, Rejected
-from anonstream.users import is_present, users_for_websocket, see
+from anonstream.user import users_for_websocket, see
 from anonstream.wrappers import with_first_argument
+from anonstream.helpers.user import is_present
 from anonstream.utils import listmap
 from anonstream.utils.chat import generate_nonce, message_for_websocket
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 
-async def websocket_outbound(queue, messages, users, default_host_name, default_anon_name):
+CONFIG = current_app.config
+
+async def websocket_outbound(queue, messages, users):
     payload = {
         'type': 'init',
         'nonce': generate_nonce(),
@@ -21,14 +24,17 @@ async def websocket_outbound(queue, messages, users, default_host_name, default_
             messages,
         ),
         'users': users_for_websocket(messages, users),
-        'default': {True: default_host_name, False: default_anon_name},
+        'default': {
+            True: CONFIG['DEFAULT_HOST_NAME'],
+            False: CONFIG['DEFAULT_ANON_NAME'],
+        },
     }
     await websocket.send_json(payload)
     while True:
         payload = await queue.get()
         await websocket.send_json(payload)
 
-async def websocket_inbound(queue, chat, users, connected_websockets, user, secret):
+async def websocket_inbound(queue, chat, users, connected_websockets, user):
     while True:
         receipt = await websocket.receive_json()
         see(user)
@@ -46,7 +52,6 @@ async def websocket_inbound(queue, chat, users, connected_websockets, user, secr
                     chat,
                     users,
                     connected_websockets,
-                    secret,
                     user,
                     nonce,
                     comment,

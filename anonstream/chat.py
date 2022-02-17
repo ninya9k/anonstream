@@ -3,8 +3,8 @@ from datetime import datetime
 
 from quart import escape
 
-from anonstream.users import users_for_websocket
-from anonstream.utils.chat import generate_nonce_hash
+from anonstream.user import users_for_websocket
+from anonstream.helpers.chat import generate_nonce_hash
 
 class Rejected(Exception):
     pass
@@ -13,9 +13,9 @@ async def broadcast(websockets, payload):
     for queue in websockets:
         await queue.put(payload)
 
-async def add_chat_message(chat, users, websockets, secret, user, nonce, comment):
+async def add_chat_message(chat, users, websockets, user, nonce, comment):
     # check message
-    nonce_hash = generate_nonce_hash(secret, nonce)
+    nonce_hash = generate_nonce_hash(nonce)
     if nonce_hash in chat['nonce_hashes']:
         raise Rejected('Discarded suspected duplicate message')
     if len(comment) == 0:

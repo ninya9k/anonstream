@@ -5,7 +5,7 @@ from collections import OrderedDict
 from quart import Quart
 from werkzeug.security import generate_password_hash
 
-from anonstream.utils.users import generate_token
+from anonstream.utils.user import generate_token
 from anonstream.segments import DirectoryCache
 
 async def create_app():
