@@ -3,7 +3,8 @@ from math import inf
 
 from quart import current_app
 
-from anonstream.wrappers import with_timestamp, with_first_argument
+from anonstream.chat import broadcast
+from anonstream.wrappers import try_except_log, with_timestamp
 from anonstream.helpers.user import is_visible
 from anonstream.helpers.tripcode import generate_tripcode
 from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
@@ -29,6 +30,40 @@ def pop_notice(user, notice_id):
     except KeyError:
         notice, verbose = None, False
     return notice, verbose
+
+async def try_change_appearance(user, name, color, password,
+                          want_delete_tripcode, want_change_tripcode):
+    errors = []
+    def try_(f, *args, **kwargs):
+        return try_except_log(errors, BadAppearance)(f)(*args, **kwargs)
+
+    try_(change_name, user, name, dry_run=True)
+    try_(change_color, user, color, dry_run=True)
+    if want_delete_tripcode:
+        pass
+    elif want_change_tripcode:
+        try_(change_tripcode, user, password, dry_run=True)
+
+    if not errors:
+        change_name(user, name)
+        change_color(user, color)
+        if want_delete_tripcode:
+            delete_tripcode(user)
+        elif want_change_tripcode:
+            change_tripcode(user, password)
+
+        await broadcast(
+            USERS,
+            payload={
+                'type': 'mut-user',
+                'token_hash': user['token_hash'],
+                'name': user['name'],
+                'color': user['color'],
+                'tripcode': user['tripcode'],
+            },
+        )
+
+    return errors
 
 def change_name(user, name, dry_run=False):
     if dry_run:

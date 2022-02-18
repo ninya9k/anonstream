@@ -36,11 +36,18 @@
       overflow-wrap: anywhere;
       font-weight: bold;
       /* color: attr("data-color"); */
-      cursor: normal;
+      cursor: default;
     }
     .chat-message__markup {
       overflow-wrap: anywhere;
       line-height: 1.3125;
+    }
+    .tripcode {
+      padding: 0 5px;
+      border-radius: 7px;
+      font-family: monospace;
+      font-size: 9pt;
+      cursor: default;
     }
   </style>
 </head>
@@ -49,7 +56,7 @@
     {% for message in messages | reverse %}
       <li class="chat-message">
         {% with user = users_by_token[message.token] %}
-          <span class="chat-message__name" style="color:{{ user.color }};" data-id="{{ message.id }}">{{ user.name or get_default_name(user) }}</span>:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
+          <span class="chat-message__name" style="color:{{ user.color }};" data-id="{{ message.id }}">{{ user.name or get_default_name(user) }}</span>{% if user.tripcode != none %}<span class="for-tripcode">&nbsp;</span><span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>{% endif %}:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}
       </li>
     {% endfor %}

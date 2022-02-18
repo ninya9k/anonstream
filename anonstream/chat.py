@@ -70,7 +70,7 @@ async def add_chat_message(user, nonce, comment):
             'seq': seq,
             'token_hash': user['token_hash'],
             'markup': markup,
-        }
+        },
     )
 
     return markup

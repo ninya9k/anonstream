@@ -64,7 +64,7 @@ def with_user_from(context):
                     payload={
                         'type': 'rem-users',
                         'token_hashes': sunsetted_token_hashes,
-                    }
+                    },
                 )
 
             # Update / create user
@@ -84,7 +84,7 @@ def with_user_from(context):
                         'type': 'add-user',
                         'token_hash': user['token_hash'],
                         'user': user_for_websocket(user),
-                    }
+                    },
                 )
 
             # Set cookie

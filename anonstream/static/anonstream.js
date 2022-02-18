@@ -2,7 +2,9 @@
 const token = document.querySelector("body").dataset.token;
 
 /* insert js-only markup */
-const jsmarkup_style = '<style id="style_js"></style>'
+const jsmarkup_style_color = '<style id="style-color"></style>'
+const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></style>'
+const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
 const jsmarkup_info = '<div id="info_js"></div>';
 const jsmarkup_info_title = '<header id="info_js__title" data-js="true"></header>';
 const jsmarkup_chat_messages = '<ul id="chat-messages_js" data-js="true"></ul>';
@@ -18,9 +20,17 @@ const jsmarkup_chat_form = `\
   </form>`;
 
 const insert_jsmarkup = () => {
-  if (document.getElementById("style_js") === null) {
+  if (document.getElementById("style-color") === null) {
     const parent = document.head;
-    parent.insertAdjacentHTML("beforeend", jsmarkup_style);
+    parent.insertAdjacentHTML("beforeend", jsmarkup_style_color);
+  }
+  if (document.getElementById("style-tripcode-display") === null) {
+    const parent = document.head;
+    parent.insertAdjacentHTML("beforeend", jsmarkup_style_tripcode_display);
+  }
+  if (document.getElementById("style-tripcode-colors") === null) {
+    const parent = document.head;
+    parent.insertAdjacentHTML("beforeend", jsmarkup_style_tripcode_colors);
   }
   if (document.getElementById("info_js") === null) {
     const parent = document.getElementById("info");
@@ -41,7 +51,9 @@ const insert_jsmarkup = () => {
 }
 
 insert_jsmarkup();
-const stylesheet = document.styleSheets[1];
+const stylesheet_color = document.styleSheets[1];
+const stylesheet_tripcode_display = document.styleSheets[2];
+const stylesheet_tripcode_colors = document.styleSheets[3];
 
 /* create websocket */
 const info_title = document.getElementById("info_js__title");
@@ -60,11 +72,24 @@ const create_chat_message = (object) => {
   chat_message_name.innerText = user.name || default_name[user.broadcaster];
   //chat_message_name.dataset.color = user.color; // not working in any browser
 
+  const chat_message_tripcode_nbsp = document.createElement("span");
+  chat_message_tripcode_nbsp.classList.add("for-tripcode");
+  chat_message_tripcode_nbsp.innerHTML = "&nbsp;";
+
+  const chat_message_tripcode = document.createElement("span");
+  chat_message_tripcode.classList.add("tripcode");
+  chat_message_tripcode.classList.add("for-tripcode");
+  if (user.tripcode !== null) {
+    chat_message_tripcode.innerHTML = user.tripcode.digest;
+  }
+
   const chat_message_markup = document.createElement("span");
   chat_message_markup.classList.add("chat-message__markup");
   chat_message_markup.innerHTML = object.markup;
 
   chat_message.insertAdjacentElement("beforeend", chat_message_name);
+  chat_message.insertAdjacentElement("beforeend", chat_message_tripcode_nbsp);
+  chat_message.insertAdjacentElement("beforeend", chat_message_tripcode);
   chat_message.insertAdjacentHTML("beforeend", ":&nbsp;");
   chat_message.insertAdjacentElement("beforeend", chat_message_markup);
 
@@ -73,38 +98,143 @@ const create_chat_message = (object) => {
 
 let users = {};
 let default_name = {true: "Broadcaster", false: "Anonymous"};
-const equal = (color1, color2) => {
-  /* comparing css colors is annoying */
-  return false;
-}
-const update_user_styles = () => {
+const tidy_stylesheet = (stylesheet, selector_regex, ignore_condition) => {
   const to_delete = [];
   const to_ignore = new Set();
   for (let index = 0; index < stylesheet.cssRules.length; index++) {
-    const css_rule = stylesheet.cssRules[index];
-    const match = css_rule.selectorText.match(/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .chat-message__name/);
+    const css_rule = stylesheet_color.cssRules[index];
+    const match = css_rule.selectorText.match(selector_regex);
     const token_hash = match === null ? null : match[1];
     const user = token_hash === null ? null : users[token_hash];
     if (user === null || user === undefined) {
       to_delete.push(index);
-    } else if (!equal(css_rule.style.color, user.color)) {
+    } else if (!ignore_condition(token_hash, user, css_rule)) {
       to_delete.push(index);
     } else {
       to_ignore.add(token_hash);
     }
   }
-
-  for (const token_hash of Object.keys(users)) {
-    if (!to_ignore.has(token_hash)) {
-      const user = users[token_hash];
-      stylesheet.insertRule(
-        `.chat-message[data-token-hash="${token_hash}"] > .chat-message__name { color: ${user.color}; }`,
-        stylesheet.cssRules.length,
+  return {to_delete, to_ignore};
+}
+const equal = (color1, color2) => {
+  /* comparing css colors is annoying */
+  // when this is working, remove `ignore_other_token_hashes` from functions below
+  return false;
+}
+const update_user_colors = (token_hash=null) => {
+  ignore_other_token_hashes = token_hash !== null;
+  token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
+  const {to_delete, to_ignore} = tidy_stylesheet(
+    stylesheet=stylesheet_color,
+    selector_regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .chat-message__name/,
+    ignore_condition=(this_token_hash, this_user, css_rule) => {
+      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      correct_color = equal(css_rule.style.color, this_user.color);
+      return irrelevant || correct_color;
+    },
+  );
+  // update colors
+  for (const this_token_hash of token_hashes) {
+    if (!to_ignore.has(this_token_hash)) {
+      const user = users[this_token_hash];
+      stylesheet_color.insertRule(
+        `.chat-message[data-token-hash="${this_token_hash}"] > .chat-message__name { color: ${user.color}; }`,
+        stylesheet_color.cssRules.length,
       );
     }
   }
+  // delete css rules
   for (const index of to_delete.reverse()) {
-    stylesheet.deleteRule(index);
+    stylesheet_color.deleteRule(index);
+  }
+}
+const update_user_name = (token_hash) => {
+  const name = users[token_hash].name;
+  for (const chat_message of chat_messages.children) {
+    if (token_hash === chat_message.dataset.tokenHash) {
+      chat_message.querySelector(".chat-message__name").innerText = name;
+    }
+  }
+}
+const update_user_tripcodes = (token_hash=null) => {
+  ignore_other_token_hashes = token_hash !== null;
+  token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
+  const {to_delete: to_delete_display, to_ignore: to_ignore_display} = tidy_stylesheet(
+    stylesheet=stylesheet_tripcode_display,
+    selector_regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .for-tripcode/,
+    ignore_condition=(this_token_hash, this_user, css_rule) => {
+      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      correctly_hidden = this_user.tripcode === null && css_rule.style.display === "none";
+      correctly_showing = this_user.tripcode !== null && css_rule.style.display === "inline";
+      return irrelevant || correctly_hidden || correctly_showing;
+    },
+  );
+  const {to_delete: to_delete_colors, to_ignore: to_ignore_colors} = tidy_stylesheet(
+    stylesheet=stylesheet_tripcode_colors,
+    regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .tripcode/,
+    ignore_condition=(this_token_hash, this_user, css_rule) => {
+      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      correctly_blank = (
+        this_user.tripcode === null
+        && css_rule.style.backgroundColor === "initial"
+        && css_rule.style.color === "initial"
+      );
+      correctly_colored = (
+        this_user.tripcode !== null
+        && equal(css_rule.style.backgroundColor, this_user.tripcode.background_color)
+        && equal(css_rule.style.color, this_user.tripcode.foreground_color)
+      );
+      return irrelevant || correctly_blank || correctly_colored;
+    },
+  );
+
+  // update colors
+  for (const this_token_hash of token_hashes) {
+    const tripcode = users[this_token_hash].tripcode;
+    if (tripcode === null) {
+      if (!to_ignore_display.has(token_hash)) {
+        stylesheet_tripcode_display.insertRule(
+          `.chat-message[data-token-hash="${this_token_hash}"] > .for-tripcode { display: none; }`,
+          stylesheet_tripcode_display.cssRules.length,
+       );
+      }
+      if (!to_ignore_colors.has(token_hash)) {
+        stylesheet_tripcode_colors.insertRule(
+          `.chat-message[data-token-hash="${this_token_hash}"] > .tripcode { background-color: initial; color: initial; }`,
+          stylesheet_tripcode_colors.cssRules.length,
+        );
+      }
+    } else {
+      if (!to_ignore_display.has(token_hash)) {
+        stylesheet_tripcode_display.insertRule(
+          `.chat-message[data-token-hash="${this_token_hash}"] > .for-tripcode { display: inline; }`,
+          stylesheet_tripcode_display.cssRules.length,
+        );
+      }
+      if (!to_ignore_colors.has(token_hash)) {
+        stylesheet_tripcode_colors.insertRule(
+          `.chat-message[data-token-hash="${this_token_hash}"] > .tripcode { background-color: ${tripcode.background_color}; color: ${tripcode.foreground_color}; }`,
+          stylesheet_tripcode_colors.cssRules.length,
+        );
+      }
+    }
+  }
+
+  // delete css rules
+  for (const index of to_delete_display.reverse()) {
+    stylesheet_tripcode_display.deleteRule(index);
+  }
+  for (const index of to_delete_colors.reverse()) {
+    stylesheet_tripcode_colors.deleteRule(index);
+  }
+
+  // update inner texts
+  for (const chat_message of chat_messages.children) {
+    const this_token_hash = chat_message.dataset.tokenHash;
+    const tripcode = users[this_token_hash].tripcode;
+    if (token_hashes.includes(this_token_hash)) {
+      chat_message.querySelector(".tripcode").innerText = tripcode === null ? "" : tripcode.digest;
+    }
   }
 }
 
@@ -124,7 +254,8 @@ const on_websocket_message = (event) => {
 
       default_name = receipt.default;
       users = receipt.users;
-      update_user_styles();
+      update_user_colors();
+      update_user_tripcodes();
 
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
@@ -186,7 +317,19 @@ const on_websocket_message = (event) => {
     case "add-user":
         console.log("ws add-user", receipt);
         users[receipt.token_hash] = receipt.user;
-        update_user_styles();
+        update_user_colors(receipt.token_hash);
+        update_user_tripcodes(receipt.token_hash);
+        break;
+
+    case "mut-user":
+        console.log("ws mut-user", receipt);
+        const user = users[receipt.token_hash];
+        user.name = receipt.name;
+        user.color = receipt.color;
+        user.tripcode = receipt.tripcode;
+        update_user_name(receipt.token_hash);
+        update_user_colors(receipt.token_hash);
+        update_user_tripcodes(receipt.token_hash);
         break;
 
     case "rem-users":
