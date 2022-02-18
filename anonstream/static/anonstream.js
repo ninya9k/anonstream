@@ -52,7 +52,7 @@ const create_chat_message = (object) => {
 
   const chat_message = document.createElement("li");
   chat_message.classList.add("chat-message");
-  chat_message.dataset.id = object.id;
+  chat_message.dataset.seq = object.seq;
   chat_message.dataset.tokenHash = object.token_hash;
 
   const chat_message_name = document.createElement("span");
@@ -126,11 +126,11 @@ const on_websocket_message = (event) => {
       users = receipt.users;
       update_user_styles();
 
-      const ids = new Set(receipt.chat.map((message) => {return message.id;}));
+      const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
       for (const chat_message of chat_messages.children) {
-        const chat_message_id = parseInt(chat_message.dataset.id);
-        if (!ids.has(chat_message_id)) {
+        const chat_message_seq = parseInt(chat_message.dataset.seq);
+        if (!seqs.has(chat_message_seq)) {
           to_delete.push(chat_message);
         }
       }
@@ -138,9 +138,10 @@ const on_websocket_message = (event) => {
         chat_message.remove();
       }
 
-      const last_id = Math.max(...[...chat_messages.children].map((element) => parseInt(element.dataset.id)));
-      for (const message of receipt.chat) {
-        if (message.id > last_id) {
+      const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
+      const last_seq = last === null ? null : parseInt(last.dataset.seq);
+      for (const message of receipt.messages) {
+        if (message.seq > last_seq) {
           const chat_message = create_chat_message(message);
           chat_messages.insertAdjacentElement("beforeend", chat_message);
         }
@@ -184,7 +185,7 @@ const on_websocket_message = (event) => {
 
     case "add-user":
         console.log("ws add-user", receipt);
-        users[receipt.user.token_hash] = receipt.user;
+        users[receipt.token_hash] = receipt.user;
         update_user_styles();
         break;
 

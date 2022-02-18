@@ -24,8 +24,8 @@ async def nojs_chat(user):
     return await render_template(
         'nojs_chat.html',
         user=user,
-        users=current_app.users,
-        messages=current_app.chat['messages'].values(),
+        users_by_token=current_app.users_by_token,
+        messages=current_app.messages,
         get_default_name=get_default_name,
     )
 
@@ -53,14 +53,7 @@ async def nojs_submit_message(user):
     nonce = form.get('nonce', '')
 
     try:
-        await add_chat_message(
-            chat=current_app.chat,
-            users=current_app.users,
-            websockets=current_app.websockets,
-            user=user,
-            nonce=nonce,
-            comment=comment,
-        )
+        await add_chat_message(user, nonce, comment)
     except Rejected as e:
         notice, *_ = e.args
         notice_id = add_notice(user, notice)

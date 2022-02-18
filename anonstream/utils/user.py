@@ -9,10 +9,8 @@ from quart import escape, Markup
 def generate_token():
     return secrets.token_hex(16)
 
-def user_for_websocket(user, include_token_hash=True):
+def user_for_websocket(user):
     keys = ['broadcaster', 'name', 'color', 'tripcode']
-    if include_token_hash:
-        keys.append('token_hash')
     return {key: user[key] for key in keys}
 
 def concatenate_for_notice(string, *tuples):

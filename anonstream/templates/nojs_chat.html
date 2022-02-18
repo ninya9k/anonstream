@@ -48,7 +48,7 @@
   <ul id="chat-messages">
     {% for message in messages | reverse %}
       <li class="chat-message">
-        {% with user = users[message.token] %}
+        {% with user = users_by_token[message.token] %}
           <span class="chat-message__name" style="color:{{ user.color }};" data-id="{{ message.id }}">{{ user.name or get_default_name(user) }}</span>:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}
       </li>

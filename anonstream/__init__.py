@@ -42,9 +42,10 @@ async def create_app():
     assert app.config['MAX_CHAT_MESSAGES'] >= app.config['MAX_CHAT_SCROLLBACK']
     assert app.config['THRESHOLD_ABSENT'] >= app.config['THRESHOLD_IDLE']
 
-    app.chat = {'messages': OrderedDict(), 'nonce_hashes': set()}
-    app.users = {}
-    app.websockets = set()
+    app.messages_by_id = OrderedDict()
+    app.users_by_token = {}
+    app.messages = app.messages_by_id.values()
+    app.users = app.users_by_token.values()
     app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
 
     async with app.app_context():

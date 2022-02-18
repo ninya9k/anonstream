@@ -14,7 +14,7 @@ def generate_token_hash(token):
     digest = hashlib.sha256(parts).digest()
     return base64.b32encode(digest)[:26].lower().decode()
 
-def generate_user(token, broadcaster, timestamp):
+def generate_user(timestamp, token, broadcaster):
     colour = generate_colour(
         seed='name\0' + token,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
@@ -23,6 +23,7 @@ def generate_user(token, broadcaster, timestamp):
     return {
         'token': token,
         'token_hash': generate_token_hash(token),
+        'websockets': set(),
         'broadcaster': broadcaster,
         'name': None,
         'color': colour_to_color(colour),
@@ -49,7 +50,10 @@ def is_idle(timestamp, user):
     return is_present(timestamp, user) and not is_watching(timestamp, user)
 
 def is_present(timestamp, user):
-    return user['seen']['last'] >= timestamp - CONFIG['THRESHOLD_ABSENT']
+    return (
+        user['seen']['last'] >= timestamp - CONFIG['THRESHOLD_ABSENT']
+        or len(user['websockets']) > 0
+    )
 
 def is_absent(timestamp, user):
     return not is_present(timestamp, user)

@@ -10,6 +10,8 @@ from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
 from anonstream.utils.user import user_for_websocket
 
 CONFIG = current_app.config
+MESSAGES = current_app.messages
+USERS = current_app.users
 
 class BadAppearance(Exception):
     pass
@@ -71,19 +73,19 @@ def see(user):
     user['seen']['last'] = int(time.time())
 
 @with_timestamp
-def users_for_websocket(timestamp, messages, users):
+def users_for_websocket(timestamp):
     visible_users = filter(
-        lambda user: is_visible(timestamp, messages, user),
-        users.values(),
+        lambda user: is_visible(timestamp, MESSAGES, user),
+        USERS,
     )
     return {
-        user['token_hash']: user_for_websocket(user, include_token_hash=False)
+        user['token_hash']: user_for_websocket(user)
         for user in visible_users
     }
 
 last_checkup = -inf
 
-def sunset(messages, users):
+def sunset(messages, users_by_token):
     global last_checkup
 
     timestamp = int(time.time())
@@ -91,13 +93,13 @@ def sunset(messages, users):
         return []
 
     to_delete = []
-    for token in users:
-        user = users[token]
+    for token in users_by_token:
+        user = users_by_token[token]
         if not is_visible(timestamp, messages, user):
             to_delete.append(token)
 
     for index, token in enumerate(to_delete):
-        to_delete[index] = users.pop(token)['token_hash']
+        to_delete[index] = users_by_token.pop(token)['token_hash']
 
     last_checkup = timestamp
     return to_delete

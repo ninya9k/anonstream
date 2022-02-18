@@ -5,17 +5,22 @@ from quart import current_app, request, abort, make_response
 from werkzeug.security import check_password_hash
 
 from anonstream.user import sunset, user_for_websocket
-from anonstream.websocket import broadcast
+from anonstream.chat import broadcast
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token
+
+CONFIG = current_app.config
+MESSAGES = current_app.messages
+USERS_BY_TOKEN = current_app.users_by_token
+USERS = current_app.users
 
 def check_auth(context):
     auth = context.authorization
     return (
         auth is not None
         and auth.type == "basic"
-        and auth.username == current_app.config["AUTH_USERNAME"]
-        and check_password_hash(current_app.config["AUTH_PWHASH"], auth.password)
+        and auth.username == CONFIG["AUTH_USERNAME"]
+        and check_password_hash(CONFIG["AUTH_PWHASH"], auth.password)
     )
 
 def auth_required(f):
@@ -44,40 +49,40 @@ def with_user_from(context):
             # Check if broadcaster
             broadcaster = check_auth(context)
             if broadcaster:
-                token = current_app.config['AUTH_TOKEN']
+                token = CONFIG['AUTH_TOKEN']
             else:
                 token = context.args.get('token') or context.cookies.get('token') or generate_token()
 
             # Remove non-visible absent users
-            token_hashes = sunset(
-                messages=current_app.chat['messages'].values(),
-                users=current_app.users,
+            sunsetted_token_hashes = sunset(
+                messages=MESSAGES,
+                users_by_token=USERS_BY_TOKEN,
             )
-            if len(token_hashes) > 0:
+            if sunsetted_token_hashes:
                 await broadcast(
-                    current_app.websockets,
+                    users=USERS,
                     payload={
                         'type': 'rem-users',
-                        'token_hashes': token_hashes,
+                        'token_hashes': sunsetted_token_hashes,
                     }
                 )
 
             # Update / create user
-            user = current_app.users.get(token)
+            user = USERS_BY_TOKEN.get(token)
             if user is not None:
                 user['seen']['last'] = timestamp
             else:
                 user = generate_user(
-                    secret=current_app.config['SECRET_KEY'],
+                    timestamp=timestamp,
                     token=token,
                     broadcaster=broadcaster,
-                    timestamp=timestamp,
                 )
-                current_app.users[token] = user
+                USERS_BY_TOKEN[token] = user
                 await broadcast(
-                    current_app.websockets,
+                    USERS,
                     payload={
                         'type': 'add-user',
+                        'token_hash': user['token_hash'],
                         'user': user_for_websocket(user),
                     }
                 )
