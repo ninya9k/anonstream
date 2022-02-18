@@ -98,11 +98,11 @@ const create_chat_message = (object) => {
 
 let users = {};
 let default_name = {true: "Broadcaster", false: "Anonymous"};
-const tidy_stylesheet = (stylesheet, selector_regex, ignore_condition) => {
+const tidy_stylesheet = ({stylesheet, selector_regex, ignore_condition}) => {
   const to_delete = [];
   const to_ignore = new Set();
   for (let index = 0; index < stylesheet.cssRules.length; index++) {
-    const css_rule = stylesheet_color.cssRules[index];
+    const css_rule = stylesheet.cssRules[index];
     const match = css_rule.selectorText.match(selector_regex);
     const token_hash = match === null ? null : match[1];
     const user = token_hash === null ? null : users[token_hash];
@@ -124,15 +124,15 @@ const equal = (color1, color2) => {
 const update_user_colors = (token_hash=null) => {
   ignore_other_token_hashes = token_hash !== null;
   token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
-  const {to_delete, to_ignore} = tidy_stylesheet(
-    stylesheet=stylesheet_color,
-    selector_regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .chat-message__name/,
-    ignore_condition=(this_token_hash, this_user, css_rule) => {
-      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
-      correct_color = equal(css_rule.style.color, this_user.color);
+  const {to_delete, to_ignore} = tidy_stylesheet({
+    stylesheet: stylesheet_color,
+    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.chat-message__name/,
+    ignore_condition: (this_token_hash, this_user, css_rule) => {
+      const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      const correct_color = equal(css_rule.style.color, this_user.color);
       return irrelevant || correct_color;
     },
-  );
+  });
   // update colors
   for (const this_token_hash of token_hashes) {
     if (!to_ignore.has(this_token_hash)) {
@@ -159,34 +159,34 @@ const update_user_name = (token_hash) => {
 const update_user_tripcodes = (token_hash=null) => {
   ignore_other_token_hashes = token_hash !== null;
   token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
-  const {to_delete: to_delete_display, to_ignore: to_ignore_display} = tidy_stylesheet(
-    stylesheet=stylesheet_tripcode_display,
-    selector_regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .for-tripcode/,
-    ignore_condition=(this_token_hash, this_user, css_rule) => {
-      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
-      correctly_hidden = this_user.tripcode === null && css_rule.style.display === "none";
-      correctly_showing = this_user.tripcode !== null && css_rule.style.display === "inline";
+  const {to_delete: to_delete_display, to_ignore: to_ignore_display} = tidy_stylesheet({
+    stylesheet: stylesheet_tripcode_display,
+    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.for-tripcode/,
+    ignore_condition: (this_token_hash, this_user, css_rule) => {
+      const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      const correctly_hidden = this_user.tripcode === null && css_rule.style.display === "none";
+      const correctly_showing = this_user.tripcode !== null && css_rule.style.display === "inline";
       return irrelevant || correctly_hidden || correctly_showing;
     },
-  );
-  const {to_delete: to_delete_colors, to_ignore: to_ignore_colors} = tidy_stylesheet(
-    stylesheet=stylesheet_tripcode_colors,
-    regex=/.chat-message\[data-token-hash="([a-z2-7]{26})"\] > .tripcode/,
-    ignore_condition=(this_token_hash, this_user, css_rule) => {
-      irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
-      correctly_blank = (
+  });
+  const {to_delete: to_delete_colors, to_ignore: to_ignore_colors} = tidy_stylesheet({
+    stylesheet: stylesheet_tripcode_colors,
+    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.tripcode/,
+    ignore_condition: (this_token_hash, this_user, css_rule) => {
+      const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
+      const correctly_blank = (
         this_user.tripcode === null
         && css_rule.style.backgroundColor === "initial"
         && css_rule.style.color === "initial"
       );
-      correctly_colored = (
+      const correctly_colored = (
         this_user.tripcode !== null
         && equal(css_rule.style.backgroundColor, this_user.tripcode.background_color)
         && equal(css_rule.style.color, this_user.tripcode.foreground_color)
       );
       return irrelevant || correctly_blank || correctly_colored;
     },
-  );
+  });
 
   // update colors
   for (const this_token_hash of token_hashes) {
