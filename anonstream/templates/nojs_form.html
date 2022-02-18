@@ -197,7 +197,7 @@
   </form>
   <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
-    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ user.name or default_name }}" maxlength="24">
+    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ default_name }}" maxlength="24">
     <input type="color" name="color" value="{{ user.color }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
