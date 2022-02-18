@@ -5,7 +5,7 @@
   <style>
     :root {
       --link-color: #42a5d7;
-      --padding-size: 1ch;
+      --padding-size: 0.5rem;
     }
     html {
       height: 100%;
@@ -191,7 +191,7 @@
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" placeholder="Send a message..." rows="1" tabindex="1" required></textarea>
+    <textarea id="chat-form__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1" tabindex="1"></textarea>
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="2" accesskey="p">
   </form>

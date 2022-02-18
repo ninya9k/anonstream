@@ -1,7 +1,8 @@
+import hashlib
 import time
 from functools import wraps
 
-from quart import current_app, request, abort, make_response
+from quart import current_app, request, abort, make_response, render_template, request
 from werkzeug.security import check_password_hash
 
 from anonstream.user import sunset, user_for_websocket
@@ -97,3 +98,12 @@ def with_user_from(context):
         return wrapper
 
     return with_user_from_context
+
+async def render_template_with_etag(*args, **kwargs):
+    rendered_template = await render_template(*args, **kwargs)
+    tag = hashlib.sha256(rendered_template.encode()).hexdigest()
+    etag = f'W/"{tag}"'
+    if request.if_none_match.contains_weak(tag):
+        return '', 304, {'ETag': etag}
+    else:
+        return rendered_template, {'ETag': etag}

@@ -9,18 +9,84 @@
     }
     body {
       margin: 0;
-      height: 100%;
+      padding: 0.5rem 0.5rem 0 0.5rem;
+      min-height: 100%;
+      box-sizing: border-box;
       color: #ddd;
       font-family: sans-serif;
       font-size: 11pt;
+      transform: rotate(180deg);
     }
+
+    .button {
+      display: block;
+      text-align: center;
+      background-color: #3674bf;
+      border: 4px outset #3584e4;
+      box-shadow: 0 0 5px #3584e4;
+      padding: 1.25ch 0;
+      box-sizing: border-box;
+      color: inherit;
+      font-size: 12pt;
+      font-weight: bold;
+      text-decoration: none;
+      transform: rotate(-180deg);
+    }
+    #chat-timeout {
+      z-index: 1;
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: calc(100% - 1rem);
+      visibility: hidden;
+      animation: appear 0s {{ timeout }}s forwards;
+    }
+    #chat-timeout header {
+      font-size: 20pt;
+    }
+    #chat-timeout-dismiss {
+      animation: padding 0s {{ timeout }}s forwards;
+    }
+    #chat-timeout-dismiss > .button {
+      visibility: hidden;
+      height: 0;
+      padding: 0;
+      border: none;
+      animation:
+        appear 0s {{ timeout }}s forwards,
+        unskinny 0s {{ timeout }}s forwards;
+    }
+    #chat-timeout-alt {
+      padding: 4px 0 2px 0;
+    }
+    #notimeout:target + #chat-timeout,
+    #notimeout:target ~ #chat-timeout-dismiss,
+    #notimeout:not(:target) ~ #chat-timeout-alt {
+      display: none;
+    }
+    @keyframes appear {
+      to {
+        visibility: visible;
+      }
+    }
+    @keyframes unskinny {
+      to {
+        height: auto;
+        padding: 1.25ch 0;
+        border: 4px outset #3584e4;
+      }
+    }
+    @keyframes padding {
+      to {
+        padding: 4px 0 2px 0;
+      }
+    }
+
     #chat-messages {
       list-style: none;
       margin: 0;
-      padding: 1ch 1ch 0 1ch;
+      padding: 0;
       min-height: 100%;
-      box-sizing: border-box;
-      transform: rotate(180deg);
     }
     .chat-message {
       padding: 0.5ch 0.75ch;
@@ -52,15 +118,28 @@
   </style>
 </head>
 <body>
-  <ul id="chat-messages">
+  <div id="end"></div>
+  <div id="notimeout"></div>
+  <aside id="chat-timeout">
+    <a class="button" href="{{ url_for('nojs_chat_redirect') }}">
+      <header>Timed out</header>
+      <small>Click to refresh</small>
+    </a>
+  </aside>
+  <ol id="chat-messages">
     {% for message in messages | reverse %}
       <li class="chat-message">
         {% with user = users_by_token[message.token] %}
-          <span class="chat-message__name" style="color:{{ user.color }};" data-id="{{ message.id }}">{{ user.name or get_default_name(user) }}</span>{% if user.tripcode != none %}<span class="for-tripcode">&nbsp;</span><span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>{% endif %}:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
+          <span class="chat-message__name" style="color:{{ user.color }};" data-seq="{{ message.seq }}" data-token-hash="{{ user.token_hash }}">{{ user.name or get_default_name(user) }}</span>{% if user.tripcode != none %}<span class="for-tripcode">&nbsp;</span><span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>{% endif %}:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}
       </li>
     {% endfor %}
-  </ul>
-  <div id="bottom"></div>
+  </ol>
+  <aside id="chat-timeout-dismiss">
+    <a class="button" href="#notimeout">Hide timeout notice</a>
+  </aside>
+  <aside id="chat-timeout-alt">
+    <a class="button" href="{{ url_for('nojs_chat_redirect') }}">Click to refresh</a>
+  </aside>
 </body>
 </html>

@@ -24,6 +24,7 @@ async def websocket_outbound(queue):
             True: CONFIG['DEFAULT_HOST_NAME'],
             False: CONFIG['DEFAULT_ANON_NAME'],
         },
+        'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
     }
     await websocket.send_json(payload)
     while True:

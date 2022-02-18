@@ -3,8 +3,9 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 from anonstream.stream import get_stream_title
 from anonstream.user import add_notice, pop_notice, try_change_appearance
 from anonstream.chat import add_chat_message, Rejected
-from anonstream.routes.wrappers import with_user_from
+from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.user import get_default_name
+from anonstream.helpers.chat import get_scrollback
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.user import concatenate_for_notice
 
@@ -20,13 +21,19 @@ async def nojs_info(user):
 @current_app.route('/chat/messages.html')
 @with_user_from(request)
 async def nojs_chat(user):
-    return await render_template(
+    return await render_template_with_etag(
         'nojs_chat.html',
         user=user,
         users_by_token=current_app.users_by_token,
-        messages=current_app.messages,
+        messages=get_scrollback(current_app.messages),
+        timeout=current_app.config['THRESHOLD_NOJS_CHAT_TIMEOUT'],
         get_default_name=get_default_name,
     )
+
+@current_app.route('/chat/redirect')
+@with_user_from(request)
+async def nojs_chat_redirect(user):
+    return redirect(url_for('nojs_chat', _anchor='end'))
 
 @current_app.route('/chat/form.html')
 @with_user_from(request)

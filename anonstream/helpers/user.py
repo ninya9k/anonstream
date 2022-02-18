@@ -44,14 +44,14 @@ def get_default_name(user):
     )
 
 def is_watching(timestamp, user):
-    return user['watching_last'] >= timestamp - CONFIG['THRESHOLD_IDLE']
+    return user['watching_last'] >= timestamp - CONFIG['THRESHOLD_USER_IDLE']
 
 def is_idle(timestamp, user):
     return is_present(timestamp, user) and not is_watching(timestamp, user)
 
 def is_present(timestamp, user):
     return (
-        user['seen']['last'] >= timestamp - CONFIG['THRESHOLD_ABSENT']
+        user['seen']['last'] >= timestamp - CONFIG['THRESHOLD_USER_ABSENT']
         or len(user['websockets']) > 0
     )
 

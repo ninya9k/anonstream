@@ -12,7 +12,7 @@
   <aside id="chat">
     <header id="chat__header">Stream chat</header>
     <article id="chat__messages">
-      <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat', token=user.token, _anchor='bottom') }}" data-js="false"></iframe></noscript>
+      <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat', token=user.token, _anchor='end') }}" data-js="false"></iframe></noscript>
     </article>
     <section id="chat__form">
       <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_form', token=user.token) }}" data-js="false"></iframe></noscript>

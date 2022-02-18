@@ -3,9 +3,10 @@ from datetime import datetime
 
 from quart import current_app, escape
 
-from anonstream.helpers.chat import generate_nonce_hash
+from anonstream.helpers.chat import generate_nonce_hash, get_scrollback
 from anonstream.utils.chat import message_for_websocket
 
+CONFIG = current_app.config
 MESSAGES_BY_ID = current_app.messages_by_id
 MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
@@ -25,7 +26,7 @@ def messages_for_websocket():
             user=USERS_BY_TOKEN[message['token']],
             message=message,
         ),
-        MESSAGES,
+        get_scrollback(MESSAGES),
     ))
 
 async def add_chat_message(user, nonce, comment):
@@ -35,6 +36,8 @@ async def add_chat_message(user, nonce, comment):
         raise Rejected('Discarded suspected duplicate message')
     if len(comment) == 0:
         raise Rejected('Message was empty')
+    if len(comment) > 512:
+        raise Rejected('Message exceeded 512 chars')
 
     # add message
     timestamp_ms = time.time_ns() // 1_000_000
@@ -61,6 +64,9 @@ async def add_chat_message(user, nonce, comment):
         'nomarkup': comment,
         'markup': markup,
     }
+
+    while len(MESSAGES_BY_ID) > CONFIG['MAX_CHAT_MESSAGES']:
+        MESSAGES_BY_ID.pop(last=False)
 
     # broadcast message to websockets
     await broadcast(

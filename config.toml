@@ -26,5 +26,6 @@ user_absence = 8
 captcha_expiry = 8
 
 [thresholds]
-idle = 12
-absent = 1800
+user_idle = 12
+user_absent = 1800
+nojs_chat_timeout = 24

@@ -20,7 +20,7 @@ class BadAppearance(Exception):
 def add_notice(user, notice, verbose=False):
     notice_id = time.time_ns() // 1_000_000
     user['notices'][notice_id] = (notice, verbose)
-    if len(user['notices']) > CONFIG['MAX_NOTICES']:
+    while len(user['notices']) > CONFIG['MAX_NOTICES']:
         user['notices'].popitem(last=False)
     return notice_id
 
