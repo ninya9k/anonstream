@@ -15,10 +15,10 @@ USERS = current_app.users
 class Rejected(Exception):
     pass
 
-async def broadcast(users, payload):
+def broadcast(users, payload):
     for user in users:
         for queue in user['websockets']:
-            await queue.put(payload)
+            queue.put_nowait(payload)
 
 def messages_for_websocket():
     return list(map(
@@ -29,7 +29,7 @@ def messages_for_websocket():
         get_scrollback(MESSAGES),
     ))
 
-async def add_chat_message(user, nonce, comment):
+def add_chat_message(user, nonce, comment):
     # check message
     message_id = generate_nonce_hash(nonce)
     if message_id in MESSAGES_BY_ID:
@@ -69,7 +69,7 @@ async def add_chat_message(user, nonce, comment):
         MESSAGES_BY_ID.pop(last=False)
 
     # broadcast message to websockets
-    await broadcast(
+    broadcast(
         USERS,
         payload={
             'type': 'chat',

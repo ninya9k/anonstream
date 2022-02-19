@@ -8,7 +8,7 @@ from anonstream.routes.wrappers import with_user_from
 @current_app.websocket('/live')
 @with_user_from(websocket)
 async def live(user):
-    queue = asyncio.Queue()
+    queue = asyncio.Queue(maxsize=0)
     user['websockets'].add(queue)
 
     producer = websocket_outbound(queue)

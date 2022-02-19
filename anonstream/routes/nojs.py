@@ -59,7 +59,7 @@ async def nojs_submit_message(user):
     nonce = form.get('nonce', '')
 
     try:
-        await add_chat_message(user, nonce, comment)
+        add_chat_message(user, nonce, comment)
     except Rejected as e:
         notice, *_ = e.args
         notice_id = add_notice(user, notice)
@@ -78,7 +78,7 @@ async def nojs_submit_appearance(user):
     want_delete_tripcode = form.get('clear-tripcode', type=bool)
     want_change_tripcode = form.get('set-tripcode', type=bool)
 
-    errors = await try_change_appearance(
+    errors = try_change_appearance(
         user,
         name,
         color,

@@ -31,7 +31,7 @@ def pop_notice(user, notice_id):
         notice, verbose = None, False
     return notice, verbose
 
-async def try_change_appearance(user, name, color, password,
+def try_change_appearance(user, name, color, password,
                           want_delete_tripcode, want_change_tripcode):
     errors = []
     def try_(f, *args, **kwargs):
@@ -52,7 +52,7 @@ async def try_change_appearance(user, name, color, password,
         elif want_change_tripcode:
             change_tripcode(user, password)
 
-        await broadcast(
+        broadcast(
             USERS,
             payload={
                 'type': 'mut-user',
@@ -117,24 +117,3 @@ def users_for_websocket(timestamp):
         user['token_hash']: user_for_websocket(user)
         for user in visible_users
     }
-
-last_checkup = -inf
-
-def sunset(messages, users_by_token):
-    global last_checkup
-
-    timestamp = int(time.time())
-    if timestamp - last_checkup < CONFIG['CHECKUP_PERIOD_USER']:
-        return []
-
-    to_delete = []
-    for token in users_by_token:
-        user = users_by_token[token]
-        if not is_visible(timestamp, messages, user):
-            to_delete.append(token)
-
-    for index, token in enumerate(to_delete):
-        to_delete[index] = users_by_token.pop(token)['token_hash']
-
-    last_checkup = timestamp
-    return to_delete

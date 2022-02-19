@@ -21,9 +21,9 @@ notices = 32
 chat_messages = 8192
 chat_scrollback = 256
 
-[ratelimits]
-user_absence = 8
-captcha_expiry = 8
+[intervals]
+sunset_users = 60
+expire_captchas = 60
 
 [thresholds]
 user_notwatching = 8

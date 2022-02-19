@@ -44,7 +44,7 @@ async def websocket_inbound(queue, user):
             }
         else:
             try:
-                markup = await add_chat_message(user, nonce, comment)
+                markup = add_chat_message(user, nonce, comment)
             except Rejected as e:
                 notice, *_ = e.args
                 payload = {
@@ -57,4 +57,4 @@ async def websocket_inbound(queue, user):
                     'nonce': nonce,
                     'next': generate_nonce(),
                 }
-        await queue.put(payload)
+        queue.put_nowait(payload)

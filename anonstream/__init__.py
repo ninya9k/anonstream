@@ -9,7 +9,7 @@ from anonstream.utils.user import generate_token
 from anonstream.utils.colour import color_to_colour
 from anonstream.segments import DirectoryCache
 
-async def create_app():
+def create_app():
     with open('config.toml') as fp:
         config = toml.load(fp)
 
@@ -29,8 +29,8 @@ async def create_app():
         'MAX_NOTICES': config['memory']['notices'],
         'MAX_CHAT_MESSAGES': config['memory']['chat_messages'],
         'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
-        'CHECKUP_PERIOD_USER': config['ratelimits']['user_absence'],
-        'CHECKUP_PERIOD_CAPTCHA': config['ratelimits']['captcha_expiry'],
+        'CHECKUP_PERIOD_USER': config['intervals']['sunset_users'],
+        'CHECKUP_PERIOD_CAPTCHA': config['intervals']['expire_captchas'],
         'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
         'THRESHOLD_USER_TENTATIVE': config['thresholds']['user_tentative'],
         'THRESHOLD_USER_ABSENT': config['thresholds']['user_absent'],
@@ -58,7 +58,15 @@ async def create_app():
     app.users = app.users_by_token.values()
     app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
 
-    async with app.app_context():
+    @app.while_serving
+    async def shutdown():
+        app.shutting_down = False
+        yield
+        app.shutting_down = True
+
+    @app.before_serving
+    async def startup():
         import anonstream.routes
+        import anonstream.tasks
 
     return app

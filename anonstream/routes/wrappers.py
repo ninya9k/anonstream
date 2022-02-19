@@ -5,7 +5,7 @@ from functools import wraps
 from quart import current_app, request, abort, make_response, render_template, request
 from werkzeug.security import check_password_hash
 
-from anonstream.user import sunset, see, user_for_websocket
+from anonstream.user import see, user_for_websocket
 from anonstream.chat import broadcast
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token
@@ -54,20 +54,6 @@ def with_user_from(context):
             else:
                 token = context.args.get('token') or context.cookies.get('token') or generate_token()
 
-            # Remove non-visible absent users
-            sunsetted_token_hashes = sunset(
-                messages=MESSAGES,
-                users_by_token=USERS_BY_TOKEN,
-            )
-            if sunsetted_token_hashes:
-                await broadcast(
-                    users=USERS,
-                    payload={
-                        'type': 'rem-users',
-                        'token_hashes': sunsetted_token_hashes,
-                    },
-                )
-
             # Update / create user
             user = USERS_BY_TOKEN.get(token)
             if user is not None:
@@ -79,7 +65,7 @@ def with_user_from(context):
                     broadcaster=broadcaster,
                 )
                 USERS_BY_TOKEN[token] = user
-                await broadcast(
+                broadcast(
                     USERS,
                     payload={
                         'type': 'add-user',
