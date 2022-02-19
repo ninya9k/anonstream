@@ -156,15 +156,15 @@ const update_user_colors = (token_hash=null) => {
     stylesheet_color.deleteRule(index);
   }
 }
-const get_user_name({user=null, token_hash}) {
-  const user = user || users[token_hash]
+const get_user_name = ({user=null, token_hash}) => {
+  user = user || users[token_hash];
   return user.name || default_name[user.broadcaster];
 }
 const update_user_names = (token_hash=null) => {
   const token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
   for (const chat_message of chat_messages.children) {
     const this_token_hash = chat_message.dataset.tokenHash;
-    if (token_hashes.includes(this_token_hash) {
+    if (token_hashes.includes(this_token_hash)) {
       const chat_message_name = chat_message.querySelector(".chat-message__name");
       chat_message_name.innerText = get_user_name({token_hash: this_token_hash});
     }
