@@ -1,6 +1,7 @@
 import hashlib
 import base64
 from collections import OrderedDict
+from enum import Enum
 from math import inf
 
 from quart import current_app
@@ -8,6 +9,16 @@ from quart import current_app
 from anonstream.utils.colour import generate_colour, colour_to_color
 
 CONFIG = current_app.config
+
+Presence = Enum(
+    'Presence',
+    names=(
+        'WATCHING',
+        'NOTWATCHING',
+        'TENTATIVE',
+        'ABSENT',
+    )
+)
 
 def generate_token_hash(token):
     parts = CONFIG['SECRET_KEY'] + b'token-hash\0' + token.encode()
@@ -29,11 +40,10 @@ def generate_user(timestamp, token, broadcaster):
         'color': colour_to_color(colour),
         'tripcode': None,
         'notices': OrderedDict(),
-        'seen': {
-            'first': timestamp,
-            'last': timestamp,
+        'last': {
+            'seen': timestamp,
+            'watching': -inf,
         },
-        'watching_last': -inf,
     }
 
 def get_default_name(user):
@@ -43,23 +53,32 @@ def get_default_name(user):
         CONFIG['DEFAULT_ANON_NAME']
     )
 
-def is_watching(timestamp, user):
-    return user['watching_last'] >= timestamp - CONFIG['THRESHOLD_USER_IDLE']
+def get_presence(timestamp, user):
+    last_watching_ago = timestamp - user['last']['watching']
+    if last_watching_ago < CONFIG['THRESHOLD_USER_NOTWATCHING']:
+        return Presence.WATCHING
 
-def is_idle(timestamp, user):
-    return is_present(timestamp, user) and not is_watching(timestamp, user)
+    last_seen_ago = timestamp - user['last']['seen']
+    if last_seen_ago < CONFIG['THRESHOLD_USER_TENTATIVE']:
+        return Presence.NOTWATCHING
+    if user['websockets']:
+        return Presence.NOTWATCHING
 
-def is_present(timestamp, user):
+    if last_seen_ago < CONFIG['THRESHOLD_USER_ABSENT']:
+        return Presence.TENTATIVE
+
+    return Presence.ABSENT
+
+def is_listed(timestamp, user):
     return (
-        user['seen']['last'] >= timestamp - CONFIG['THRESHOLD_USER_ABSENT']
-        or len(user['websockets']) > 0
+        get_presence(timestamp, user)
+        in {Presence.WATCHING, Presence.NOTWATCHING}
     )
-
-def is_absent(timestamp, user):
-    return not is_present(timestamp, user)
 
 def is_visible(timestamp, messages, user):
-    has_visible_messages = any(
-        message['token'] == user['token'] for message in messages
-    )
-    return has_visible_messages or is_present(timestamp, user)
+    def user_left_messages():
+        return any(
+            message['token'] == user['token']
+            for message in messages
+        )
+    return is_listed(timestamp, user) or user_left_messages()

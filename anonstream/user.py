@@ -105,7 +105,7 @@ def delete_tripcode(user):
     user['tripcode'] = None
 
 def see(user):
-    user['seen']['last'] = int(time.time())
+    user['last']['seen'] = int(time.time())
 
 @with_timestamp
 def users_for_websocket(timestamp):

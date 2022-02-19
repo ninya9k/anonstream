@@ -31,7 +31,8 @@ async def create_app():
         'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
         'CHECKUP_PERIOD_USER': config['ratelimits']['user_absence'],
         'CHECKUP_PERIOD_CAPTCHA': config['ratelimits']['captcha_expiry'],
-        'THRESHOLD_USER_IDLE': config['thresholds']['user_idle'],
+        'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
+        'THRESHOLD_USER_TENTATIVE': config['thresholds']['user_tentative'],
         'THRESHOLD_USER_ABSENT': config['thresholds']['user_absent'],
         'THRESHOLD_NOJS_CHAT_TIMEOUT': config['thresholds']['nojs_chat_timeout'],
         'CHAT_COMMENT_MAX_LENGTH': config['chat']['max_name_length'],
@@ -42,8 +43,14 @@ async def create_app():
 
     assert app.config['MAX_NOTICES'] >= 0
     assert app.config['MAX_CHAT_SCROLLBACK'] >= 0
-    assert app.config['MAX_CHAT_MESSAGES'] >= app.config['MAX_CHAT_SCROLLBACK']
-    assert app.config['THRESHOLD_USER_ABSENT'] >= app.config['THRESHOLD_USER_IDLE']
+    assert (
+        app.config['MAX_CHAT_MESSAGES'] >= app.config['MAX_CHAT_SCROLLBACK']
+    )
+    assert (
+        app.config['THRESHOLD_USER_ABSENT']
+        >= app.config['THRESHOLD_USER_TENTATIVE']
+        >= app.config['THRESHOLD_USER_NOTWATCHING']
+    )
 
     app.messages_by_id = OrderedDict()
     app.users_by_token = {}

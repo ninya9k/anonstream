@@ -6,7 +6,6 @@ from anonstream.stream import get_stream_title, get_stream_uptime
 from anonstream.chat import messages_for_websocket, add_chat_message, Rejected
 from anonstream.user import users_for_websocket, see
 from anonstream.wrappers import with_first_argument
-from anonstream.helpers.user import is_present
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 

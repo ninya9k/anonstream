@@ -5,7 +5,7 @@ from functools import wraps
 from quart import current_app, request, abort, make_response, render_template, request
 from werkzeug.security import check_password_hash
 
-from anonstream.user import sunset, user_for_websocket
+from anonstream.user import sunset, see, user_for_websocket
 from anonstream.chat import broadcast
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token
@@ -71,7 +71,7 @@ def with_user_from(context):
             # Update / create user
             user = USERS_BY_TOKEN.get(token)
             if user is not None:
-                user['seen']['last'] = timestamp
+                see(user)
             else:
                 user = generate_user(
                     timestamp=timestamp,
