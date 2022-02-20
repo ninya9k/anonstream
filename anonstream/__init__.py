@@ -10,8 +10,8 @@ from anonstream.utils.captcha import create_captcha_factory, create_captcha_sign
 from anonstream.utils.colour import color_to_colour
 from anonstream.utils.user import generate_token
 
-def create_app():
-    with open('config.toml') as fp:
+def create_app(config_file):
+    with open(config_file) as fp:
         config = toml.load(fp)
 
     auth_password = secrets.token_urlsafe(6)
