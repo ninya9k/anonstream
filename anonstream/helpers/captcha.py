@@ -31,7 +31,7 @@ def _generate_captcha_unsigned_digest(salt, solution):
         + solution.encode()
     )
     raw_unsigned_digest = hashlib.sha256(parts).digest()[:16] + salt
-    return base64.b64encode(raw_unsigned_digest).removesuffix(b'=')
+    return base64.urlsafe_b64encode(raw_unsigned_digest).removesuffix(b'=')
 
 def generate_captcha_digest(signer, salt, solution):
     unsigned_digest = _generate_captcha_unsigned_digest(salt, solution)
@@ -44,7 +44,7 @@ def check_captcha_digest(signer, digest, answer):
         try:
             unsigned_digest = signer.unsign(
                 digest,
-                max_age=CONFIG['CAPTCHA_LIFETIME']
+                max_age=CONFIG['CAPTCHA_LIFETIME'],
             )
         except BadTimeSignature:
             result = Answer.BAD

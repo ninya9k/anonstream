@@ -37,4 +37,4 @@ async def captcha(user):
     if image is None:
         return abort(410)
     else:
-        return image
+        return image, {'Content-Type': 'image/jpeg'}

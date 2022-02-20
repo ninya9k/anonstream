@@ -5,9 +5,9 @@ from quart import current_app
 from anonstream.helpers.captcha import generate_captcha_digest, generate_captcha_image
 
 CONFIG = current_app.config
+CAPTCHAS = current_app.captchas
 CAPTCHA_FACTORY = current_app.captcha_factory
 CAPTCHA_SIGNER = current_app.captcha_signer
-CAPTCHAS = current_app.captchas
 
 def generate_random_captcha_solution():
     return ''.join(
