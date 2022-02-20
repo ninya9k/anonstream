@@ -58,11 +58,13 @@ def create_app():
     app.users = app.users_by_token.values()
     app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
 
-    @app.while_serving
+    app.background_sleep = set()
+
+    @app.after_serving
     async def shutdown():
-        app.shutting_down = False
-        yield
-        app.shutting_down = True
+        # make all background tasks finish
+        for task in app.background_sleep:
+            task.cancel()
 
     @app.before_serving
     async def startup():

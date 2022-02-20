@@ -12,17 +12,25 @@ MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
 
+async def sleep_and_collect_task(delay):
+    coro = asyncio.sleep(delay)
+    task = asyncio.create_task(coro)
+    current_app.background_sleep.add(task)
+    try:
+        await task
+    finally:
+        current_app.background_sleep.remove(task)
+
 def with_period(period):
     def periodically(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
-            await asyncio.sleep(period)
             while True:
-                if current_app.shutting_down:
+                try:
+                    await sleep_and_collect_task(period)
+                except asyncio.CancelledError:
                     break
-                else:
-                    f(*args, **kwargs)
-                    await asyncio.sleep(period)
+                f(*args, **kwargs)
 
         return wrapper
 
