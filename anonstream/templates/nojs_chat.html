@@ -36,7 +36,6 @@
       z-index: 1;
       position: absolute;
       top: 0.5rem;
-      right: 0.5rem;
       width: calc(100% - 1rem);
       visibility: hidden;
       animation: appear 0s {{ timeout }}s forwards;
@@ -45,7 +44,9 @@
       font-size: 20pt;
     }
     #chat-timeout-dismiss {
-      animation: padding 0s {{ timeout }}s forwards;
+      position: absolute;
+      bottom: 2px;
+      width: calc(100% - 1rem);
     }
     #chat-timeout-dismiss > .button {
       visibility: hidden;
@@ -74,11 +75,6 @@
         height: auto;
         padding: 1.25ch 0;
         border: 4px outset #3584e4;
-      }
-    }
-    @keyframes padding {
-      to {
-        padding: 4px 0 2px 0;
       }
     }
 
