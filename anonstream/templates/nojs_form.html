@@ -100,6 +100,11 @@
       background-color: black;
       border-color: #3584e4;
     }
+    #chat-form__exit,
+    #chat-form__captcha-image,
+    #chat-form__captcha-answer {
+      grid-row: 2;
+    }
     #chat-form__captcha-image {
       align-self: center;
       font-size: 8pt;
@@ -204,13 +209,13 @@
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
     <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1">{{ state.comment }}</textarea>
+    <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     {% if digest %}
       <input type="hidden" name="captcha-digest" value="{{ digest }}">
       <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="Captcha failed to load" title="Click for a new captcha" tabindex="2">
       <input id="chat-form__captcha-answer" name="captcha-answer" required placeholder="Captcha" tabindex="3">
     {% endif %}
-    <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
   </form>
   <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
