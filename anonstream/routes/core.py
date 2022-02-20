@@ -1,5 +1,6 @@
-from quart import current_app, request, render_template, redirect, url_for
+from quart import current_app, request, render_template, redirect, url_for, abort
 
+from anonstream.captcha import get_captcha_image
 from anonstream.segments import CatSegments, Offline
 from anonstream.routes.wrappers import with_user_from, auth_required
 
@@ -27,3 +28,13 @@ async def stream(user):
 @auth_required
 async def login():
     return redirect(url_for('home'))
+
+@current_app.route('/captcha.jpg')
+@with_user_from(request)
+async def captcha(user):
+    digest = request.args.get('digest', '')
+    image = get_captcha_image(digest)
+    if image is None:
+        return abort(410)
+    else:
+        return image

@@ -12,7 +12,7 @@ MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
 
-class Rejected(Exception):
+class Rejected(ValueError):
     pass
 
 def broadcast(users, payload):
@@ -29,7 +29,11 @@ def messages_for_websocket():
         get_scrollback(MESSAGES),
     ))
 
-def add_chat_message(user, nonce, comment):
+def add_chat_message(user, nonce, comment, ignore_empty=False):
+    # special case: if the comment is empty, do nothing and return
+    if ignore_empty and len(comment) == 0:
+        return
+
     # check message
     message_id = generate_nonce_hash(nonce)
     if message_id in MESSAGES_BY_ID:

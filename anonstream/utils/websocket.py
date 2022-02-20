@@ -13,4 +13,7 @@ def parse_websocket_data(receipt):
     if not isinstance(nonce, str):
         raise Malformed('malformed nonce')
 
-    return nonce, comment
+    digest = receipt.get('digest', '')
+    answer = receipt.get('answer', '')
+
+    return nonce, comment, digest, answer

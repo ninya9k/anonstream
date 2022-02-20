@@ -34,12 +34,13 @@ def generate_user(timestamp, token, broadcaster):
     return {
         'token': token,
         'token_hash': generate_token_hash(token),
-        'websockets': set(),
         'broadcaster': broadcaster,
+        'verified': broadcaster,
+        'websockets': set(),
         'name': None,
         'color': colour_to_color(colour),
         'tripcode': None,
-        'notices': OrderedDict(),
+        'state': OrderedDict(),
         'last': {
             'seen': timestamp,
             'watching': -inf,

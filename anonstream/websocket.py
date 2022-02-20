@@ -3,15 +3,16 @@ import asyncio
 from quart import current_app, websocket
 
 from anonstream.stream import get_stream_title, get_stream_uptime
+from anonstream.captcha import get_random_captcha_digest
 from anonstream.chat import messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import users_for_websocket, see
+from anonstream.user import users_for_websocket, see, verify, BadCaptcha
 from anonstream.wrappers import with_first_argument
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 
 CONFIG = current_app.config
 
-async def websocket_outbound(queue):
+async def websocket_outbound(queue, user):
     payload = {
         'type': 'init',
         'nonce': generate_nonce(),
@@ -24,6 +25,7 @@ async def websocket_outbound(queue):
             False: CONFIG['DEFAULT_ANON_NAME'],
         },
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
+        'digest': None if user['verified'] else get_random_captcha_digest(),
     }
     await websocket.send_json(payload)
     while True:
@@ -35,7 +37,7 @@ async def websocket_inbound(queue, user):
         receipt = await websocket.receive_json()
         see(user)
         try:
-            nonce, comment = parse_websocket_data(receipt)
+            nonce, comment, digest, answer = parse_websocket_data(receipt)
         except Malformed as e:
             error , *_ = e.args
             payload = {
@@ -44,17 +46,27 @@ async def websocket_inbound(queue, user):
             }
         else:
             try:
-                markup = add_chat_message(user, nonce, comment)
-            except Rejected as e:
+                verify(user, digest, answer)
+            except BadCaptcha as e:
                 notice, *_ = e.args
                 payload = {
-                    'type': 'reject',
+                    'type': 'captcha',
                     'notice': notice,
+                    'digest': get_random_captcha_digest(),
                 }
             else:
-                payload = {
-                    'type': 'ack',
-                    'nonce': nonce,
-                    'next': generate_nonce(),
-                }
+                try:
+                    markup = add_chat_message(user, nonce, comment)
+                except Rejected as e:
+                    notice, *_ = e.args
+                    payload = {
+                        'type': 'reject',
+                        'notice': notice,
+                    }
+                else:
+                    payload = {
+                        'type': 'ack',
+                        'nonce': nonce,
+                        'next': generate_nonce(),
+                    }
         queue.put_nowait(payload)

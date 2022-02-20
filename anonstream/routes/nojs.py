@@ -1,13 +1,17 @@
 from quart import current_app, request, render_template, redirect, url_for, escape, Markup
 
-from anonstream.stream import get_stream_title
-from anonstream.user import add_notice, pop_notice, try_change_appearance
+from anonstream.captcha import get_random_captcha_digest
 from anonstream.chat import add_chat_message, Rejected
+from anonstream.stream import get_stream_title
+from anonstream.user import add_state, pop_state, try_change_appearance, verify, BadCaptcha
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
-from anonstream.helpers.user import get_default_name
 from anonstream.helpers.chat import get_scrollback
+from anonstream.helpers.user import get_default_name
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.user import concatenate_for_notice
+
+CONFIG = current_app.config
+USERS_BY_TOKEN = current_app.users_by_token
 
 @current_app.route('/info.html')
 @with_user_from(request)
@@ -24,13 +28,13 @@ async def nojs_chat(user):
     return await render_template_with_etag(
         'nojs_chat.html',
         user=user,
-        users_by_token=current_app.users_by_token,
+        users_by_token=USERS_BY_TOKEN,
         messages=get_scrollback(current_app.messages),
-        timeout=current_app.config['THRESHOLD_NOJS_CHAT_TIMEOUT'],
+        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
         get_default_name=get_default_name,
     )
 
-@current_app.route('/chat/redirect')
+@current_app.route('/chat/messages')
 @with_user_from(request)
 async def nojs_chat_redirect(user):
     return redirect(url_for('nojs_chat', _anchor='end'))
@@ -38,35 +42,70 @@ async def nojs_chat_redirect(user):
 @current_app.route('/chat/form.html')
 @with_user_from(request)
 async def nojs_form(user):
-    notice_id = request.args.get('notice', type=int)
-    notice, verbose = pop_notice(user, notice_id)
+    state_id = request.args.get('state', type=int)
+    state = pop_state(user, state_id)
     prefer_chat_form = request.args.get('landing') != 'appearance'
+    digest = None if user['verified'] else get_random_captcha_digest()
     return await render_template(
         'nojs_form.html',
         user=user,
-        notice=notice,
-        verbose=verbose,
+        state=state,
         prefer_chat_form=prefer_chat_form,
         nonce=generate_nonce(),
+        digest=digest,
         default_name=get_default_name(user),
     )
+
+@current_app.post('/chat/form')
+@with_user_from(request)
+async def nojs_form_redirect(user):
+    comment = (await request.form).get('comment', '')
+    if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
+        comment = ''
+
+    if comment:
+        state_id = add_state(user, comment=comment)
+    else:
+        state_id = None
+
+    return redirect(url_for('nojs_form', state=state_id))
 
 @current_app.post('/chat/message')
 @with_user_from(request)
 async def nojs_submit_message(user):
     form = await request.form
+
     comment = form.get('comment', '')
-    nonce = form.get('nonce', '')
-
+    digest = form.get('captcha-digest', '')
+    answer = form.get('captcha-answer', '')
     try:
-        add_chat_message(user, nonce, comment)
-    except Rejected as e:
+        verification_happened = verify(user, digest, answer)
+    except BadCaptcha as e:
         notice, *_ = e.args
-        notice_id = add_notice(user, notice)
+        state_id = add_state(user, notice=notice, comment=comment)
     else:
-        notice_id = None
+        nonce = form.get('nonce', '')
+        try:
+            # if the comment is empty but the captcha was just solved,
+            # be lenient: don't raise an exception and don't create a notice
+            add_chat_message(
+                user,
+                nonce,
+                comment,
+                ignore_empty=verification_happened,
+            )
+        except Rejected as e:
+            notice, *_ = e.args
+            state_id = add_state(user, notice=notice)
+        else:
+            state_id = None
 
-    return redirect(url_for('nojs_form', token=user['token'], landing='chat', notice=notice_id))
+    return redirect(url_for(
+        'nojs_form',
+        token=user['token'],
+        landing='chat',
+        state=state_id,
+    ))
 
 @current_app.post('/chat/appearance')
 @with_user_from(request)
@@ -93,10 +132,10 @@ async def nojs_submit_appearance(user):
     else:
         notice = 'Changed appearance'
 
-    notice_id = add_notice(user, notice, verbose=len(errors) > 1)
+    state_id = add_state(user, notice=notice, verbose=len(errors) > 1)
     return redirect(url_for(
         'nojs_form',
         token=user['token'],
         landing='appearance' if errors else 'chat',
-        notice=notice_id,
+        state=state_id,
     ))
