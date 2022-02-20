@@ -3,8 +3,9 @@ from datetime import datetime
 
 from quart import current_app, escape
 
+from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.helpers.chat import generate_nonce_hash, get_scrollback
-from anonstream.utils.chat import message_for_websocket
+from anonstream.utils.chat import get_message_for_websocket
 
 CONFIG = current_app.config
 MESSAGES_BY_ID = current_app.messages_by_id
@@ -15,14 +16,9 @@ USERS = current_app.users
 class Rejected(ValueError):
     pass
 
-def broadcast(users, payload):
-    for user in users:
-        for queue in user['websockets']:
-            queue.put_nowait(payload)
-
-def messages_for_websocket():
+def get_all_messages_for_websocket():
     return list(map(
-        lambda message: message_for_websocket(
+        lambda message: get_message_for_websocket(
             user=USERS_BY_TOKEN[message['token']],
             message=message,
         ),
@@ -30,11 +26,11 @@ def messages_for_websocket():
     ))
 
 def add_chat_message(user, nonce, comment, ignore_empty=False):
-    # special case: if the comment is empty, do nothing and return
+    # Special case: if the comment is empty, do nothing and return
     if ignore_empty and len(comment) == 0:
         return
 
-    # check message
+    # Check message
     message_id = generate_nonce_hash(nonce)
     if message_id in MESSAGES_BY_ID:
         raise Rejected('Discarded suspected duplicate message')
@@ -43,7 +39,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     if len(comment) > 512:
         raise Rejected('Message exceeded 512 chars')
 
-    # add message
+    # Create and add message
     timestamp_ms = time.time_ns() // 1_000_000
     timestamp = timestamp_ms // 1000
     try:
@@ -72,7 +68,11 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     while len(MESSAGES_BY_ID) > CONFIG['MAX_CHAT_MESSAGES']:
         MESSAGES_BY_ID.pop(last=False)
 
-    # broadcast message to websockets
+    # Broadcast a users update to all websockets,
+    # in case this message is from a new user
+    broadcast_users_update()
+
+    # Broadcast message to websockets
     broadcast(
         USERS,
         payload={

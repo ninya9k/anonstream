@@ -20,9 +20,10 @@ captchas = 256
 chat_messages = 8192
 chat_scrollback = 256
 
-[intervals]
-sunset_users = 60
-expire_captchas = 60
+[tasks]
+rotate_users = 60
+rotate_captchas = 60
+broadcast_users_update = 4
 
 [names]
 broadcaster = "Broadcaster"

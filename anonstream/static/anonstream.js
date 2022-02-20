@@ -329,31 +329,24 @@ const on_websocket_message = (event) => {
       });
       break;
 
-    case "add-user":
-        console.log("ws add-user", receipt);
-        users[receipt.token_hash] = receipt.user;
-        update_user_colors(receipt.token_hash);
-        update_user_tripcodes(receipt.token_hash);
-        break;
-
-    case "mut-user":
-        console.log("ws mut-user", receipt);
-        const user = users[receipt.token_hash];
-        user.name = receipt.name;
-        user.color = receipt.color;
-        user.tripcode = receipt.tripcode;
-        update_user_names(receipt.token_hash);
-        update_user_colors(receipt.token_hash);
-        update_user_tripcodes(receipt.token_hash);
-        break;
+    case "set-users":
+      console.log("ws set-users", receipt);
+      for (const token_hash of Object.keys(receipt.users)) {
+        users[token_hash] = receipt.users[token_hash];
+      }
+      update_user_names();
+      update_user_colors();
+      update_user_tripcodes();
+      break;
 
     case "rem-users":
-        console.log("ws rem-users", receipt);
-        for (const token_hash of receipt.token_hashes) {
-          delete users[token_hash];
-        }
-        update_user_styles();
-        break;
+      console.log("ws rem-users", receipt);
+      for (const token_hash of receipt.token_hashes) {
+        delete users[token_hash];
+      }
+      update_user_colors();
+      update_user_tripcodes();
+      break;
 
     default:
       console.log("incomprehensible websocket message", receipt);

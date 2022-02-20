@@ -3,18 +3,18 @@ from math import inf
 
 from quart import current_app
 
-from anonstream.chat import broadcast
 from anonstream.wrappers import try_except_log, with_timestamp
 from anonstream.helpers.user import is_visible
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
 from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
-from anonstream.utils.user import user_for_websocket
+from anonstream.utils.user import get_user_for_websocket
 
 CONFIG = current_app.config
 MESSAGES = current_app.messages
 USERS = current_app.users
 CAPTCHA_SIGNER = current_app.captcha_signer
+USERS_UPDATE_BUFFER = current_app.users_update_buffer
 
 class BadAppearance(ValueError):
     pass
@@ -57,16 +57,8 @@ def try_change_appearance(user, name, color, password,
         elif want_change_tripcode:
             change_tripcode(user, password)
 
-        broadcast(
-            USERS,
-            payload={
-                'type': 'mut-user',
-                'token_hash': user['token_hash'],
-                'name': user['name'],
-                'color': user['color'],
-                'tripcode': user['tripcode'],
-            },
-        )
+        # Add to the users update buffer
+        USERS_UPDATE_BUFFER.add(user['token'])
 
     return errors
 
@@ -113,13 +105,13 @@ def see(user):
     user['last']['seen'] = int(time.time())
 
 @with_timestamp
-def users_for_websocket(timestamp):
+def get_all_users_for_websocket(timestamp):
     visible_users = filter(
         lambda user: is_visible(timestamp, MESSAGES, user),
         USERS,
     )
     return {
-        user['token_hash']: user_for_websocket(user)
+        user['token_hash']: get_user_for_websocket(user)
         for user in visible_users
     }
 

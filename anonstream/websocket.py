@@ -4,9 +4,8 @@ from quart import current_app, websocket
 
 from anonstream.stream import get_stream_title, get_stream_uptime
 from anonstream.captcha import get_random_captcha_digest
-from anonstream.chat import messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import users_for_websocket, see, verify, BadCaptcha
-from anonstream.wrappers import with_first_argument
+from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
+from anonstream.user import get_all_users_for_websocket, see, verify, BadCaptcha
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 
@@ -18,8 +17,8 @@ async def websocket_outbound(queue, user):
         'nonce': generate_nonce(),
         'title': get_stream_title(),
         'uptime': get_stream_uptime(),
-        'messages': messages_for_websocket(),
-        'users': users_for_websocket(),
+        'messages': get_all_messages_for_websocket(),
+        'users': get_all_users_for_websocket(),
         'default': {
             True: CONFIG['DEFAULT_HOST_NAME'],
             False: CONFIG['DEFAULT_ANON_NAME'],

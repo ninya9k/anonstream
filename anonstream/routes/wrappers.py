@@ -5,8 +5,8 @@ from functools import wraps
 from quart import current_app, request, abort, make_response, render_template, request
 from werkzeug.security import check_password_hash
 
-from anonstream.user import see, user_for_websocket
-from anonstream.chat import broadcast
+from anonstream.broadcast import broadcast
+from anonstream.user import see
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token
 
@@ -14,6 +14,7 @@ CONFIG = current_app.config
 MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
+USERS_UPDATE_BUFFER = current_app.users_update_buffer
 
 def check_auth(context):
     auth = context.authorization
@@ -65,14 +66,9 @@ def with_user_from(context):
                     broadcaster=broadcaster,
                 )
                 USERS_BY_TOKEN[token] = user
-                broadcast(
-                    USERS,
-                    payload={
-                        'type': 'add-user',
-                        'token_hash': user['token_hash'],
-                        'user': user_for_websocket(user),
-                    },
-                )
+
+                # Add to the users update buffer
+                USERS_UPDATE_BUFFER.add(token)
 
             # Set cookie
             response = await f(user, *args, **kwargs)

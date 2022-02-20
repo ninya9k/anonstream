@@ -3,7 +3,7 @@ from functools import wraps
 
 from quart import current_app
 
-from anonstream.chat import broadcast
+from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.wrappers import with_timestamp
 from anonstream.helpers.user import is_visible
 
@@ -36,7 +36,7 @@ def with_period(period):
 
     return periodically
 
-@with_period(CONFIG['CHECKUP_PERIOD_USER'])
+@with_period(CONFIG['TASK_PERIOD_ROTATE_USERS'])
 @with_timestamp
 def t_sunset_users(timestamp):
     tokens = []
@@ -51,6 +51,10 @@ def t_sunset_users(timestamp):
         token_hash = USERS_BY_TOKEN.pop(token)['token_hash']
         token_hashes.append(token_hash)
 
+        # Broadcast a users update, in case any users being
+        # removed have been mutated or are new.
+        broadcast_users_update()
+
     if token_hashes:
         broadcast(
             users=USERS,
@@ -60,4 +64,9 @@ def t_sunset_users(timestamp):
             },
         )
 
+@with_period(CONFIG['TASK_PERIOD_BROADCAST_USERS_UPDATE'])
+def t_broadcast_users_update():
+    broadcast_users_update()
+
 current_app.add_background_task(t_sunset_users)
+current_app.add_background_task(t_broadcast_users_update)

@@ -8,7 +8,7 @@ class NonceReuse(Exception):
 def generate_nonce():
     return secrets.token_urlsafe(16)
 
-def message_for_websocket(user, message):
+def get_message_for_websocket(user, message):
     message_keys = ('seq', 'date', 'time_minutes', 'time_seconds', 'markup')
     user_keys = ('token_hash',)
     return {

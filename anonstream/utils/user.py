@@ -9,7 +9,7 @@ from quart import escape, Markup
 def generate_token():
     return secrets.token_hex(16)
 
-def user_for_websocket(user):
+def get_user_for_websocket(user):
     keys = ['broadcaster', 'name', 'color', 'tripcode']
     return {key: user[key] for key in keys}
 

@@ -31,8 +31,9 @@ def create_app(config_file):
         'MAX_CAPTCHAS': config['memory']['captchas'],
         'MAX_CHAT_MESSAGES': config['memory']['chat_messages'],
         'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
-        'CHECKUP_PERIOD_USER': config['intervals']['sunset_users'],
-        'CHECKUP_PERIOD_CAPTCHA': config['intervals']['expire_captchas'],
+        'TASK_PERIOD_ROTATE_USERS': config['tasks']['rotate_users'],
+        'TASK_PERIOD_ROTATE_CAPTCHAS': config['tasks']['rotate_captchas'],
+        'TASK_PERIOD_BROADCAST_USERS_UPDATE': config['tasks']['broadcast_users_update'],
         'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
         'THRESHOLD_USER_TENTATIVE': config['thresholds']['user_tentative'],
         'THRESHOLD_USER_ABSENT': config['thresholds']['user_absent'],
@@ -61,13 +62,18 @@ def create_app(config_file):
     )
 
     app.messages_by_id = OrderedDict()
-    app.users_by_token = {}
     app.messages = app.messages_by_id.values()
+
+    app.users_by_token = {}
     app.users = app.users_by_token.values()
+
     app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
+
+    app.captchas = OrderedDict()
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
-    app.captchas = OrderedDict()
+
+    app.users_update_buffer = set()
 
     app.background_sleep = set()
 
