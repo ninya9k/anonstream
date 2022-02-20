@@ -5,7 +5,7 @@ import io
 from enum import Enum
 
 from itsdangerous import TimestampSigner
-from itsdangerous.exc import BadTimeSignature, SignatureExpired
+from itsdangerous.exc import BadSignature, SignatureExpired
 from quart import current_app
 
 CONFIG = current_app.config
@@ -46,10 +46,10 @@ def check_captcha_digest(signer, digest, answer):
                 digest,
                 max_age=CONFIG['CAPTCHA_LIFETIME'],
             )
-        except BadTimeSignature:
-            result = Answer.BAD
         except SignatureExpired:
             result = Answer.EXPIRED
+        except BadSignature:
+            result = Answer.BAD
         else:
             try:
                 raw_unsigned_digest = (
