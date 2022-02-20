@@ -11,6 +11,8 @@ CONFIG = current_app.config
 MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
+CAPTCHAS = current_app.captchas
+CAPTCHA_SIGNER = current_app.captcha_signer
 
 async def sleep_and_collect_task(delay):
     coro = asyncio.sleep(delay)
@@ -64,9 +66,23 @@ def t_sunset_users(timestamp):
             },
         )
 
+@with_period(CONFIG['TASK_PERIOD_ROTATE_CAPTCHAS'])
+def t_expire_captchas():
+    to_delete = []
+    for digest in CAPTCHAS:
+        valid = CAPTCHA_SIGNER.validate(
+            digest,
+            max_age=CONFIG['CAPTCHA_LIFETIME'],
+        )
+        if not valid:
+            to_delete.append(digest)
+    for digest in to_delete:
+        CAPTCHAS.pop(digest)
+
 @with_period(CONFIG['TASK_PERIOD_BROADCAST_USERS_UPDATE'])
 def t_broadcast_users_update():
     broadcast_users_update()
 
 current_app.add_background_task(t_sunset_users)
+current_app.add_background_task(t_expire_captchas)
 current_app.add_background_task(t_broadcast_users_update)
