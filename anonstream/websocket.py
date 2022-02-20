@@ -3,9 +3,9 @@ import asyncio
 from quart import current_app, websocket
 
 from anonstream.stream import get_stream_title, get_stream_uptime
-from anonstream.captcha import get_random_captcha_digest
+from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import get_all_users_for_websocket, see, verify, BadCaptcha
+from anonstream.user import get_all_users_for_websocket, see, verify, deverify, BadCaptcha
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse_websocket_data, Malformed
 
@@ -24,7 +24,7 @@ async def websocket_outbound(queue, user):
             False: CONFIG['DEFAULT_ANON_NAME'],
         },
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
-        'digest': None if user['verified'] else get_random_captcha_digest(),
+        'digest': get_random_captcha_digest_for(user),
     }
     await websocket.send_json(payload)
     while True:
@@ -51,7 +51,7 @@ async def websocket_inbound(queue, user):
                 payload = {
                     'type': 'captcha',
                     'notice': notice,
-                    'digest': get_random_captcha_digest(),
+                    'digest': get_random_captcha_digest_for(user),
                 }
             else:
                 try:
@@ -63,9 +63,11 @@ async def websocket_inbound(queue, user):
                         'notice': notice,
                     }
                 else:
+                    deverify(user)
                     payload = {
                         'type': 'ack',
                         'nonce': nonce,
                         'next': generate_nonce(),
+                        'digest': get_random_captcha_digest_for(user),
                     }
         queue.put_nowait(payload)

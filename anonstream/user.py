@@ -131,3 +131,19 @@ def verify(user, digest, answer):
                 verification_happened = True
 
     return verification_happened
+
+@with_timestamp
+def deverify(timestamp, user):
+    if not user['verified']:
+        return
+
+    n_user_messages = 0
+    for message in reversed(MESSAGES):
+        message_sent_ago = timestamp - message['timestamp']
+        if message_sent_ago >= CONFIG['FLOOD_DURATION']:
+            break
+        elif message['token'] == user['token']:
+            n_user_messages += 1
+
+    if n_user_messages >= CONFIG['FLOOD_THRESHOLD']:
+        user['verified'] = False

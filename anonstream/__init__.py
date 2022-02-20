@@ -42,6 +42,8 @@ def create_app(config_file):
         'CHAT_NAME_MAX_LENGTH': config['chat']['max_name_length'],
         'CHAT_NAME_MIN_CONTRAST': config['chat']['min_name_contrast'],
         'CHAT_BACKGROUND_COLOUR': color_to_colour(config['chat']['background_color']),
+        'FLOOD_DURATION': config['flood']['duration'],
+        'FLOOD_THRESHOLD': config['flood']['threshold'],
         'CAPTCHA_LIFETIME': config['captcha']['lifetime'],
         'CAPTCHA_FONTS': config['captcha']['fonts'],
         'CAPTCHA_ALPHABET': config['captcha']['alphabet'],

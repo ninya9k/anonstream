@@ -1,9 +1,9 @@
 from quart import current_app, request, render_template, redirect, url_for, escape, Markup
 
-from anonstream.captcha import get_random_captcha_digest
+from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
 from anonstream.stream import get_stream_title
-from anonstream.user import add_state, pop_state, try_change_appearance, verify, BadCaptcha
+from anonstream.user import add_state, pop_state, try_change_appearance, verify, deverify, BadCaptcha
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
@@ -45,14 +45,13 @@ async def nojs_form(user):
     state_id = request.args.get('state', type=int)
     state = pop_state(user, state_id)
     prefer_chat_form = request.args.get('landing') != 'appearance'
-    digest = None if user['verified'] else get_random_captcha_digest()
     return await render_template(
         'nojs_form.html',
         user=user,
         state=state,
         prefer_chat_form=prefer_chat_form,
         nonce=generate_nonce(),
-        digest=digest,
+        digest=get_random_captcha_digest_for(user),
         default_name=get_default_name(user),
     )
 
@@ -86,7 +85,7 @@ async def nojs_submit_message(user):
     else:
         nonce = form.get('nonce', '')
         try:
-            # if the comment is empty but the captcha was just solved,
+            # If the comment is empty but the captcha was just solved,
             # be lenient: don't raise an exception and don't create a notice
             add_chat_message(
                 user,
@@ -98,6 +97,7 @@ async def nojs_submit_message(user):
             notice, *_ = e.args
             state_id = add_state(user, notice=notice)
         else:
+            deverify(user)
             state_id = None
 
     return redirect(url_for(

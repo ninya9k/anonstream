@@ -35,6 +35,10 @@ max_name_length = 24
 min_name_contrast = 3.0
 background_color = "#232327"
 
+[flood]
+duration = 20
+threshold = 4
+
 [thresholds]
 user_notwatching = 8
 user_tentative = 20

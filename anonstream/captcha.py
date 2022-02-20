@@ -35,6 +35,12 @@ def get_random_captcha_digest():
 
     return digest
 
+def get_random_captcha_digest_for(user):
+    if user['verified']:
+        return None
+    else:
+        return get_random_captcha_digest()
+
 def get_captcha_image(digest):
     try:
         captcha = CAPTCHAS[digest]
