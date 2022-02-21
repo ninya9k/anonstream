@@ -9,15 +9,18 @@ const jsmarkup_info = '<div id="info_js"></div>';
 const jsmarkup_info_title = '<header id="info_js__title" data-js="true"></header>';
 const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
 const jsmarkup_chat_form = `\
-  <form id="chat-form_js" data-js="true" action="/chat" method="post">
+<form id="chat-form_js" data-js="true" action="/chat" method="post">
   <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
   <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1"></textarea>
   <div id="chat-live">
     <span id="chat-live__ball"></span>
-    <span id="chat-live__status">Not connected to chat</span>
+    <span id="chat-live__status"><span>Not connected<span data-verbose='true'> to chat</span></span></span>
   </div>
+  <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
+  <img id="chat-form_js__captcha-image" width="72" height="30">
+  <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
   <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
-  </form>`;
+</form>`;
 
 const insert_jsmarkup = () => {
   if (document.getElementById("style-color") === null) {
@@ -253,6 +256,41 @@ const update_user_tripcodes = (token_hash=null) => {
   }
 }
 
+const chat_form_captcha_digest = document.getElementById("chat-form_js__captcha-digest");
+const chat_form_captcha_image = document.getElementById("chat-form_js__captcha-image");
+const chat_form_captcha_answer = document.getElementById("chat-form_js__captcha-answer");
+chat_form_captcha_image.addEventListener("loadstart", (event) => {
+  chat_form_captcha_image.alt = "Loading...";
+});
+chat_form_captcha_image.addEventListener("load", (event) => {
+  chat_form_captcha_image.removeAttribute("alt");
+});
+chat_form_captcha_image.addEventListener("error", (event) => {
+  chat_form_captcha_image.alt = "Captcha failed to load";
+});
+const enable_captcha = (digest) => {
+  chat_form_captcha_digest.value = digest;
+  chat_form_captcha_digest.disabled = false;
+  chat_form_captcha_answer.value = "";
+  chat_form_captcha_answer.required = true;
+  chat_form_captcha_answer.disabled = false;
+  chat_form_comment.required = false;
+  chat_form_captcha_image.removeAttribute("src");
+  chat_form_captcha_image.src = `/captcha.jpg?token=${encodeURIComponent(token)}&digest=${encodeURIComponent(digest)}`;
+  chat_form.dataset.captcha = "";
+}
+const disable_captcha = () => {
+  chat_form.removeAttribute("data-captcha");
+  chat_form_captcha_digest.disabled = true;
+  chat_form_captcha_answer.disabled = true;
+  chat_form_comment.required = true;
+  chat_form_captcha_digest.value = "";
+  chat_form_captcha_answer.value = "";
+  chat_form_captcha_answer.required = false;
+  chat_form_captcha_image.removeAttribute("alt");
+  chat_form_captcha_image.removeAttribute("src");
+}
+
 const on_websocket_message = (event) => {
   console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -264,8 +302,10 @@ const on_websocket_message = (event) => {
     case "init":
       console.log("ws init", receipt);
 
-      chat_form_nonce.value = receipt.nonce;
       info_title.innerText = receipt.title;
+
+      chat_form_nonce.value = receipt.nonce;
+      receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
 
       default_name = receipt.default;
       max_chat_scrollback = receipt.scrollback;
@@ -303,20 +343,15 @@ const on_websocket_message = (event) => {
 
     case "ack":
       console.log("ws ack", receipt);
-      if (chat_form_nonce.value === receipt.nonce) {
+      const existing_nonce = chat_form_nonce.value;
+      if (receipt.clear && receipt.nonce === existing_nonce) {
         chat_form_comment.value = "";
       } else {
-        console.log("nonce does not match ack", chat_form_nonce, receipt);
+        console.log("nonce does not match ack", existing_nonce, receipt);
       }
-      chat_form_submit.disabled = false;
       chat_form_nonce.value = receipt.next;
-      break;
-
-    case "reject":
-      console.log("ws reject", receipt);
-      alert(`Rejected: ${receipt.notice}`);
+      receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
       chat_form_submit.disabled = false;
-      chat_form_nonce.value = receipt.next;
       break;
 
     case "chat":
@@ -362,13 +397,13 @@ const connect_websocket = () => {
     return;
   }
   chat_live_ball.style.borderColor = "gold";
-  chat_live_status.innerText = "Connecting to chat...";
+  chat_live_status.innerHTML = "<span data-verbose='false'>Waiting...</span> <span data-verbose='true'>Connecting to chat...</span>";
   ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(token)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);
     chat_form_submit.disabled = false;
     chat_live_ball.style.borderColor = "green";
-    chat_live_status.innerText = "Connected to chat";
+    chat_live_status.innerHTML = "<span>Connected<span data-verbose='true'> to chat</span></span>";
     // When the server is offline, a newly opened websocket can take a second
     // to close. This timeout tries to ensure the backoff doesn't instantly
     // (erroneously) reset to 2 seconds in that case.
@@ -384,7 +419,7 @@ const connect_websocket = () => {
     console.log("websocket close", event);
     chat_form_submit.disabled = true;
     chat_live_ball.style.borderColor = "maroon";
-    chat_live_status.innerText = "Disconnected from chat";
+    chat_live_status.innerHTML = "<span data-verbose='false'>Failed to connect</span> <span data-verbose='true'>Disconnected from chat</span>";
     if (!ws.successor) {
       ws.successor = true;
       setTimeout(connect_websocket, websocket_backoff);
@@ -395,7 +430,7 @@ const connect_websocket = () => {
     console.log("websocket error", event);
     chat_form_submit.disabled = true;
     chat_live_ball.style.borderColor = "maroon";
-    chat_live_status.innerText = "Error connecting to chat";
+    chat_live_status.innerHTML = "<span>Error<span data-verbose='true'> connecting to chat</span></span>";
   });
   ws.addEventListener("message", on_websocket_message);
 }
@@ -409,7 +444,7 @@ const chat_form_comment = document.getElementById("chat-form_js__comment");
 const chat_form_submit = document.getElementById("chat-form_js__submit");
 chat_form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const payload = {comment: chat_form_comment.value, nonce: chat_form_nonce.value};
+  const payload = Object.fromEntries(new FormData(chat_form));
   chat_form_submit.disabled = true;
   ws.send(JSON.stringify(payload));
 });

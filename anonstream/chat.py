@@ -28,7 +28,7 @@ def get_all_messages_for_websocket():
 def add_chat_message(user, nonce, comment, ignore_empty=False):
     # Special case: if the comment is empty, do nothing and return
     if ignore_empty and len(comment) == 0:
-        return
+        return False
 
     # Check message
     message_id = generate_nonce_hash(nonce)
@@ -83,4 +83,4 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         },
     )
 
-    return markup
+    return True

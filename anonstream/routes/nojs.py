@@ -95,7 +95,7 @@ async def nojs_submit_message(user):
             )
         except Rejected as e:
             notice, *_ = e.args
-            state_id = add_state(user, notice=notice)
+            state_id = add_state(user, notice=notice, comment=comment)
         else:
             deverify(user)
             state_id = None

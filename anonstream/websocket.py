@@ -45,29 +45,28 @@ async def websocket_inbound(queue, user):
             }
         else:
             try:
-                verify(user, digest, answer)
+                verification_happened = verify(user, digest, answer)
             except BadCaptcha as e:
                 notice, *_ = e.args
-                payload = {
-                    'type': 'captcha',
-                    'notice': notice,
-                    'digest': get_random_captcha_digest_for(user),
-                }
             else:
                 try:
-                    markup = add_chat_message(user, nonce, comment)
+                    message_was_added = add_chat_message(
+                        user,
+                        nonce,
+                        comment,
+                        ignore_empty=verification_happened,
+                    )
                 except Rejected as e:
                     notice, *_ = e.args
-                    payload = {
-                        'type': 'reject',
-                        'notice': notice,
-                    }
                 else:
                     deverify(user)
-                    payload = {
-                        'type': 'ack',
-                        'nonce': nonce,
-                        'next': generate_nonce(),
-                        'digest': get_random_captcha_digest_for(user),
-                    }
+                    notice = None
+            payload = {
+                'type': 'ack',
+                'nonce': nonce,
+                'next': generate_nonce(),
+                'notice': notice,
+                'clear': message_was_added,
+                'digest': get_random_captcha_digest_for(user),
+            }
         queue.put_nowait(payload)
