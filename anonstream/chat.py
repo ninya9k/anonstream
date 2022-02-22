@@ -53,7 +53,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
             seq = last_message['seq'] + 1
     dt = datetime.utcfromtimestamp(timestamp)
     markup = escape(comment)
-    MESSAGES_BY_ID[message_id] = {
+    message = {
         'id': message_id,
         'seq': seq,
         'token': user['token'],
@@ -64,6 +64,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         'nomarkup': comment,
         'markup': markup,
     }
+    MESSAGES_BY_ID[message_id] = message
 
     while len(MESSAGES_BY_ID) > CONFIG['MAX_CHAT_MESSAGES']:
         MESSAGES_BY_ID.pop(last=False)
@@ -76,10 +77,8 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     broadcast(
         USERS,
         payload={
-            'type': 'chat',
-            'seq': seq,
-            'token_hash': user['token_hash'],
-            'markup': markup,
+            'type': 'message',
+            'message': get_message_for_websocket(user, message),
         },
     )
 

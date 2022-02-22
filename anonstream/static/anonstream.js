@@ -70,6 +70,12 @@ const create_chat_message = (object) => {
   chat_message.dataset.seq = object.seq;
   chat_message.dataset.tokenHash = object.token_hash;
 
+  const chat_message_time = document.createElement("time");
+  chat_message_time.classList.add("chat-message__time");
+  chat_message_time.dateTime = `${object.date}T${object.time_seconds}Z`;
+  chat_message_time.title = `${object.date} ${object.time_seconds}`;
+  chat_message_time.innerText = object.time_minutes;
+
   const chat_message_name = document.createElement("span");
   chat_message_name.classList.add("chat-message__name");
   chat_message_name.innerText = get_user_name({user});
@@ -90,6 +96,8 @@ const create_chat_message = (object) => {
   chat_message_markup.classList.add("chat-message__markup");
   chat_message_markup.innerHTML = object.markup;
 
+  chat_message.insertAdjacentElement("beforeend", chat_message_time);
+  chat_message.insertAdjacentHTML("beforeend", "&nbsp;");
   chat_message.insertAdjacentElement("beforeend", chat_message_name);
   chat_message.insertAdjacentElement("beforeend", chat_message_tripcode_nbsp);
   chat_message.insertAdjacentElement("beforeend", chat_message_tripcode);
@@ -292,7 +300,7 @@ const disable_captcha = () => {
 }
 
 const on_websocket_message = (event) => {
-  console.log("websocket message", event);
+  //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
   switch (receipt.type) {
     case "error":
@@ -354,9 +362,9 @@ const on_websocket_message = (event) => {
       chat_form_submit.disabled = false;
       break;
 
-    case "chat":
-      console.log("ws chat", receipt);
-      create_and_add_chat_message(receipt);
+    case "message":
+      console.log("ws message", receipt);
+      create_and_add_chat_message(receipt.message);
       chat_messages.scrollTo({
         left: 0,
         top: chat_messages.scrollTopMax,
