@@ -56,12 +56,12 @@
       box-sizing: border-box;
       align-items: center;
     }
-    #notice h1 {
+    #notice h2 {
       margin: 0;
       font-size: 18pt;
       line-height: 1.25;
     }
-    #notice.verbose h1 {
+    #notice.verbose h2 {
       font-size: 14pt;
     }
 
@@ -202,7 +202,7 @@
   <div id="appearance"></div>
   {% if state.notice %}
     <a id="notice" {% if state.verbose %}class="verbose" {% endif %}{% if prefer_chat_form %}href="#chat"{% else %}href="#appearance"{% endif %}>
-      <header><h1>{{ state.notice }}</h1></header>
+      <header><h2>{{ state.notice }}</h2></header>
       <small>Click to dismiss</small>
     </a>
   {% endif %}

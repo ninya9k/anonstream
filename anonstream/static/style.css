@@ -64,6 +64,10 @@ noscript {
   padding: 1ch 1.5ch;
   height: 100%;
 }
+#info_js__uptime {
+  float: right;
+  font-size: 11pt;
+}
 #info_js__title {
   font-size: 18pt;
   overflow-wrap: anywhere;

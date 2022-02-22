@@ -9,13 +9,19 @@
       font-family: sans-serif;
       color: #ddd;
     }
-    #title {
+    #uptime {
+      float: right;
+      font-size: 11pt;
+    }
+    #title > h1 {
+      margin: 0;
       font-size: 18pt;
       overflow-wrap: anywhere;
     }
   </style>
 </head>
 <body>
-  <header id="title">{{ title }}</header>
+  <aside id="uptime">{{ uptime }}</aside>
+  <header id="title"><h1>{{ title }}</h1></header>
 </body>
 </html>

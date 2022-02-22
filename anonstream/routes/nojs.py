@@ -2,7 +2,7 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
-from anonstream.stream import get_stream_title
+from anonstream.stream import get_stream_title, get_stream_uptime
 from anonstream.user import add_state, pop_state, try_change_appearance, verify, deverify, BadCaptcha
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
@@ -20,6 +20,7 @@ async def nojs_info(user):
         'nojs_info.html',
         user=user,
         title=get_stream_title(),
+        uptime=get_stream_uptime(),
     )
 
 @current_app.route('/chat/messages.html')

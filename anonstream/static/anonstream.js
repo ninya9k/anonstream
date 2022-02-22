@@ -5,8 +5,9 @@ const token = document.body.dataset.token;
 const jsmarkup_style_color = '<style id="style-color"></style>'
 const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></style>'
 const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
-const jsmarkup_info = '<div id="info_js"></div>';
-const jsmarkup_info_title = '<header id="info_js__title" data-js="true"></header>';
+const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
+const jsmarkup_info_uptime = '<aside id="info_js__uptime"></aside>';
+const jsmarkup_info_title = '<header id="info_js__title"></header>';
 const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
 const jsmarkup_chat_form = `\
 <form id="chat-form_js" data-js="true" action="/chat" method="post">
@@ -39,6 +40,10 @@ const insert_jsmarkup = () => {
     const parent = document.getElementById("info");
     parent.insertAdjacentHTML("beforeend", jsmarkup_info);
   }
+  if (document.getElementById("info_js__uptime") === null) {
+    const parent = document.getElementById("info_js");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_info_uptime);
+  }
   if (document.getElementById("info_js__title") === null) {
     const parent = document.getElementById("info_js");
     parent.insertAdjacentHTML("beforeend", jsmarkup_info_title);
@@ -60,6 +65,7 @@ const stylesheet_tripcode_colors = document.styleSheets[3];
 
 /* create websocket */
 const info_title = document.getElementById("info_js__title");
+const info_uptime = document.getElementById("info_js__uptime");
 const chat_messages = document.getElementById("chat-messages_js");
 
 const create_chat_message = (object) => {
@@ -310,6 +316,36 @@ const disable_captcha = () => {
   chat_form_captcha_image.removeAttribute("src");
 }
 
+let frozen_uptime = null;
+let frozen_uptime_received = null;
+const set_frozen_uptime = (x) => {
+  frozen_uptime = x;
+  frozen_uptime_received = new Date();
+}
+const update_uptime = () => {
+  if (frozen_uptime_received === null) {
+    return;
+  } else if (frozen_uptime === null) {
+    info_uptime.innerText = "";
+  } else {
+    const frozen_uptime_received_ago = (new Date() - frozen_uptime_received) / 1000;
+    const uptime = Math.round(frozen_uptime + frozen_uptime_received_ago);
+
+    const s = Math.round(uptime % 60);
+    const m = Math.floor(uptime / 60) % 60
+    const h = Math.floor(uptime / 3600);
+
+    const ss = s.toString().padStart(2, "0");
+    if (uptime < 3600) {
+      info_uptime.innerText = `${m}:${ss}`;
+    } else {
+      const mm = m.toString().padStart(2, "0");
+      info_uptime.innerText = `${h}:${mm}:${ss}`;
+    }
+  }
+}
+setInterval(update_uptime, 1000); // always update uptime
+
 const on_websocket_message = (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -322,6 +358,8 @@ const on_websocket_message = (event) => {
       console.log("ws init", receipt);
 
       info_title.innerText = receipt.title;
+      set_frozen_uptime(receipt.uptime);
+      update_uptime();
 
       chat_form_nonce.value = receipt.nonce;
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
