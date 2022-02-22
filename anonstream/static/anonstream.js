@@ -399,9 +399,15 @@ const on_websocket_message = (event) => {
 
       break;
 
-    case "title":
-      console.log("ws title", receipt);
-      set_title(receipt.title);
+    case "info":
+      console.log("ws info", receipt);
+      if (receipt.title !== undefined) {
+        set_title(receipt.title);
+      }
+      if (receipt.uptime !== undefined) {
+        set_frozen_uptime(receipt.uptime);
+        update_uptime();
+      }
       break;
 
     case "ack":

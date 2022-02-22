@@ -1,9 +1,11 @@
 import asyncio
+import itertools
 from functools import wraps
 
 from quart import current_app
 
 from anonstream.broadcast import broadcast, broadcast_users_update
+from anonstream.stream import is_online, get_stream_title, get_stream_uptime
 from anonstream.wrappers import with_timestamp
 from anonstream.helpers.user import is_visible
 
@@ -27,12 +29,12 @@ def with_period(period):
     def periodically(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
-            while True:
+            for iteration in itertools.count():
+                await f(iteration, *args, **kwargs)
                 try:
                     await sleep_and_collect_task(period)
                 except asyncio.CancelledError:
                     break
-                f(*args, **kwargs)
 
         return wrapper
 
@@ -40,7 +42,10 @@ def with_period(period):
 
 @with_period(CONFIG['TASK_PERIOD_ROTATE_USERS'])
 @with_timestamp
-def t_sunset_users(timestamp):
+async def t_sunset_users(iteration, timestamp):
+    if iteration == 0:
+        return
+
     tokens = []
     for token in USERS_BY_TOKEN:
         user = USERS_BY_TOKEN[token]
@@ -67,7 +72,10 @@ def t_sunset_users(timestamp):
         )
 
 @with_period(CONFIG['TASK_PERIOD_ROTATE_CAPTCHAS'])
-def t_expire_captchas():
+async def t_expire_captchas(iteration):
+    if iteration == 0:
+        return
+
     to_delete = []
     for digest in CAPTCHAS:
         valid = CAPTCHA_SIGNER.validate(
@@ -76,13 +84,52 @@ def t_expire_captchas():
         )
         if not valid:
             to_delete.append(digest)
+
     for digest in to_delete:
         CAPTCHAS.pop(digest)
 
 @with_period(CONFIG['TASK_PERIOD_BROADCAST_USERS_UPDATE'])
-def t_broadcast_users_update():
-    broadcast_users_update()
+async def t_broadcast_users_update(iteration):
+    if iteration == 0:
+        return
+    else:
+        broadcast_users_update()
+
+@with_period(CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE'])
+async def t_broadcast_stream_info_update(iteration):
+    if iteration == 0:
+        current_app.stream_title = await get_stream_title()
+        current_app.stream_uptime = get_stream_uptime()
+    else:
+        payload = {}
+
+        # Check if the stream title has changed
+        title = await get_stream_title()
+        if current_app.stream_title != title:
+            current_app.stream_title = title
+            payload['title'] = title
+
+        # Check if the stream uptime has changed differently than expected
+        if current_app.stream_uptime is None:
+            expected_uptime = None
+        else:
+            expected_uptime = (
+                current_app.stream_uptime
+                + CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE']
+            )
+        uptime = get_stream_uptime()
+        current_app.stream_uptime = uptime
+        if uptime is None and expected_uptime is None:
+            pass
+        elif uptime is None or expected_uptime is None:
+            payload['uptime'] = uptime
+        elif abs(uptime - expected_uptime) >= 0.0625:
+            payload['uptime'] = uptime
+
+        if payload:
+            broadcast(USERS, payload={'type': 'info', **payload})
 
 current_app.add_background_task(t_sunset_users)
 current_app.add_background_task(t_expire_captchas)
 current_app.add_background_task(t_broadcast_users_update)
+current_app.add_background_task(t_broadcast_stream_info_update)

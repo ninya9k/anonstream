@@ -34,6 +34,7 @@ chat_scrollback = 256
 rotate_users = 60.0
 rotate_captchas = 60.0
 broadcast_users_update = 4.0
+broadcast_stream_info_update = 3.0
 
 [names]
 broadcaster = "Broadcaster"

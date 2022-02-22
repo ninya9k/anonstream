@@ -43,6 +43,7 @@ def create_app(config_file):
         'TASK_PERIOD_ROTATE_USERS': config['tasks']['rotate_users'],
         'TASK_PERIOD_ROTATE_CAPTCHAS': config['tasks']['rotate_captchas'],
         'TASK_PERIOD_BROADCAST_USERS_UPDATE': config['tasks']['broadcast_users_update'],
+        'TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE': config['tasks']['broadcast_stream_info_update'],
         'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
         'THRESHOLD_USER_TENTATIVE': config['thresholds']['user_tentative'],
         'THRESHOLD_USER_ABSENT': config['thresholds']['user_absent'],
@@ -82,8 +83,12 @@ def create_app(config_file):
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
 
+    # State for tasks
     app.users_update_buffer = set()
+    app.stream_uptime = None
+    app.stream_title = None
 
+    # Background tasks' asyncio.sleep tasks, cancelled on shutdown
     app.background_sleep = set()
 
     @app.after_serving
