@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from quart import current_app, websocket
 
@@ -33,8 +34,12 @@ async def websocket_outbound(queue, user):
 
 async def websocket_inbound(queue, user):
     while True:
-        receipt = await websocket.receive_json()
-        see(user)
+        try:
+            receipt = await websocket.receive_json()
+        except json.JSONDecodeError:
+            receipt = None
+        finally:
+            see(user)
         try:
             nonce, comment, digest, answer = parse_websocket_data(receipt)
         except Malformed as e:
