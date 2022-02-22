@@ -1,9 +1,21 @@
 import time
 
-from anonstream.segments import get_playlist, Offline
+import aiofiles
+from quart import current_app
 
-def get_stream_title():
-    return 'Stream title'
+from anonstream.segments import get_playlist, Offline
+from anonstream.wrappers import ttl_cache_async
+
+CONFIG = current_app.config
+
+@ttl_cache_async(CONFIG['STREAM_TITLE_CACHE_LIFETIME'])
+async def get_stream_title():
+    try:
+        async with aiofiles.open(CONFIG['STREAM_TITLE']) as fp:
+            title = await fp.read(8192)
+    except FileNotFoundError:
+        title = ''
+    return title
 
 def get_stream_uptime(rounded=True):
     try:

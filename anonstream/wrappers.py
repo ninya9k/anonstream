@@ -53,3 +53,24 @@ def ttl_cache(ttl):
         return wrapper
 
     return ttl_cache_specific
+
+def ttl_cache_async(ttl):
+    '''
+    Async version of `ttl_cache`. Wraps zero-argument coroutines.
+    '''
+    def ttl_cache_specific(f):
+        value, expires = None, None
+
+        @wraps(f)
+        async def wrapper():
+            nonlocal value, expires
+
+            if expires is None or time.monotonic() >= expires:
+                value = await f()
+                expires = time.monotonic() + ttl
+
+            return value
+
+        return wrapper
+
+    return ttl_cache_specific

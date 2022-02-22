@@ -12,6 +12,10 @@ search_cooldown = 0.25
 search_timeout = 5.0
 stream_initial_buffer = 3
 
+[title]
+file = "title.txt"
+file_cache_lifetime = 0.5
+
 [captcha]
 lifetime = 1800
 fonts = []

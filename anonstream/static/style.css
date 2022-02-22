@@ -68,8 +68,10 @@ noscript {
   float: right;
   font-size: 11pt;
 }
-#info_js__title {
+#info_js__title > h1 {
+  margin: 0;
   font-size: 18pt;
+  line-height: 1.125;
   overflow-wrap: anywhere;
 }
 #info_nojs {

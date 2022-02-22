@@ -19,7 +19,7 @@ async def nojs_info(user):
     return await render_template(
         'nojs_info.html',
         user=user,
-        title=get_stream_title(),
+        title=await get_stream_title(),
         uptime=get_stream_uptime(),
     )
 

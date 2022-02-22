@@ -15,7 +15,7 @@ async def websocket_outbound(queue, user):
     payload = {
         'type': 'init',
         'nonce': generate_nonce(),
-        'title': get_stream_title(),
+        'title': await get_stream_title(),
         'uptime': get_stream_uptime(),
         'messages': get_all_messages_for_websocket(),
         'users': get_all_users_for_websocket(),

@@ -316,6 +316,12 @@ const disable_captcha = () => {
   chat_form_captcha_image.removeAttribute("src");
 }
 
+const set_title = (title) => {
+  const element = document.createElement("h1");
+  element.innerText = title.replaceAll(/\r?\n/g, " ");
+  info_title.innerHTML = element.outerHTML;
+}
+
 let frozen_uptime = null;
 let frozen_uptime_received = null;
 const set_frozen_uptime = (x) => {
@@ -357,7 +363,7 @@ const on_websocket_message = (event) => {
     case "init":
       console.log("ws init", receipt);
 
-      info_title.innerText = receipt.title;
+      set_title(receipt.title);
       set_frozen_uptime(receipt.uptime);
       update_uptime();
 
@@ -395,7 +401,7 @@ const on_websocket_message = (event) => {
 
     case "title":
       console.log("ws title", receipt);
-      info_title.innerText = receipt.title;
+      set_title(receipt.title);
       break;
 
     case "ack":

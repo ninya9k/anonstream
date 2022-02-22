@@ -32,6 +32,8 @@ def create_app(config_file):
         'SEGMENT_SEARCH_COOLDOWN': config['segments']['search_cooldown'],
         'SEGMENT_SEARCH_TIMEOUT': config['segments']['search_timeout'],
         'SEGMENT_STREAM_INITIAL_BUFFER': config['segments']['stream_initial_buffer'],
+        'STREAM_TITLE': config['title']['file'],
+        'STREAM_TITLE_CACHE_LIFETIME': config['title']['file_cache_lifetime'],
         'DEFAULT_HOST_NAME': config['names']['broadcaster'],
         'DEFAULT_ANON_NAME': config['names']['anonymous'],
         'MAX_STATES': config['memory']['states'],
