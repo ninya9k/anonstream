@@ -101,8 +101,14 @@ def change_tripcode(user, password, dry_run=False):
 def delete_tripcode(user):
     user['tripcode'] = None
 
-def see(user):
-    user['last']['seen'] = int(time.time())
+@with_timestamp
+def see(timestamp, user):
+    user['last']['seen'] = timestamp
+
+@with_timestamp
+def watched(timestamp, user):
+    user['last']['seen'] = timestamp
+    user['last']['watching'] = timestamp
 
 @with_timestamp
 def get_all_users_for_websocket(timestamp):

@@ -1,3 +1,4 @@
+import os
 import secrets
 import toml
 from collections import OrderedDict
@@ -5,7 +6,6 @@ from collections import OrderedDict
 from quart import Quart
 from werkzeug.security import generate_password_hash
 
-from anonstream.segments import DirectoryCache
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.utils.colour import color_to_colour
 from anonstream.utils.user import generate_token
@@ -25,6 +25,13 @@ def create_app(config_file):
         'AUTH_USERNAME': config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
         'AUTH_TOKEN': generate_token(),
+        'SEGMENT_DIRECTORY': os.path.realpath(config['segments']['directory']),
+        'SEGMENT_PLAYLIST': os.path.join(os.path.realpath(config['segments']['directory']), config['segments']['playlist']),
+        'SEGMENT_PLAYLIST_CACHE_LIFETIME': config['segments']['playlist_cache_lifetime'],
+        'SEGMENT_PLAYLIST_STALE_THRESHOLD': config['segments']['playlist_stale_threshold'],
+        'SEGMENT_SEARCH_COOLDOWN': config['segments']['search_cooldown'],
+        'SEGMENT_SEARCH_TIMEOUT': config['segments']['search_timeout'],
+        'SEGMENT_STREAM_INITIAL_BUFFER': config['segments']['stream_initial_buffer'],
         'DEFAULT_HOST_NAME': config['names']['broadcaster'],
         'DEFAULT_ANON_NAME': config['names']['anonymous'],
         'MAX_STATES': config['memory']['states'],
@@ -68,8 +75,6 @@ def create_app(config_file):
 
     app.users_by_token = {}
     app.users = app.users_by_token.values()
-
-    app.segments_directory_cache = DirectoryCache(config['stream']['segments_dir'])
 
     app.captchas = OrderedDict()
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])

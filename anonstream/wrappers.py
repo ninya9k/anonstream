@@ -31,3 +31,25 @@ def try_except_log(errors, exception_class):
         return wrapper
 
     return try_except_log_specific
+
+def ttl_cache(ttl):
+    '''
+    Expiring cache with exactly one slot. Only wraps
+    functions that take no arguments.
+    '''
+    def ttl_cache_specific(f):
+        value, expires = None, None
+
+        @wraps(f)
+        def wrapper():
+            nonlocal value, expires
+
+            if expires is None or time.monotonic() >= expires:
+                value = f()
+                expires = time.monotonic() + ttl
+
+            return value
+
+        return wrapper
+
+    return ttl_cache_specific

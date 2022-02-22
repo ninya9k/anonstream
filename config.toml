@@ -3,8 +3,14 @@ secret_key = "test"
 [auth]
 username = "broadcaster"
 
-[stream]
-segments_dir = "stream/"
+[segments]
+directory = "stream/"
+playlist = "stream.m3u8"
+playlist_stale_threshold = 8.0
+playlist_cache_lifetime = 0.2
+search_cooldown = 0.25
+search_timeout = 5.0
+stream_initial_buffer = 3
 
 [captcha]
 lifetime = 1800
@@ -21,9 +27,9 @@ chat_messages = 8192
 chat_scrollback = 256
 
 [tasks]
-rotate_users = 60
-rotate_captchas = 60
-broadcast_users_update = 4
+rotate_users = 60.0
+rotate_captchas = 60.0
+broadcast_users_update = 4.0
 
 [names]
 broadcaster = "Broadcaster"
@@ -36,11 +42,11 @@ min_name_contrast = 3.0
 background_color = "#232327"
 
 [flood]
-duration = 20
+duration = 20.0
 threshold = 4
 
 [thresholds]
-user_notwatching = 8
-user_tentative = 20
-user_absent = 360
-nojs_chat_timeout = 30
+user_notwatching = 8.0
+user_tentative = 20.0
+user_absent = 360.0
+nojs_chat_timeout = 30.0

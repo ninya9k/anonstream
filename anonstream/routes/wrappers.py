@@ -53,7 +53,11 @@ def with_user_from(context):
             if broadcaster:
                 token = CONFIG['AUTH_TOKEN']
             else:
-                token = context.args.get('token') or context.cookies.get('token') or generate_token()
+                token = (
+                    context.args.get('token')
+                    or context.cookies.get('token')
+                    or generate_token()
+                )
 
             # Update / create user
             user = USERS_BY_TOKEN.get(token)

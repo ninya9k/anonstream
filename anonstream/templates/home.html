@@ -2,10 +2,10 @@
 <html id="nochat">
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="/static/style.css" type="text/css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
 </head>
 <body id="both" data-token="{{ user.token }}">
-  <video id="stream" src="{{ url_for('stream', token=user.token) }}" controls></video>
+  <video id="stream" src="{{ url_for('stream', token=user.token) }}" autoplay controls></video>
   <article id="info">
     <noscript><iframe id="info_nojs" src="{{ url_for('nojs_info', token=user.token) }}" data-js="false"></iframe></noscript>
   </article>
@@ -24,6 +24,6 @@
     <a href="#both">both</a>
   </nav>
   <footer>anonstream 1.0.0 &mdash; <a href="#" target="_blank">source</a></footer>
-  <script src="/static/anonstream.js" type="text/javascript"></script>
+  <script src="{{ url_for('static', filename='anonstream.js') }}" type="text/javascript"></script>
 </body>
 </html>
