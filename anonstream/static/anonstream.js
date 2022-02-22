@@ -76,10 +76,7 @@ const create_chat_message = (object) => {
   chat_message_time.title = `${object.date} ${object.time_seconds}`;
   chat_message_time.innerText = object.time_minutes;
 
-  const chat_message_name = document.createElement("span");
-  chat_message_name.classList.add("chat-message__name");
-  chat_message_name.innerText = get_user_name({user});
-  //chat_message_name.dataset.color = user.color; // not working in any browser
+  const chat_message_name = create_chat_message_name(user);
 
   const chat_message_tripcode_nbsp = document.createElement("span");
   chat_message_tripcode_nbsp.classList.add("for-tripcode");
@@ -104,7 +101,20 @@ const create_chat_message = (object) => {
   chat_message.insertAdjacentHTML("beforeend", ":&nbsp;");
   chat_message.insertAdjacentElement("beforeend", chat_message_markup);
 
-  return chat_message
+  return chat_message;
+}
+const create_chat_message_name = (user) => {
+  const chat_message_name = document.createElement("span");
+  chat_message_name.classList.add("chat-message__name");
+  chat_message_name.innerText = get_user_name({user});
+  //chat_message_name.dataset.color = user.color; // not working in any browser
+  if (!user.broadcaster && user.name === null) {
+    const chat_message_name_tag = document.createElement("sup");
+    chat_message_name_tag.classList.add("chat-message__name__tag");
+    chat_message_name_tag.innerText = user.tag;
+    chat_message_name.insertAdjacentElement("beforeend", chat_message_name_tag);
+  }
+  return chat_message_name;
 }
 const create_and_add_chat_message = (object) => {
   const chat_message = create_chat_message(object);
@@ -176,8 +186,9 @@ const update_user_names = (token_hash=null) => {
   for (const chat_message of chat_messages.children) {
     const this_token_hash = chat_message.dataset.tokenHash;
     if (token_hashes.includes(this_token_hash)) {
+      const user = users[this_token_hash];
       const chat_message_name = chat_message.querySelector(".chat-message__name");
-      chat_message_name.innerText = get_user_name({token_hash: this_token_hash});
+      chat_message_name.innerHTML = create_chat_message_name(user).innerHTML;
     }
   }
 }
@@ -315,13 +326,6 @@ const on_websocket_message = (event) => {
       chat_form_nonce.value = receipt.nonce;
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
 
-      default_name = receipt.default;
-      max_chat_scrollback = receipt.scrollback;
-      users = receipt.users;
-      update_user_names();
-      update_user_colors();
-      update_user_tripcodes();
-
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
       for (const chat_message of chat_messages.children) {
@@ -333,6 +337,13 @@ const on_websocket_message = (event) => {
       for (const chat_message of to_delete) {
         chat_message.remove();
       }
+
+      default_name = receipt.default;
+      max_chat_scrollback = receipt.scrollback;
+      users = receipt.users;
+      update_user_names();
+      update_user_colors();
+      update_user_tripcodes();
 
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
       const last_seq = last === null ? null : parseInt(last.dataset.seq);

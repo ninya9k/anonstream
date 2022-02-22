@@ -20,10 +20,14 @@ Presence = Enum(
     )
 )
 
-def generate_token_hash(token):
+def generate_token_hash_and_tag(token):
     parts = CONFIG['SECRET_KEY'] + b'token-hash\0' + token.encode()
     digest = hashlib.sha256(parts).digest()
-    return base64.b32encode(digest)[:26].lower().decode()
+
+    token_hash = base64.b32encode(digest)[:26].lower().decode()
+    tag = f'#{digest.hex()[:3]}'
+
+    return token_hash, tag
 
 def generate_user(timestamp, token, broadcaster):
     colour = generate_colour(
@@ -31,9 +35,11 @@ def generate_user(timestamp, token, broadcaster):
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
         contrast=4.53,
     )
+    token_hash, tag = generate_token_hash_and_tag(token)
     return {
         'token': token,
-        'token_hash': generate_token_hash(token),
+        'token_hash': token_hash,
+        'tag': tag,
         'broadcaster': broadcaster,
         'verified': broadcaster,
         'websockets': set(),

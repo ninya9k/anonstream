@@ -10,7 +10,7 @@ def generate_token():
     return secrets.token_hex(16)
 
 def get_user_for_websocket(user):
-    keys = ['broadcaster', 'name', 'color', 'tripcode']
+    keys = ['broadcaster', 'name', 'color', 'tripcode', 'tag']
     return {key: user[key] for key in keys}
 
 def concatenate_for_notice(string, *tuples):

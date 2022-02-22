@@ -125,6 +125,11 @@ noscript {
   /* color: attr("data-color"); */
   cursor: default;
 }
+.chat-message__name__tag {
+  font-family: monospace;
+  font-size: 9pt;
+  vertical-align: top;
+}
 .chat-message__markup {
   overflow-wrap: anywhere;
   line-height: 1.3125;

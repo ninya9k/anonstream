@@ -111,11 +111,14 @@ async def nojs_submit_message(user):
 @with_user_from(request)
 async def nojs_submit_appearance(user):
     form = await request.form
-    name = form.get('name', '') or None
+    name = form.get('name', '').strip()
     color = form.get('color', '')
     password = form.get('password', '')
     want_delete_tripcode = form.get('clear-tripcode', type=bool)
     want_change_tripcode = form.get('set-tripcode', type=bool)
+
+    if len(name) == 0 or name == get_default_name(user):
+        name = None
 
     errors = try_change_appearance(
         user,
