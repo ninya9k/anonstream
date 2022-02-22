@@ -129,9 +129,9 @@
   </aside>
   <ol id="chat-messages">
     {% for message in messages | reverse %}
-      <li class="chat-message">
+      <li class="chat-message" data-seq="{{ message.seq }}" data-token-hash="{{ user.token_hash }}">
         {% with user = users_by_token[message.token] %}
-          <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>&nbsp;<span class="chat-message__name" style="color:{{ user.color }};" data-seq="{{ message.seq }}" data-token-hash="{{ user.token_hash }}">{{ user.name or get_default_name(user) }}</span>{% if user.tripcode %}<span class="for-tripcode">&nbsp;</span><span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>{% endif %}:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
+          <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>&nbsp;<span class="chat-message__name" style="color:{{ user.color }};">{{ user.name or get_default_name(user) }}</span>{% if user.tripcode %}<span class="for-tripcode">&nbsp;</span><span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>{% endif %}:&nbsp;<span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}
       </li>
     {% endfor %}
