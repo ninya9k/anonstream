@@ -20,6 +20,10 @@ def create_app(config_file):
     print('Broadcaster password:', auth_password)
 
     app = Quart('anonstream')
+    app.jinja_options.update({
+        'trim_blocks': True,
+        'lstrip_blocks': True,
+    })
     app.config.update({
         'SECRET_KEY': config['secret_key'].encode(),
         'AUTH_USERNAME': config['auth']['username'],
