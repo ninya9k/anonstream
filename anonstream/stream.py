@@ -4,9 +4,11 @@ import aiofiles
 from quart import current_app
 
 from anonstream.segments import get_playlist, Offline
-from anonstream.wrappers import ttl_cache_async
+from anonstream.wrappers import ttl_cache_async, with_timestamp
+from anonstream.helpers.user import is_watching
 
 CONFIG = current_app.config
+USERS = current_app.users
 
 @ttl_cache_async(CONFIG['STREAM_TITLE_CACHE_LIFETIME'])
 async def get_stream_title():
@@ -31,6 +33,14 @@ def get_stream_uptime(rounded=True):
         uptime = duration + last_modified_ago
         uptime = round(uptime, 2) if rounded else uptime
         return uptime
+
+@with_timestamp
+def get_stream_viewership(timestamp):
+    return sum(map(lambda user: is_watching(timestamp, user), USERS))
+
+def get_stream_viewership_or_none(uptime):
+    viewership = get_stream_viewership()
+    return uptime and viewership
 
 def is_online():
     try:

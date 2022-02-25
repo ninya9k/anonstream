@@ -5,7 +5,7 @@ from functools import wraps
 from quart import current_app
 
 from anonstream.broadcast import broadcast, broadcast_users_update
-from anonstream.stream import is_online, get_stream_title, get_stream_uptime
+from anonstream.stream import is_online, get_stream_title, get_stream_uptime, get_stream_viewership_or_none
 from anonstream.wrappers import with_timestamp
 from anonstream.helpers.user import is_visible
 
@@ -42,7 +42,7 @@ def with_period(period):
 
 @with_period(CONFIG['TASK_PERIOD_ROTATE_USERS'])
 @with_timestamp
-async def t_sunset_users(iteration, timestamp):
+async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
 
@@ -98,8 +98,12 @@ async def t_broadcast_users_update(iteration):
 @with_period(CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE'])
 async def t_broadcast_stream_info_update(iteration):
     if iteration == 0:
-        current_app.stream_title = await get_stream_title()
-        current_app.stream_uptime = get_stream_uptime()
+        title = await get_stream_title()
+        uptime = get_stream_uptime()
+        viewership = get_stream_viewership_or_none(uptime)
+        current_app.stream_title = title
+        current_app.stream_uptime = uptime
+        current_app.stream_viewership = viewership
     else:
         payload = {}
 
@@ -109,7 +113,7 @@ async def t_broadcast_stream_info_update(iteration):
             current_app.stream_title = title
             payload['title'] = title
 
-        # Check if the stream uptime has changed differently than expected
+        # Check if the stream uptime has changed more or less than expected
         if current_app.stream_uptime is None:
             expected_uptime = None
         else:
@@ -125,6 +129,12 @@ async def t_broadcast_stream_info_update(iteration):
             payload['uptime'] = uptime
         elif abs(uptime - expected_uptime) >= 0.0625:
             payload['uptime'] = uptime
+
+        # Check if viewership has changed
+        viewership = get_stream_viewership_or_none(uptime)
+        if current_app.stream_viewership != viewership:
+            current_app.stream_viewership = viewership
+            payload['viewership'] = viewership
 
         if payload:
             broadcast(USERS, payload={'type': 'info', **payload})

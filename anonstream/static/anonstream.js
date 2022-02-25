@@ -6,7 +6,9 @@ const jsmarkup_style_color = '<style id="style-color"></style>'
 const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></style>'
 const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
-const jsmarkup_info_uptime = '<aside id="info_js__uptime"></aside>';
+const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
+const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
+const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
 const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
 const jsmarkup_chat_form = `\
@@ -23,7 +25,7 @@ const jsmarkup_chat_form = `\
   <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
 </form>`;
 
-const insert_jsmarkup = () => {
+const insert_jsmarkup = () => {jsmarkup_info_float_viewership
   if (document.getElementById("style-color") === null) {
     const parent = document.head;
     parent.insertAdjacentHTML("beforeend", jsmarkup_style_color);
@@ -40,9 +42,17 @@ const insert_jsmarkup = () => {
     const parent = document.getElementById("info");
     parent.insertAdjacentHTML("beforeend", jsmarkup_info);
   }
-  if (document.getElementById("info_js__uptime") === null) {
+  if (document.getElementById("info_js__float") === null) {
     const parent = document.getElementById("info_js");
-    parent.insertAdjacentHTML("beforeend", jsmarkup_info_uptime);
+    parent.insertAdjacentHTML("beforeend", jsmarkup_info_float);
+  }
+  if (document.getElementById("info_js__float__viewership") === null) {
+    const parent = document.getElementById("info_js__float");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_info_float_viewership);
+  }
+  if (document.getElementById("info_js__float__uptime") === null) {
+    const parent = document.getElementById("info_js__float");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_info_float_uptime);
   }
   if (document.getElementById("info_js__title") === null) {
     const parent = document.getElementById("info_js");
@@ -65,7 +75,8 @@ const stylesheet_tripcode_colors = document.styleSheets[3];
 
 /* create websocket */
 const info_title = document.getElementById("info_js__title");
-const info_uptime = document.getElementById("info_js__uptime");
+const info_viewership = document.getElementById("info_js__float__viewership");
+const info_uptime = document.getElementById("info_js__float__uptime");
 const chat_messages = document.getElementById("chat-messages_js");
 
 const create_chat_message = (object) => {
@@ -352,6 +363,10 @@ const update_uptime = () => {
 }
 setInterval(update_uptime, 1000); // always update uptime
 
+const set_viewership = (n) => {
+  info_viewership.innerText = n === null ? "" : `${n} viewers`;
+}
+
 const on_websocket_message = (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -363,13 +378,23 @@ const on_websocket_message = (event) => {
     case "init":
       console.log("ws init", receipt);
 
+      // set title
       set_title(receipt.title);
+
+      // set viewership
+      set_viewership(receipt.viewership);
+
+      // set uptime
       set_frozen_uptime(receipt.uptime);
       update_uptime();
 
+      // chat form nonce
       chat_form_nonce.value = receipt.nonce;
+
+      // chat form captcha digest
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
 
+      // remove messages the server isn't acknowledging the existance of
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
       for (const chat_message of chat_messages.children) {
@@ -382,13 +407,17 @@ const on_websocket_message = (event) => {
         chat_message.remove();
       }
 
+      // settings
       default_name = receipt.default;
       max_chat_scrollback = receipt.scrollback;
+
+      // appearances
       users = receipt.users;
       update_user_names();
       update_user_colors();
       update_user_tripcodes();
 
+      // insert new messages
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
       const last_seq = last === null ? null : parseInt(last.dataset.seq);
       for (const message of receipt.messages) {
@@ -407,6 +436,11 @@ const on_websocket_message = (event) => {
       if (receipt.uptime !== undefined) {
         set_frozen_uptime(receipt.uptime);
         update_uptime();
+      }
+      if (receipt.viewership === 0 && frozen_uptime === null) {
+        set_viewership(null);
+      } else if (receipt.viewership !== undefined) {
+        set_viewership(receipt.viewership);
       }
       break;
 

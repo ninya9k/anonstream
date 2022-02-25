@@ -76,6 +76,9 @@ def get_presence(timestamp, user):
 
     return Presence.ABSENT
 
+def is_watching(timestamp, user):
+    return get_presence(timestamp, user) == Presence.WATCHING
+
 def is_listed(timestamp, user):
     return (
         get_presence(timestamp, user)

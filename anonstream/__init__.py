@@ -89,8 +89,9 @@ def create_app(config_file):
 
     # State for tasks
     app.users_update_buffer = set()
-    app.stream_uptime = None
     app.stream_title = None
+    app.stream_uptime = None
+    app.stream_viewership = None
 
     # Background tasks' asyncio.sleep tasks, cancelled on shutdown
     app.background_sleep = set()
