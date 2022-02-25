@@ -44,7 +44,7 @@ async def websocket_inbound(queue, user):
         finally:
             see(user)
         try:
-            nonce, comment, digest, answer = parse_websocket_data(receipt)
+            parsed = parse_websocket_data(receipt)
         except Malformed as e:
             error , *_ = e.args
             payload = {
@@ -52,29 +52,47 @@ async def websocket_inbound(queue, user):
                 'because': error,
             }
         else:
-            try:
-                verification_happened = verify(user, digest, answer)
-            except BadCaptcha as e:
-                notice, *_ = e.args
-            else:
-                try:
-                    message_was_added = add_chat_message(
-                        user,
-                        nonce,
-                        comment,
-                        ignore_empty=verification_happened,
-                    )
-                except Rejected as e:
-                    notice, *_ = e.args
-                else:
-                    deverify(user)
-                    notice = None
-            payload = {
-                'type': 'ack',
-                'nonce': nonce,
-                'next': generate_nonce(),
-                'notice': notice,
-                'clear': message_was_added,
-                'digest': get_random_captcha_digest_for(user),
-            }
+            match parsed:
+                case [nonce, comment, digest, answer]:
+                    payload = handle_inbound_message(user, *parsed)
+
+                case None:
+                    payload = handle_inbound_captcha(user)
+
         queue.put_nowait(payload)
+
+def handle_inbound_captcha(user):
+    return {
+        'type': 'captcha',
+        'digest': get_random_captcha_digest_for(user),
+    }
+
+def handle_inbound_message(user, nonce, comment, digest, answer):
+    try:
+        verification_happened = verify(user, digest, answer)
+    except BadCaptcha as e:
+        notice, *_ = e.args
+        message_was_added = False
+    else:
+        try:
+            message_was_added = add_chat_message(
+                user,
+                nonce,
+                comment,
+                ignore_empty=verification_happened,
+            )
+        except Rejected as e:
+            notice, *_ = e.args
+            message_was_added = False
+        else:
+            notice = None
+            if message_was_added:
+                deverify(user)
+    return {
+        'type': 'ack',
+        'nonce': nonce,
+        'next': generate_nonce(),
+        'notice': notice,
+        'clear': message_was_added,
+        'digest': get_random_captcha_digest_for(user),
+    }

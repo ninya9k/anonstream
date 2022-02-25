@@ -296,13 +296,31 @@ const chat_form_captcha_digest = document.getElementById("chat-form_js__captcha-
 const chat_form_captcha_image = document.getElementById("chat-form_js__captcha-image");
 const chat_form_captcha_answer = document.getElementById("chat-form_js__captcha-answer");
 chat_form_captcha_image.addEventListener("loadstart", (event) => {
+  chat_form_captcha_image.removeAttribute("title");
+  chat_form_captcha_image.removeAttribute("data-reloadable");
   chat_form_captcha_image.alt = "Loading...";
 });
 chat_form_captcha_image.addEventListener("load", (event) => {
   chat_form_captcha_image.removeAttribute("alt");
+  chat_form_captcha_image.dataset.reloadable = "";
+  chat_form_captcha_image.title = "Click for a new captcha";
 });
 chat_form_captcha_image.addEventListener("error", (event) => {
   chat_form_captcha_image.alt = "Captcha failed to load";
+  chat_form_captcha_image.dataset.reloadable = "";
+  chat_form_captcha_image.title = "Click for a new captcha";
+});
+chat_form_captcha_image.addEventListener("click", (event) => {
+  if (chat_form_captcha_image.dataset.reloadable === undefined) {
+    return;
+  }
+  chat_form_submit.disabled = true;
+  chat_form_captcha_image.alt = "Waiting...";
+  chat_form_captcha_image.removeAttribute("title");
+  chat_form_captcha_image.removeAttribute("data-reloadable");
+  chat_form_captcha_image.removeAttribute("src");
+  const payload = {type: "captcha"};
+  ws.send(JSON.stringify(payload));
 });
 const enable_captcha = (digest) => {
   chat_form_captcha_digest.value = digest;
@@ -313,6 +331,7 @@ const enable_captcha = (digest) => {
   chat_form_comment.required = false;
   chat_form_captcha_image.removeAttribute("src");
   chat_form_captcha_image.src = `/captcha.jpg?token=${encodeURIComponent(token)}&digest=${encodeURIComponent(digest)}`;
+  chat_form_submit.disabled = false;
   chat_form.dataset.captcha = "";
 }
 const disable_captcha = () => {
@@ -323,6 +342,7 @@ const disable_captcha = () => {
   chat_form_captcha_digest.value = "";
   chat_form_captcha_answer.value = "";
   chat_form_captcha_answer.required = false;
+  chat_form_submit.disabled = false;
   chat_form_captcha_image.removeAttribute("alt");
   chat_form_captcha_image.removeAttribute("src");
 }
@@ -373,6 +393,7 @@ const on_websocket_message = (event) => {
   switch (receipt.type) {
     case "error":
       console.log("ws error", receipt);
+      chat_form_submit.disabled = false;
       break;
 
     case "init":
@@ -393,6 +414,9 @@ const on_websocket_message = (event) => {
 
       // chat form captcha digest
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
+
+      // chat form submit button
+      chat_form_submit.disabled = false;
 
       // remove messages the server isn't acknowledging the existance of
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
@@ -486,6 +510,11 @@ const on_websocket_message = (event) => {
       update_user_tripcodes();
       break;
 
+    case "captcha":
+      console.log("ws captcha", receipt);
+      receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
+      break;
+
     default:
       console.log("incomprehensible websocket message", receipt);
   }
@@ -547,7 +576,8 @@ const chat_form_comment = document.getElementById("chat-form_js__comment");
 const chat_form_submit = document.getElementById("chat-form_js__submit");
 chat_form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const payload = Object.fromEntries(new FormData(chat_form));
+  const form = Object.fromEntries(new FormData(chat_form));
+  const payload = {type: "message", form: form};
   chat_form_submit.disabled = true;
   ws.send(JSON.stringify(payload));
 });
