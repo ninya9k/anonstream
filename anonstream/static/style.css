@@ -108,10 +108,10 @@ noscript {
 }
 #chat__toggle:checked + #chat__header > #chat__header__button {
   border-style: inset;
-  background-color: #d0d0d7;
+  background-color: #b3b3bf;
 }
 #chat__toggle:checked + #chat__header > #chat__header__button:hover {
-  background-color: #c0c0c8;
+  background-color: #a6a6b1;
 }
 #chat__toggle:focus-visible + #chat__header > #chat__header__button {
   border-color: #3584e4;
@@ -129,18 +129,18 @@ noscript {
   width: min-content;
   z-index: 1;
   padding: 1px 5px;
-  background-color: #e9e9ed;
+  background-color: #c9c9d3;
   border: 3px outset #8f8f9d;
   border-radius: 4px;
   color: black;
   user-select: none;
 }
 #chat__header__button:hover {
-  background-color: #d0d0d7;
+  background-color: #b3b3bf;
 }
 #chat__header__button:active {
   border-style: inset;
-  background-color: #b1b1b9 !important;
+  background-color: #9999a4 !important;
 }
 #chat__header__text {
   margin: 0;
