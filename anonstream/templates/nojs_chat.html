@@ -1,3 +1,4 @@
+{% from 'macros/user.html' import appearance with context %}
 <!doctype html>
 <html>
 <head>
@@ -138,17 +139,7 @@
         {% with user = users_by_token[message.token] %}
           <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>
           {{- '&nbsp;' | safe -}}
-          <span class="chat-message__name" style="color:{{ user.color }};">
-            {{- user.name or get_default_name(user) -}}
-            {%- if not user.broadcaster and user.name is none -%}
-              <sup class="chat-message__name__tag">{{ user.tag }}</sup>
-            {%- endif -%}
-          </span>
-          {%- if user.tripcode -%}
-            <span class="for-tripcode">&nbsp;</span>
-            {{- '' -}}
-            <span class="tripcode for-tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>
-          {%- endif -%}
+          {{ appearance(user, name_class='chat-message__name', tag_class='chat-message__name__tag') }}
           {{- ':&nbsp;' | safe -}}
           <span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}

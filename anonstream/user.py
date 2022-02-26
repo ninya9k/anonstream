@@ -4,7 +4,7 @@ from math import inf
 from quart import current_app
 
 from anonstream.wrappers import try_except_log, with_timestamp
-from anonstream.helpers.user import is_visible
+from anonstream.helpers.user import is_visible, get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
 from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
@@ -36,25 +36,30 @@ def pop_state(user, state_id):
         state = None
     return state
 
-def try_change_appearance(user, name, color, password,
-                          want_delete_tripcode, want_change_tripcode):
+def try_change_appearance(user, name, color, password, want_tripcode):
     errors = []
     def try_(f, *args, **kwargs):
         return try_except_log(errors, BadAppearance)(f)(*args, **kwargs)
 
     try_(change_name, user, name, dry_run=True)
     try_(change_color, user, color, dry_run=True)
-    if want_delete_tripcode:
-        pass
-    elif want_change_tripcode:
+    if want_tripcode:
         try_(change_tripcode, user, password, dry_run=True)
 
     if not errors:
         change_name(user, name)
         change_color(user, color)
-        if want_delete_tripcode:
+
+        # Leave tripcode
+        if want_tripcode is None:
+            pass
+
+        # Delete tripcode
+        elif not want_tripcode:
             delete_tripcode(user)
-        elif want_change_tripcode:
+
+        # Change tripcode
+        elif want_tripcode:
             change_tripcode(user, password)
 
         # Add to the users update buffer
@@ -153,3 +158,16 @@ def deverify(timestamp, user):
 
     if n_user_messages >= CONFIG['FLOOD_THRESHOLD']:
         user['verified'] = False
+
+@with_timestamp
+def get_users_by_presence(timestamp):
+    users_by_presence = {
+        Presence.WATCHING: [],
+        Presence.NOTWATCHING: [],
+        Presence.TENTATIVE: [],
+        Presence.ABSENT: [],
+    }
+    for user in USERS:
+        presence = get_presence(timestamp, user)
+        users_by_presence[presence].append(user)
+    return users_by_presence

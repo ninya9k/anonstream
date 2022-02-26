@@ -30,7 +30,7 @@ body {
   grid-auto-rows: var(--video-height) auto min-content 1fr auto;
   grid-template-areas:
     "stream"
-    "toggle"
+    "nav"
     "info"
     "chat"
     "footer";
@@ -93,11 +93,61 @@ noscript {
   grid-area: chat;
   height: 50vh;
   min-height: 24ch;
+  position: relative;
+}
+#chat__toggle {
+  opacity: 0;
+  position: absolute;
+  top: calc(0.5rem + 1px);
+  left: calc(0.5rem + 4px);
+  margin: 0;
+}
+#chat__toggle:checked ~ #chat__messages,
+#chat__toggle:not(:checked) ~ #chat__users {
+  display: none;
+}
+#chat__toggle:checked + #chat__header > #chat__header__button {
+  border-style: inset;
+  background-color: #d0d0d7;
+}
+#chat__toggle:checked + #chat__header > #chat__header__button:hover {
+  background-color: #c0c0c8;
+}
+#chat__toggle:focus-visible + #chat__header > #chat__header__button {
+  border-color: #3584e4;
+  box-shadow: 0 0 6px #3584e4;
 }
 #chat__header {
-  text-align: center;
-  padding: 0.5rem 0;
+  padding: 0.5rem;
   border-bottom: var(--chat-border);
+  display: grid;
+  align-items: center;
+}
+#chat__header__button {
+  grid-column: 1;
+  grid-row: 1;
+  width: min-content;
+  z-index: 1;
+  padding: 1px 5px;
+  background-color: #e9e9ed;
+  border: 3px outset #8f8f9d;
+  border-radius: 4px;
+  color: black;
+  user-select: none;
+}
+#chat__header__button:hover {
+  background-color: #d0d0d7;
+}
+#chat__header__button:active {
+  border-style: inset;
+  background-color: #b1b1b9 !important;
+}
+#chat__header__text {
+  margin: 0;
+  font-weight: normal;
+  text-align: center;
+  grid-column: 1;
+  grid-row: 1;
 }
 #chat__messages {
   position: relative;
@@ -152,6 +202,9 @@ noscript {
   font-family: monospace;
   font-size: 9pt;
   cursor: default;
+}
+#chat-users_nojs {
+  height: 100%;
 }
 #chat-form_js {
   display: grid;
@@ -233,13 +286,13 @@ noscript {
   100% {filter: brightness(100%)}
 }
 
-#toggle {
-  grid-area: toggle;
+#nav {
+  grid-area: nav;
   border-top: var(--main-border);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
-#toggle > a {
+#nav > a {
   text-align: center;
   padding: 1ch;
   font-variant: all-small-caps;
@@ -266,9 +319,9 @@ footer {
 #chat:target, #both:target > #chat {
   display: grid;
 }
-#info:target ~ #toggle > [href="#info"],
-#chat:target ~ #toggle > [href="#chat"],
-#both:target > #toggle > [href="#both"] {
+#info:target ~ #nav > [href="#info"],
+#chat:target ~ #nav > [href="#chat"],
+#both:target > #nav > [href="#both"] {
   background-color: #3065a6;
   border-style: inset;
 }
@@ -291,7 +344,7 @@ footer {
       "info chat"
       "footer chat";
   }
-  #toggle {
+  #nav {
     display: none;
   }
   #info {

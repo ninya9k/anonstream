@@ -3,7 +3,7 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
 from anonstream.stream import get_stream_title, get_stream_uptime, get_stream_viewership
-from anonstream.user import add_state, pop_state, try_change_appearance, verify, deverify, BadCaptcha
+from anonstream.user import add_state, pop_state, try_change_appearance, get_users_by_presence, verify, deverify, BadCaptcha
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name, Presence
@@ -40,6 +40,18 @@ async def nojs_chat(user):
 @with_user_from(request)
 async def nojs_chat_redirect(user):
     return redirect(url_for('nojs_chat', _anchor='end'))
+
+@current_app.route('/chat/users.html')
+@with_user_from(request)
+async def nojs_users(user):
+    users_by_presence = get_users_by_presence()
+    return await render_template(
+        'nojs_users.html',
+        user=user,
+        get_default_name=get_default_name,
+        users_watching=users_by_presence[Presence.WATCHING],
+        users_notwatching=users_by_presence[Presence.NOTWATCHING],
+    )
 
 @current_app.route('/chat/form.html')
 @with_user_from(request)
@@ -113,23 +125,24 @@ async def nojs_submit_message(user):
 @with_user_from(request)
 async def nojs_submit_appearance(user):
     form = await request.form
-    name = form.get('name', '').strip()
-    color = form.get('color', '')
-    password = form.get('password', '')
-    want_delete_tripcode = form.get('clear-tripcode', type=bool)
-    want_change_tripcode = form.get('set-tripcode', type=bool)
 
+    # Collect form data
+    name = form.get('name', '').strip()
     if len(name) == 0 or name == get_default_name(user):
         name = None
 
-    errors = try_change_appearance(
-        user,
-        name,
-        color,
-        password,
-        want_delete_tripcode,
-        want_change_tripcode,
-    )
+    color = form.get('color', '')
+    password = form.get('password', '')
+
+    if form.get('clear-tripcode', type=bool):
+        want_tripcode = False
+    elif form.get('set-tripcode', type=bool):
+        want_tripcode = True
+    else:
+        want_tripcode = None
+
+    # Change appearance (iff form data was good)
+    errors = try_change_appearance(user, name, color, password, want_tripcode)
     if errors:
         notice = Markup('<br>').join(
             concatenate_for_notice(*error.args) for error in errors

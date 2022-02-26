@@ -1,0 +1,22 @@
+{%
+  macro appearance(
+    user,
+    name_class,
+    tag_class,
+    tripcode_nbsp_class='for-tripcode',
+    tripcode_class='tripcode for-tripcode'
+  )
+%}
+  {{- '' -}}
+  <span class="{{ name_class }}" style="color:{{ user.color }};">
+    {{- user.name or get_default_name(user) -}}
+    {%- if not user.broadcaster and user.name is none -%}
+      <sup class="{{ tag_class }}">{{ user.tag }}</sup>
+    {%- endif -%}
+  </span>
+  {%- if user.tripcode -%}
+    <span class="{{ tripcode_nbsp_class }}">&nbsp;</span>
+    {{- '' -}}
+    <span class="{{ tripcode_class }}" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>
+  {%- endif -%}
+{% endmacro %}
