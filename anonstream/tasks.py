@@ -6,8 +6,8 @@ from quart import current_app
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime, get_stream_viewership_or_none
+from anonstream.user import get_sunsettable_users
 from anonstream.wrappers import with_timestamp
-from anonstream.helpers.user import is_visible
 
 CONFIG = current_app.config
 MESSAGES = current_app.messages
@@ -46,21 +46,16 @@ async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
 
-    tokens = []
-    for token in USERS_BY_TOKEN:
-        user = USERS_BY_TOKEN[token]
-        if not is_visible(timestamp, MESSAGES, user):
-            tokens.append(token)
+    # Broadcast a users update, in case any users being
+    # removed have been mutated or are new.
+    broadcast_users_update()
 
     token_hashes = []
-    while tokens:
-        token = tokens.pop()
-        token_hash = USERS_BY_TOKEN.pop(token)['token_hash']
-        token_hashes.append(token_hash)
-
-        # Broadcast a users update, in case any users being
-        # removed have been mutated or are new.
-        broadcast_users_update()
+    users = list(get_sunsettable_users(timestamp))
+    while users:
+        user = users.pop()
+        USERS_BY_TOKEN.pop(user['token'])
+        token_hashes.append(user['token_hash'])
 
     if token_hashes:
         broadcast(

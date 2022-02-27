@@ -1,3 +1,5 @@
+import itertools
+import operator
 import time
 
 import aiofiles
@@ -5,7 +7,7 @@ from quart import current_app
 
 from anonstream.segments import get_playlist, Offline
 from anonstream.wrappers import ttl_cache_async, with_timestamp
-from anonstream.helpers.user import is_watching
+from anonstream.user import get_watching_users
 
 CONFIG = current_app.config
 USERS = current_app.users
@@ -36,7 +38,11 @@ def get_stream_uptime(rounded=True):
 
 @with_timestamp
 def get_stream_viewership(timestamp):
-    return sum(map(lambda user: is_watching(timestamp, user), USERS))
+    users = get_watching_users(timestamp)
+    return max(
+        map(operator.itemgetter(0), zip(itertools.count(1), users)),
+        default=0,
+    )
 
 def get_stream_viewership_or_none(uptime):
     viewership = get_stream_viewership()

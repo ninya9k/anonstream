@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash
 from anonstream.broadcast import broadcast
 from anonstream.user import see
 from anonstream.helpers.user import generate_user
-from anonstream.utils.user import generate_token
+from anonstream.utils.user import generate_token, Presence
 
 CONFIG = current_app.config
 MESSAGES = current_app.messages
@@ -68,6 +68,7 @@ def with_user_from(context):
                     timestamp=timestamp,
                     token=token,
                     broadcaster=broadcaster,
+                    presence=Presence.NOTWATCHING,
                 )
                 USERS_BY_TOKEN[token] = user
 

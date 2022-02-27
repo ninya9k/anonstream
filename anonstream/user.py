@@ -4,11 +4,11 @@ from math import inf
 from quart import current_app
 
 from anonstream.wrappers import try_except_log, with_timestamp
-from anonstream.helpers.user import is_visible, get_presence, Presence
+from anonstream.helpers.user import get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
 from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
-from anonstream.utils.user import get_user_for_websocket
+from anonstream.utils.user import get_user_for_websocket, trilean
 
 CONFIG = current_app.config
 MESSAGES = current_app.messages
@@ -117,13 +117,9 @@ def watched(timestamp, user):
 
 @with_timestamp
 def get_all_users_for_websocket(timestamp):
-    visible_users = filter(
-        lambda user: is_visible(timestamp, MESSAGES, user),
-        USERS,
-    )
     return {
         user['token_hash']: get_user_for_websocket(user)
-        for user in visible_users
+        for user in get_unsunsettable_users(timestamp)
     }
 
 def verify(user, digest, answer):
@@ -159,6 +155,46 @@ def deverify(timestamp, user):
     if n_user_messages >= CONFIG['FLOOD_THRESHOLD']:
         user['verified'] = False
 
+def get_users_and_update_presence(timestamp):
+    for user in USERS:
+        old, user['presence'] = user['presence'], get_presence(timestamp, user)
+        if trilean(user['presence']) != trilean(old):
+            USERS_UPDATE_BUFFER.add(user['token'])
+        yield user
+
+def get_watching_users(timestamp):
+    return filter(
+        lambda user: user['presence'] == Presence.WATCHING,
+        get_users_and_update_presence(timestamp),
+    )
+
+def get_absent_users(timestamp):
+    return filter(
+        lambda user: user['presence'] == Presence.ABSENT,
+        get_users_and_update_presence(timestamp),
+    )
+
+def is_sunsettable(user):
+    return user['presence'] == Presence.ABSENT and not has_left_messages(user)
+
+def has_left_messages(user):
+    return any(
+        message['token'] == user['token']
+        for message in MESSAGES
+    )
+
+def get_sunsettable_users(timestamp):
+    return filter(
+        is_sunsettable,
+        get_users_and_update_presence(timestamp),
+    )
+
+def get_unsunsettable_users(timestamp):
+    return filter(
+        lambda user: not is_sunsettable(user),
+        get_users_and_update_presence(timestamp),
+    )
+
 @with_timestamp
 def get_users_by_presence(timestamp):
     users_by_presence = {
@@ -167,7 +203,6 @@ def get_users_by_presence(timestamp):
         Presence.TENTATIVE: [],
         Presence.ABSENT: [],
     }
-    for user in USERS:
-        presence = get_presence(timestamp, user)
-        users_by_presence[presence].append(user)
+    for user in get_users_and_update_presence(timestamp):
+        users_by_presence[user['presence']].append(user)
     return users_by_presence

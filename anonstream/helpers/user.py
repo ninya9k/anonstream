@@ -1,24 +1,14 @@
 import hashlib
 import base64
 from collections import OrderedDict
-from enum import Enum
 from math import inf
 
 from quart import current_app
 
 from anonstream.utils.colour import generate_colour, colour_to_color
+from anonstream.utils.user import Presence
 
 CONFIG = current_app.config
-
-Presence = Enum(
-    'Presence',
-    names=(
-        'WATCHING',
-        'NOTWATCHING',
-        'TENTATIVE',
-        'ABSENT',
-    )
-)
 
 def generate_token_hash_and_tag(token):
     parts = CONFIG['SECRET_KEY'] + b'token-hash\0' + token.encode()
@@ -29,7 +19,7 @@ def generate_token_hash_and_tag(token):
 
     return token_hash, tag
 
-def generate_user(timestamp, token, broadcaster):
+def generate_user(timestamp, token, broadcaster, presence):
     colour = generate_colour(
         seed='name\0' + token,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
@@ -51,6 +41,7 @@ def generate_user(timestamp, token, broadcaster):
             'seen': timestamp,
             'watching': -inf,
         },
+        'presence': presence,
     }
 
 def get_default_name(user):
@@ -75,20 +66,3 @@ def get_presence(timestamp, user):
         return Presence.TENTATIVE
 
     return Presence.ABSENT
-
-def is_watching(timestamp, user):
-    return get_presence(timestamp, user) == Presence.WATCHING
-
-def is_listed(timestamp, user):
-    return (
-        get_presence(timestamp, user)
-        in {Presence.WATCHING, Presence.NOTWATCHING}
-    )
-
-def is_visible(timestamp, messages, user):
-    def user_left_messages():
-        return any(
-            message['token'] == user['token']
-            for message in messages
-        )
-    return is_listed(timestamp, user) or user_left_messages()
