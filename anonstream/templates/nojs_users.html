@@ -3,6 +3,7 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="refresh" content="6">
   <style>
     html {
       min-height: 100%;
@@ -21,6 +22,39 @@
       margin: 0;
       font-weight: normal;
       text-align: center;
+    }
+    #timeout {
+      height: 0;
+      visibility: hidden;
+      animation: appear 0s {{ timeout }}s forwards;
+    }
+    #timeout > a {
+      display: block;
+      text-align: center;
+      background-color: #3674bf;
+      border: 4px outset #3584e4;
+      box-shadow: 0 0 5px #3584e4;
+      padding: 1.25ch 0;
+      box-sizing: border-box;
+      color: inherit;
+      font-size: 12pt;
+      font-weight: bold;
+      text-decoration: none;
+      animation: unskinny 0s {{ timeout }}s forwards;
+    }
+    #timeout header {
+      font-size: 20pt;
+    }
+    @keyframes appear {
+      to {
+        height: auto;
+        visibility: visible;
+      }
+    }
+    @keyframes unskinny {
+      to {
+        margin: 0.5rem;
+      }
     }
     #main {
       margin: 0.5rem 0.75rem;
@@ -56,6 +90,12 @@
 </head>
 <body>
   <header id="header"><h4>Users in chat</h4></header>
+  <aside id="timeout">
+    <a href="">
+      <header>Timed out</header>
+      <small>Click to refresh</small>
+    </a>
+  </aside>
   <main id="main">
     <h5>Watching ({{ users_watching | length }})</h5>
     <ul>

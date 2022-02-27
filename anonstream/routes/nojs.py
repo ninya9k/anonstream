@@ -45,12 +45,13 @@ async def nojs_chat_redirect(user):
 @with_user_from(request)
 async def nojs_users(user):
     users_by_presence = get_users_by_presence()
-    return await render_template(
+    return await render_template_with_etag(
         'nojs_users.html',
         user=user,
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
         users_notwatching=users_by_presence[Presence.NOTWATCHING],
+        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
     )
 
 @current_app.route('/chat/form.html')

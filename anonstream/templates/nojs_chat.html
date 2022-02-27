@@ -33,7 +33,7 @@
       text-decoration: none;
       transform: rotate(-180deg);
     }
-    #chat-timeout {
+    #timeout {
       z-index: 1;
       position: absolute;
       top: 0.5rem;
@@ -41,15 +41,15 @@
       visibility: hidden;
       animation: appear 0s {{ timeout }}s forwards;
     }
-    #chat-timeout header {
+    #timeout header {
       font-size: 20pt;
     }
-    #chat-timeout-dismiss {
+    #timeout-dismiss {
       position: absolute;
       bottom: 2px;
       width: calc(100% - 1rem);
     }
-    #chat-timeout-dismiss > .button {
+    #timeout-dismiss > .button {
       visibility: hidden;
       height: 0;
       padding: 0;
@@ -58,12 +58,12 @@
         appear 0s {{ timeout }}s forwards,
         unskinny 0s {{ timeout }}s forwards;
     }
-    #chat-timeout-alt {
+    #timeout-alt {
       padding: 4px 0 2px 0;
     }
-    #notimeout:target + #chat-timeout,
-    #notimeout:target ~ #chat-timeout-dismiss,
-    #notimeout:not(:target) ~ #chat-timeout-alt {
+    #notimeout:target + #timeout,
+    #notimeout:target ~ #timeout-dismiss,
+    #notimeout:not(:target) ~ #timeout-alt {
       display: none;
     }
     @keyframes appear {
@@ -127,7 +127,7 @@
 <body>
   <div id="end"></div>
   <div id="notimeout"></div>
-  <aside id="chat-timeout">
+  <aside id="timeout">
     <a class="button" href="{{ url_for('nojs_chat_redirect') }}">
       <header>Timed out</header>
       <small>Click to refresh</small>
@@ -146,10 +146,10 @@
       </li>
     {% endfor %}
   </ol>
-  <aside id="chat-timeout-dismiss">
+  <aside id="timeout-dismiss">
     <a class="button" href="#notimeout">Hide timeout notice</a>
   </aside>
-  <aside id="chat-timeout-alt">
+  <aside id="timeout-alt">
     <a class="button" href="{{ url_for('nojs_chat_redirect') }}">Click to refresh</a>
   </aside>
 </body>
