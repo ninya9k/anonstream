@@ -181,13 +181,13 @@ noscript {
   font-size: 10pt;
   cursor: help;
 }
-.chat-message__name {
+.chat-name {
   overflow-wrap: anywhere;
   font-weight: bold;
   /* color: attr("data-color"); */
   cursor: default;
 }
-.chat-message__name__tag {
+.chat-name__tag {
   font-family: monospace;
   font-size: 9pt;
   vertical-align: top;
@@ -202,6 +202,40 @@ noscript {
   font-family: monospace;
   font-size: 9pt;
   cursor: default;
+}
+#chat__users {
+  background-color: #121214;
+  mask-image: linear-gradient(black calc(100% - 0.625rem), transparent calc(100% - 0.125rem));
+  overflow: auto;
+}
+#chat-users_js {
+  margin-bottom: 0.875rem;
+}
+#chat-users_js__header {
+  padding: 0.5rem;
+  background-color: #2c2c30;
+  border-bottom: var(--chat-border);
+}
+#chat-users_js__header > h4 {
+  margin: 0;
+  font-weight: normal;
+  text-align: center;
+}
+#chat-users_js__main {
+  margin: 0.5rem 0.75rem;
+}
+#chat-users-watching-header,
+#chat-users-notwatching-header {
+  margin: 0;
+}
+#chat-users-watching,
+#chat-users-notwatching {
+  margin: 0;
+  padding-left: 0.75rem;
+  list-style: none;
+}
+.chat-user {
+  line-height: 1.4375;
 }
 #chat-users_nojs {
   height: 100%;

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
 </head>
-<body id="both" data-token="{{ user.token }}">
+<body id="both" data-token="{{ user.token }}" data-token-hash="{{ user.token_hash }}">
   <video id="stream" src="{{ url_for('stream', token=user.token) }}" autoplay controls></video>
   <article id="info">
     <noscript><iframe id="info_nojs" src="{{ url_for('nojs_info', token=user.token) }}" data-js="false"></iframe></noscript>

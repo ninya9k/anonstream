@@ -1,5 +1,6 @@
 /* token */
-const token = document.body.dataset.token;
+const TOKEN = document.body.dataset.token;
+const TOKEN_HASH = document.body.dataset.tokenHash;
 
 /* insert js-only markup */
 const jsmarkup_style_color = '<style id="style-color"></style>'
@@ -11,6 +12,17 @@ const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></d
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
 const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
+const jsmarkup_chat_users = `\
+<section id="chat-users_js">
+  <header id="chat-users_js__header"><h4>Users in chat</h4></header>
+  <article id="chat-users_js__main">
+    <h5 id="chat-users-watching-header"></h5>
+    <ul id="chat-users-watching"></ul>
+    <br>
+    <h5 id="chat-users-notwatching-header"></h5>
+    <ul id="chat-users-notwatching"></ul>
+  </article>
+</section>`;
 const jsmarkup_chat_form = `\
 <form id="chat-form_js" data-js="true" action="/chat" method="post">
   <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
@@ -58,6 +70,10 @@ const insert_jsmarkup = () => {jsmarkup_info_float_viewership
     const parent = document.getElementById("info_js");
     parent.insertAdjacentHTML("beforeend", jsmarkup_info_title);
   }
+  if (document.getElementById("chat-users_js") === null) {
+    const parent = document.getElementById("chat__users");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_chat_users);
+  }
   if (document.getElementById("chat-messages_js") === null) {
     const parent = document.getElementById("chat__messages");
     parent.insertAdjacentHTML("beforeend", jsmarkup_chat_messages);
@@ -78,6 +94,10 @@ const info_title = document.getElementById("info_js__title");
 const info_viewership = document.getElementById("info_js__float__viewership");
 const info_uptime = document.getElementById("info_js__float__uptime");
 const chat_messages = document.getElementById("chat-messages_js");
+const chat_users_watching = document.getElementById("chat-users-watching");
+const chat_users_watching_header = document.getElementById("chat-users-watching-header");
+const chat_users_notwatching = document.getElementById("chat-users-notwatching");
+const chat_users_notwatching_header = document.getElementById("chat-users-notwatching-header");
 
 const create_chat_message = (object) => {
   const user = users[object.token_hash];
@@ -93,7 +113,7 @@ const create_chat_message = (object) => {
   chat_message_time.title = `${object.date} ${object.time_seconds}`;
   chat_message_time.innerText = object.time_minutes;
 
-  const chat_message_name = create_chat_message_name(user);
+  const chat_message_name = create_chat_name(user);
 
   const chat_message_tripcode_nbsp = document.createElement("span");
   chat_message_tripcode_nbsp.classList.add("for-tripcode");
@@ -120,18 +140,18 @@ const create_chat_message = (object) => {
 
   return chat_message;
 }
-const create_chat_message_name = (user) => {
-  const chat_message_name = document.createElement("span");
-  chat_message_name.classList.add("chat-message__name");
-  chat_message_name.innerText = get_user_name({user});
+const create_chat_name = (user) => {
+  const chat_name = document.createElement("span");
+  chat_name.classList.add("chat-name");
+  chat_name.innerText = get_user_name({user});
   //chat_message_name.dataset.color = user.color; // not working in any browser
   if (!user.broadcaster && user.name === null) {
-    const chat_message_name_tag = document.createElement("sup");
-    chat_message_name_tag.classList.add("chat-message__name__tag");
-    chat_message_name_tag.innerText = user.tag;
-    chat_message_name.insertAdjacentElement("beforeend", chat_message_name_tag);
+    const chat_name_tag = document.createElement("sup");
+    chat_name_tag.classList.add("chat-name__tag");
+    chat_name_tag.innerText = user.tag;
+    chat_name.insertAdjacentElement("beforeend", chat_name_tag);
   }
-  return chat_message_name;
+  return chat_name;
 }
 const create_and_add_chat_message = (object) => {
   const chat_message = create_chat_message(object);
@@ -172,7 +192,7 @@ const update_user_colors = (token_hash=null) => {
   token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
   const {to_delete, to_ignore} = tidy_stylesheet({
     stylesheet: stylesheet_color,
-    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.chat-message__name/,
+    selector_regex: /\[data-token-hash="([a-z2-7]{26})"\] > \.chat-name/,
     ignore_condition: (this_token_hash, this_user, css_rule) => {
       const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
       const correct_color = equal(css_rule.style.color, this_user.color);
@@ -184,7 +204,7 @@ const update_user_colors = (token_hash=null) => {
     if (!to_ignore.has(this_token_hash)) {
       const user = users[this_token_hash];
       stylesheet_color.insertRule(
-        `.chat-message[data-token-hash="${this_token_hash}"] > .chat-message__name { color: ${user.color}; }`,
+        `[data-token-hash="${this_token_hash}"] > .chat-name { color: ${user.color}; }`,
         stylesheet_color.cssRules.length,
       );
     }
@@ -204,8 +224,8 @@ const update_user_names = (token_hash=null) => {
     const this_token_hash = chat_message.dataset.tokenHash;
     if (token_hashes.includes(this_token_hash)) {
       const user = users[this_token_hash];
-      const chat_message_name = chat_message.querySelector(".chat-message__name");
-      chat_message_name.innerHTML = create_chat_message_name(user).innerHTML;
+      const chat_message_name = chat_message.querySelector(".chat-name");
+      chat_message_name.innerHTML = create_chat_name(user).innerHTML;
     }
   }
 }
@@ -330,7 +350,7 @@ const enable_captcha = (digest) => {
   chat_form_captcha_answer.disabled = false;
   chat_form_comment.required = false;
   chat_form_captcha_image.removeAttribute("src");
-  chat_form_captcha_image.src = `/captcha.jpg?token=${encodeURIComponent(token)}&digest=${encodeURIComponent(digest)}`;
+  chat_form_captcha_image.src = `/captcha.jpg?token=${encodeURIComponent(TOKEN)}&digest=${encodeURIComponent(digest)}`;
   chat_form_submit.disabled = false;
   chat_form.dataset.captcha = "";
 }
@@ -387,6 +407,61 @@ const set_viewership = (n) => {
   info_viewership.innerText = n === null ? "" : `${n} viewers`;
 }
 
+const update_users_list = () => {
+  listed_watching = new Set();
+  listed_notwatching = new Set();
+
+  // remove no-longer-known users
+  for (const element of chat_users_watching.querySelectorAll(".chat-user")) {
+    const token_hash = element.dataset.tokenHash;
+    if (!Object.prototype.hasOwnProperty(users, token_hash)) {
+      element.remove();
+    } else {
+      listed_watching.add(token_hash);
+    }
+  }
+  for (const element of chat_users_notwatching.querySelectorAll(".chat-user")) {
+    const token_hash = element.dataset.tokenHash;
+    if (!Object.prototype.hasOwnProperty(users, token_hash)) {
+      element.remove();
+    } else {
+      listed_notwatching.add(token_hash);
+    }
+  }
+
+  // add remaining watching/non-watching users
+  const insert = (user, token_hash, is_you, chat_users_sublist) => {
+    const chat_user_name = create_chat_name(user);
+    const chat_user = document.createElement("li");
+    chat_user.classList.add("chat-user");
+    chat_user.dataset.tokenHash = token_hash;
+    chat_user.insertAdjacentElement("beforeend", chat_user_name);
+    if (is_you) {
+      const you = document.createElement("span");
+      you.innerText = " (You)";
+      chat_user.insertAdjacentElement("beforeend", you);
+    }
+    chat_users_sublist.insertAdjacentElement("beforeend", chat_user);
+  }
+  let watching = 0, notwatching = 0;
+  for (const token_hash of Object.keys(users)) {
+    const user = users[token_hash];
+    const is_you = token_hash === TOKEN_HASH;
+    if (user.watching === true && !listed_watching.has(token_hash)) {
+      insert(user, token_hash, is_you, chat_users_watching);
+      watching++;
+    }
+    if (user.watching === false && !listed_notwatching.has(token_hash)) {
+      insert(user, token_hash, is_you, chat_users_notwatching);
+      notwatching++;
+    }
+  }
+
+  // show correct numbers
+  chat_users_watching_header.innerText = `Watching (${watching})`;
+  chat_users_notwatching_header.innerText = `Not watching (${notwatching})`;
+}
+
 const on_websocket_message = (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -435,11 +510,12 @@ const on_websocket_message = (event) => {
       default_name = receipt.default;
       max_chat_scrollback = receipt.scrollback;
 
-      // appearances
+      // update users
       users = receipt.users;
       update_user_names();
       update_user_colors();
       update_user_tripcodes();
+      update_users_list()
 
       // insert new messages
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
@@ -499,6 +575,7 @@ const on_websocket_message = (event) => {
       update_user_names();
       update_user_colors();
       update_user_tripcodes();
+      update_users_list()
       break;
 
     case "rem-users":
@@ -508,6 +585,7 @@ const on_websocket_message = (event) => {
       }
       update_user_colors();
       update_user_tripcodes();
+      update_users_list()
       break;
 
     case "captcha":
@@ -530,7 +608,7 @@ const connect_websocket = () => {
   }
   chat_live_ball.style.borderColor = "gold";
   chat_live_status.innerHTML = "<span data-verbose='false'>Waiting...</span> <span data-verbose='true'>Connecting to chat...</span>";
-  ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(token)}`);
+  ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);
     chat_form_submit.disabled = false;
