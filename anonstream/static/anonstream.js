@@ -13,16 +13,13 @@ const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
 const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
 const jsmarkup_chat_users = `\
-<section id="chat-users_js">
-  <header id="chat-users_js__header"><h4>Users in chat</h4></header>
-  <article id="chat-users_js__main">
-    <h5 id="chat-users-watching-header"></h5>
-    <ul id="chat-users-watching"></ul>
-    <br>
-    <h5 id="chat-users-notwatching-header"></h5>
-    <ul id="chat-users-notwatching"></ul>
-  </article>
-</section>`;
+<article id="chat-users_js">
+  <h5 id="chat-users_js__watching-header"></h5>
+  <ul id="chat-users_js__watching"></ul>
+  <br>
+  <h5 id="chat-users_js__notwatching-header"></h5>
+  <ul id="chat-users_js__notwatching"></ul>
+</article>`;
 const jsmarkup_chat_form = `\
 <form id="chat-form_js" data-js="true" action="/chat" method="post">
   <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
@@ -71,11 +68,11 @@ const insert_jsmarkup = () => {jsmarkup_info_float_viewership
     parent.insertAdjacentHTML("beforeend", jsmarkup_info_title);
   }
   if (document.getElementById("chat-users_js") === null) {
-    const parent = document.getElementById("chat__users");
+    const parent = document.getElementById("chat__body__users");
     parent.insertAdjacentHTML("beforeend", jsmarkup_chat_users);
   }
   if (document.getElementById("chat-messages_js") === null) {
-    const parent = document.getElementById("chat__messages");
+    const parent = document.getElementById("chat__body__messages");
     parent.insertAdjacentHTML("beforeend", jsmarkup_chat_messages);
   }
   if (document.getElementById("chat-form_js") === null) {
@@ -94,10 +91,10 @@ const info_title = document.getElementById("info_js__title");
 const info_viewership = document.getElementById("info_js__float__viewership");
 const info_uptime = document.getElementById("info_js__float__uptime");
 const chat_messages = document.getElementById("chat-messages_js");
-const chat_users_watching = document.getElementById("chat-users-watching");
-const chat_users_watching_header = document.getElementById("chat-users-watching-header");
-const chat_users_notwatching = document.getElementById("chat-users-notwatching");
-const chat_users_notwatching_header = document.getElementById("chat-users-notwatching-header");
+const chat_users_watching = document.getElementById("chat-users_js__watching");
+const chat_users_watching_header = document.getElementById("chat-users_js__watching-header");
+const chat_users_notwatching = document.getElementById("chat-users_js__notwatching");
+const chat_users_notwatching_header = document.getElementById("chat-users_js__notwatching-header");
 
 const create_chat_message = (object) => {
   const user = users[object.token_hash];
