@@ -110,18 +110,11 @@ const create_chat_message = (object) => {
   chat_message_time.title = `${object.date} ${object.time_seconds}`;
   chat_message_time.innerText = object.time_minutes;
 
-  const chat_message_name = create_chat_name(user);
-
-  const chat_message_tripcode_nbsp = document.createElement("span");
-  chat_message_tripcode_nbsp.classList.add("for-tripcode");
-  chat_message_tripcode_nbsp.innerHTML = "&nbsp;";
-
-  const chat_message_tripcode = document.createElement("span");
-  chat_message_tripcode.classList.add("tripcode");
-  chat_message_tripcode.classList.add("for-tripcode");
-  if (user.tripcode !== null) {
-    chat_message_tripcode.innerHTML = user.tripcode.digest;
-  }
+  const [
+    chat_message_name,
+    chat_message_tripcode_nbsp,
+    chat_message_tripcode,
+  ] = create_chat_user_components(user);
 
   const chat_message_markup = document.createElement("span");
   chat_message_markup.classList.add("chat-message__markup");
@@ -137,18 +130,34 @@ const create_chat_message = (object) => {
 
   return chat_message;
 }
-const create_chat_name = (user) => {
-  const chat_name = document.createElement("span");
-  chat_name.classList.add("chat-name");
-  chat_name.innerText = get_user_name({user});
-  //chat_message_name.dataset.color = user.color; // not working in any browser
+const create_chat_user_name = (user) => {
+  const chat_user_name = document.createElement("span");
+  chat_user_name.classList.add("chat-name");
+  chat_user_name.innerText = get_user_name({user});
+  //chat_user_name.dataset.color = user.color; // not working in any browser
   if (!user.broadcaster && user.name === null) {
-    const chat_name_tag = document.createElement("sup");
-    chat_name_tag.classList.add("chat-name__tag");
-    chat_name_tag.innerText = user.tag;
-    chat_name.insertAdjacentElement("beforeend", chat_name_tag);
+    const chat_user_name_tag = document.createElement("sup");
+    chat_user_name_tag.classList.add("chat-name__tag");
+    chat_user_name_tag.innerText = user.tag;
+    chat_user_name.insertAdjacentElement("beforeend", chat_user_name_tag);
   }
-  return chat_name;
+  return chat_user_name;
+}
+const create_chat_user_components = (user) => {
+  const chat_user_name = create_chat_user_name(user);
+
+  const chat_user_tripcode_nbsp = document.createElement("span");
+  chat_user_tripcode_nbsp.classList.add("for-tripcode");
+  chat_user_tripcode_nbsp.innerHTML = "&nbsp;";
+
+  const chat_user_tripcode = document.createElement("span");
+  chat_user_tripcode.classList.add("tripcode");
+  chat_user_tripcode.classList.add("for-tripcode");
+  if (user.tripcode !== null) {
+    chat_user_tripcode.innerHTML = user.tripcode.digest;
+  }
+
+  return [chat_user_name, chat_user_tripcode_nbsp, chat_user_tripcode];
 }
 const create_and_add_chat_message = (object) => {
   const chat_message = create_chat_message(object);
@@ -224,7 +233,7 @@ const update_user_names = (token_hash=null) => {
     if (token_hashes.includes(this_token_hash)) {
       const user = users[this_token_hash];
       const chat_message_name = chat_message.querySelector(".chat-name");
-      chat_message_name.innerHTML = create_chat_name(user).innerHTML;
+      chat_message_name.innerHTML = create_chat_user_name(user).innerHTML;
     }
   }
 }
@@ -233,7 +242,7 @@ const update_user_tripcodes = (token_hash=null) => {
   token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
   const {to_delete: to_delete_display, to_ignore: to_ignore_display} = tidy_stylesheet({
     stylesheet: stylesheet_tripcode_display,
-    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.for-tripcode/,
+    selector_regex: /\[data-token-hash="([a-z2-7]{26})"\] > \.for-tripcode/,
     ignore_condition: (this_token_hash, this_user, css_rule) => {
       const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
       const correctly_hidden = this_user.tripcode === null && css_rule.style.display === "none";
@@ -243,7 +252,7 @@ const update_user_tripcodes = (token_hash=null) => {
   });
   const {to_delete: to_delete_colors, to_ignore: to_ignore_colors} = tidy_stylesheet({
     stylesheet: stylesheet_tripcode_colors,
-    selector_regex: /\.chat-message\[data-token-hash="([a-z2-7]{26})"\] > \.tripcode/,
+    selector_regex: /\[data-token-hash="([a-z2-7]{26})"\] > \.tripcode/,
     ignore_condition: (this_token_hash, this_user, css_rule) => {
       const irrelevant = ignore_other_token_hashes && this_token_hash !== token_hash;
       const correctly_blank = (
@@ -266,26 +275,26 @@ const update_user_tripcodes = (token_hash=null) => {
     if (tripcode === null) {
       if (!to_ignore_display.has(token_hash)) {
         stylesheet_tripcode_display.insertRule(
-          `.chat-message[data-token-hash="${this_token_hash}"] > .for-tripcode { display: none; }`,
+          `[data-token-hash="${this_token_hash}"] > .for-tripcode { display: none; }`,
           stylesheet_tripcode_display.cssRules.length,
        );
       }
       if (!to_ignore_colors.has(token_hash)) {
         stylesheet_tripcode_colors.insertRule(
-          `.chat-message[data-token-hash="${this_token_hash}"] > .tripcode { background-color: initial; color: initial; }`,
+          `[data-token-hash="${this_token_hash}"] > .tripcode { background-color: initial; color: initial; }`,
           stylesheet_tripcode_colors.cssRules.length,
         );
       }
     } else {
       if (!to_ignore_display.has(token_hash)) {
         stylesheet_tripcode_display.insertRule(
-          `.chat-message[data-token-hash="${this_token_hash}"] > .for-tripcode { display: inline; }`,
+          `[data-token-hash="${this_token_hash}"] > .for-tripcode { display: inline; }`,
           stylesheet_tripcode_display.cssRules.length,
         );
       }
       if (!to_ignore_colors.has(token_hash)) {
         stylesheet_tripcode_colors.insertRule(
-          `.chat-message[data-token-hash="${this_token_hash}"] > .tripcode { background-color: ${tripcode.background_color}; color: ${tripcode.foreground_color}; }`,
+          `[data-token-hash="${this_token_hash}"] > .tripcode { background-color: ${tripcode.background_color}; color: ${tripcode.foreground_color}; }`,
           stylesheet_tripcode_colors.cssRules.length,
         );
       }
@@ -434,11 +443,13 @@ const update_users_list = () => {
 
   // add remaining watching/non-watching users
   const insert = (user, token_hash, is_you, chat_users_sublist) => {
-    const chat_user_name = create_chat_name(user);
+    const chat_user_components = create_chat_user_components(user);
     const chat_user = document.createElement("li");
     chat_user.classList.add("chat-user");
     chat_user.dataset.tokenHash = token_hash;
-    chat_user.insertAdjacentElement("beforeend", chat_user_name);
+    for (const chat_user_component of chat_user_components) {
+      chat_user.insertAdjacentElement("beforeend", chat_user_component);
+    }
     if (is_you) {
       const you = document.createElement("span");
       you.innerText = " (You)";
