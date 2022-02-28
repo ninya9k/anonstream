@@ -159,6 +159,8 @@ const create_and_add_chat_message = (object) => {
 }
 
 let users = {};
+let stats = null;
+let stats_received = null;
 let default_name = {true: "Broadcaster", false: "Anonymous"};
 let max_chat_scrollback = 256;
 const tidy_stylesheet = ({stylesheet, selector_regex, ignore_condition}) => {
@@ -370,20 +372,14 @@ const set_title = (title) => {
   info_title.innerHTML = element.outerHTML;
 }
 
-let frozen_uptime = null;
-let frozen_uptime_received = null;
-const set_frozen_uptime = (x) => {
-  frozen_uptime = x;
-  frozen_uptime_received = new Date();
-}
 const update_uptime = () => {
-  if (frozen_uptime_received === null) {
+  if (stats_received === null) {
     return;
-  } else if (frozen_uptime === null) {
+  } else if (stats === null) {
     info_uptime.innerText = "";
   } else {
-    const frozen_uptime_received_ago = (new Date() - frozen_uptime_received) / 1000;
-    const uptime = Math.round(frozen_uptime + frozen_uptime_received_ago);
+    const stats_received_ago = (new Date() - stats_received) / 1000;
+    const uptime = Math.round(stats.uptime + stats_received_ago);
 
     const s = Math.round(uptime % 60);
     const m = Math.floor(uptime / 60) % 60
@@ -400,8 +396,18 @@ const update_uptime = () => {
 }
 setInterval(update_uptime, 1000); // always update uptime
 
-const set_viewership = (n) => {
-  info_viewership.innerText = n === null ? "" : `${n} viewers`;
+const update_viewership = () => {
+  info_viewership.innerText = stats === null ? "" : `${stats.viewership} viewers`;
+}
+
+const update_stats = () => {
+  if (stats === null) {
+    update_viewership();
+    update_uptime();
+  } else {
+    update_uptime();
+    update_viewership();
+  }
 }
 
 const update_users_list = () => {
@@ -474,12 +480,10 @@ const on_websocket_message = (event) => {
       // set title
       set_title(receipt.title);
 
-      // set viewership
-      set_viewership(receipt.viewership);
-
-      // set uptime
-      set_frozen_uptime(receipt.uptime);
-      update_uptime();
+      // update stats (uptime/viewership)
+      stats = receipt.stats;
+      stats_received = new Date();
+      update_stats();
 
       // chat form nonce
       chat_form_nonce.value = receipt.nonce;
@@ -530,14 +534,10 @@ const on_websocket_message = (event) => {
       if (receipt.title !== undefined) {
         set_title(receipt.title);
       }
-      if (receipt.uptime !== undefined) {
-        set_frozen_uptime(receipt.uptime);
-        update_uptime();
-      }
-      if (receipt.viewership === 0 && frozen_uptime === null) {
-        set_viewership(null);
-      } else if (receipt.viewership !== undefined) {
-        set_viewership(receipt.viewership);
+      if (receipt.stats !== undefined) {
+        stats = receipt.stats;
+        stats_received = new Date();
+        update_stats();
       }
       break;
 

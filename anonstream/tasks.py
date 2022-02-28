@@ -5,7 +5,7 @@ from functools import wraps
 from quart import current_app
 
 from anonstream.broadcast import broadcast, broadcast_users_update
-from anonstream.stream import is_online, get_stream_title, get_stream_uptime, get_stream_viewership_or_none
+from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
 from anonstream.user import get_sunsettable_users
 from anonstream.wrappers import with_timestamp
 
@@ -94,21 +94,22 @@ async def t_broadcast_users_update(iteration):
 async def t_broadcast_stream_info_update(iteration):
     if iteration == 0:
         title = await get_stream_title()
-        uptime = get_stream_uptime()
-        viewership = get_stream_viewership_or_none(uptime)
+        uptime, viewership = get_stream_uptime_and_viewership()
         current_app.stream_title = title
         current_app.stream_uptime = uptime
         current_app.stream_viewership = viewership
     else:
         payload = {}
 
-        # Check if the stream title has changed
         title = await get_stream_title()
+        uptime, viewership = get_stream_uptime_and_viewership()
+
+        # Check if the stream title has changed
         if current_app.stream_title != title:
             current_app.stream_title = title
             payload['title'] = title
 
-        # Check if the stream uptime has changed more or less than expected
+        # Check if the stream uptime has changed unexpectedly
         if current_app.stream_uptime is None:
             expected_uptime = None
         else:
@@ -116,20 +117,27 @@ async def t_broadcast_stream_info_update(iteration):
                 current_app.stream_uptime
                 + CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE']
             )
-        uptime = get_stream_uptime()
         current_app.stream_uptime = uptime
         if uptime is None and expected_uptime is None:
-            pass
+            stats_changed = False
         elif uptime is None or expected_uptime is None:
-            payload['uptime'] = uptime
-        elif abs(uptime - expected_uptime) >= 0.0625:
-            payload['uptime'] = uptime
+            stats_changed = True
+        else:
+            stats_changed = abs(uptime - expected_uptime) >= 0.0625
 
         # Check if viewership has changed
-        viewership = get_stream_viewership_or_none(uptime)
         if current_app.stream_viewership != viewership:
             current_app.stream_viewership = viewership
-            payload['viewership'] = viewership
+            stats_changed = True
+
+        if stats_changed:
+            if uptime is None:
+                payload['stats'] = None
+            else:
+                payload['stats'] = {
+                    'uptime': uptime,
+                    'viewership': viewership,
+                }
 
         if payload:
             broadcast(USERS, payload={'type': 'info', **payload})

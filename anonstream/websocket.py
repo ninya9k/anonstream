@@ -3,7 +3,7 @@ import json
 
 from quart import current_app, websocket
 
-from anonstream.stream import get_stream_title, get_stream_uptime, get_stream_viewership_or_none
+from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
 from anonstream.user import get_all_users_for_websocket, see, verify, deverify, BadCaptcha
@@ -13,14 +13,11 @@ from anonstream.utils.websocket import parse_websocket_data, Malformed
 CONFIG = current_app.config
 
 async def websocket_outbound(queue, user):
-    uptime = get_stream_uptime()
-    viewership = get_stream_viewership_or_none(uptime)
     payload = {
         'type': 'init',
         'nonce': generate_nonce(),
         'title': await get_stream_title(),
-        'uptime': uptime,
-        'viewership': viewership,
+        'stats': get_stream_uptime_and_viewership(for_websocket=True),
         'messages': get_all_messages_for_websocket(),
         'users': get_all_users_for_websocket(),
         'default': {
