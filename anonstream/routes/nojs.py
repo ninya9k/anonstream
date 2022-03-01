@@ -40,7 +40,7 @@ async def nojs_chat(user):
 @current_app.route('/chat/messages')
 @with_user_from(request)
 async def nojs_chat_redirect(user):
-    return redirect(url_for('nojs_chat', _anchor='end'))
+    return redirect(url_for('nojs_chat', token=user['token'], _anchor='end'))
 
 @current_app.route('/chat/users.html')
 @with_user_from(request)
@@ -83,7 +83,7 @@ async def nojs_form_redirect(user):
     else:
         state_id = None
 
-    return redirect(url_for('nojs_form', state=state_id))
+    return redirect(url_for('nojs_form', token=user['token'], state=state_id))
 
 @current_app.post('/chat/message')
 @with_user_from(request)

@@ -128,7 +128,7 @@
   <div id="end"></div>
   <div id="notimeout"></div>
   <aside id="timeout">
-    <a class="button" href="{{ url_for('nojs_chat_redirect') }}">
+    <a class="button" href="{{ url_for('nojs_chat_redirect', token=user.token) }}">
       <header>Timed out</header>
       <small>Click to refresh</small>
     </a>
@@ -150,7 +150,7 @@
     <a class="button" href="#notimeout">Hide timeout notice</a>
   </aside>
   <aside id="timeout-alt">
-    <a class="button" href="{{ url_for('nojs_chat_redirect') }}">Click to refresh</a>
+    <a class="button" href="{{ url_for('nojs_chat_redirect', token=user.token) }}">Click to refresh</a>
   </aside>
 </body>
 </html>
