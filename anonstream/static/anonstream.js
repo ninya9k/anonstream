@@ -8,6 +8,7 @@ const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></st
 const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
+const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload stream</button>';
 const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
@@ -54,6 +55,10 @@ const insert_jsmarkup = () => {jsmarkup_info_float_viewership
   if (document.getElementById("info_js__float") === null) {
     const parent = document.getElementById("info_js");
     parent.insertAdjacentHTML("beforeend", jsmarkup_info_float);
+  }
+  if (document.getElementById("info_js__float__button") === null) {
+    const parent = document.getElementById("info_js__float");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_info_float_button);
   }
   if (document.getElementById("info_js__float__viewership") === null) {
     const parent = document.getElementById("info_js__float");
@@ -496,6 +501,13 @@ const on_websocket_message = (event) => {
       stats_received = new Date();
       update_stats();
 
+      // stream reload button
+      if (stats === null || stream.networkState === stream.NETWORK_LOADING) {
+        info_button.removeAttribute("data-visible");
+      } else {
+        info_button.dataset.visible = "";
+      }
+
       // chat form nonce
       chat_form_nonce.value = receipt.nonce;
 
@@ -542,14 +554,26 @@ const on_websocket_message = (event) => {
 
     case "info":
       console.log("ws info", receipt);
+
+      // set title
       if (receipt.title !== undefined) {
         set_title(receipt.title);
       }
+
+      // update stats (uptime/viewership)
       if (receipt.stats !== undefined) {
         stats = receipt.stats;
         stats_received = new Date();
         update_stats();
       }
+
+      // stream reload button
+      if (stats === null || stream.networkState === stream.NETWORK_LOADING) {
+        info_button.removeAttribute("data-visible");
+      } else {
+        info_button.dataset.visible = "";
+      }
+
       break;
 
     case "ack":
@@ -654,6 +678,19 @@ const connect_websocket = () => {
 }
 
 connect_websocket();
+
+/* stream reload button */
+const stream = document.getElementById("stream");
+const info_button = document.getElementById("info_js__float__button");
+info_button.addEventListener("click", (event) => {
+  stream.load();
+  info_button.removeAttribute("data-visible");
+});
+stream.addEventListener("error", (event) => {
+  if (stats !== null) {
+    info_button.dataset.visible = "";
+  }
+});
 
 /* override js-only chat form */
 const chat_form = document.getElementById("chat-form_js");
