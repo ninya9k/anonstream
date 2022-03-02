@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html {
+      height: 100%;
+    }
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    #stream {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <video id="stream" src="{{ url_for('stream', token=user.token) }}" autoplay controls></video>
+</body>
+</html>

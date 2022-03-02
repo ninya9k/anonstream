@@ -50,9 +50,14 @@ noscript {
 
 #stream {
   background: black;
-  width: 100%;
-  height: var(--video-height);
   grid-area: stream;
+}
+#stream_js {
+  width: 100%;
+  height: 100%;
+}
+#stream_nojs {
+  height: 100%;
 }
 
 #info {

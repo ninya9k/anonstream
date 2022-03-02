@@ -6,6 +6,7 @@ const TOKEN_HASH = document.body.dataset.tokenHash;
 const jsmarkup_style_color = '<style id="style-color"></style>'
 const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></style>'
 const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
+const jsmarkup_stream = `<video id="stream_js" src="/stream.mp4?token=${encodeURIComponent(TOKEN)}" autoplay controls></video>`
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
 const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload stream</button>';
@@ -47,6 +48,10 @@ const insert_jsmarkup = () => {jsmarkup_info_float_viewership
   if (document.getElementById("style-tripcode-colors") === null) {
     const parent = document.head;
     parent.insertAdjacentHTML("beforeend", jsmarkup_style_tripcode_colors);
+  }
+  if (document.getElementById("stream_js") === null) {
+    const parent = document.getElementById("stream");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_stream);
   }
   if (document.getElementById("info_js") === null) {
     const parent = document.getElementById("info");
@@ -680,7 +685,7 @@ const connect_websocket = () => {
 connect_websocket();
 
 /* stream reload button */
-const stream = document.getElementById("stream");
+const stream = document.getElementById("stream_js");
 const info_button = document.getElementById("info_js__float__button");
 info_button.addEventListener("click", (event) => {
   stream.load();

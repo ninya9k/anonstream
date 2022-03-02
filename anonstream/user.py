@@ -155,11 +155,19 @@ def deverify(timestamp, user):
     if n_user_messages >= CONFIG['FLOOD_THRESHOLD']:
         user['verified'] = False
 
+def _update_presence(timestamp, user):
+    old, user['presence'] = user['presence'], get_presence(timestamp, user)
+    if trilean(user['presence']) != trilean(old):
+        USERS_UPDATE_BUFFER.add(user['token'])
+    return user['presence']
+
+@with_timestamp
+def update_presence(timestamp, user):
+    return _update_presence(timestamp, user)
+
 def get_users_and_update_presence(timestamp):
     for user in USERS:
-        old, user['presence'] = user['presence'], get_presence(timestamp, user)
-        if trilean(user['presence']) != trilean(old):
-            USERS_UPDATE_BUFFER.add(user['token'])
+        _update_presence(timestamp, user)
         yield user
 
 def get_watching_users(timestamp):
