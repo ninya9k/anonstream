@@ -103,7 +103,7 @@ async def nojs_submit_message(user):
         try:
             # If the comment is empty but the captcha was just solved,
             # be lenient: don't raise an exception and don't create a notice
-            add_chat_message(
+            message_was_added = add_chat_message(
                 user,
                 nonce,
                 comment,
@@ -113,8 +113,9 @@ async def nojs_submit_message(user):
             notice, *_ = e.args
             state_id = add_state(user, notice=notice, comment=comment)
         else:
-            deverify(user)
             state_id = None
+            if message_was_added:
+                deverify(user)
 
     return redirect(url_for(
         'nojs_form',
