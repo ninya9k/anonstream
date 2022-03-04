@@ -25,6 +25,99 @@
     #float__uptime {
       font-variant-numeric: tabular-nums;
     }
+    #uptime-static[data-hidden], #uptime-static__label {
+      display: none;
+    }
+
+    {% if uptime is not none and uptime < 360000 %}
+      #s0::before, #s1::before,
+      #m0::before, #m1::before,
+      #h0::before, #h1::before {
+        animation-timing-function: step-end;
+        animation-delay: {{ -uptime }}s;
+        animation-iteration-count: infinite;
+        content: "";
+      }
+      #m0::after, #h0::after {
+        content: ":";
+      }
+      #s0::before {
+        animation-name: tick10;
+        animation-duration: 10s;
+      }
+      #s1::before {
+        animation-name: tick6;
+        animation-duration: 60s;
+      }
+      #m0::before {
+        animation-name: tick10;
+        animation-duration: 600s;
+      }
+      #m1::before {
+        animation-name: tick6;
+        animation-duration: 3600s;
+      }
+      #h0::before {
+        animation-name: tick10;
+        animation-duration: 36000s;
+      }
+      #h1::before {
+        animation-name: tick10;
+        animation-duration: 360000s;
+      }
+      #m1, #h0, #h1 {
+        display: inline-block;
+        animation: appear step-end both;
+      }
+      #m1 {
+        animation-duration: {{ 600 - uptime }}s;
+      }
+      #h0 {
+        animation-duration: {{ 3600 - uptime }}s;
+      }
+      #h1 {
+        animation-duration: {{ 36000 - uptime }}s;
+      }
+      #uptime-dynamic-overflow {
+        animation: appear step-end {{ 360000 - uptime }}s backwards;
+      }
+      #uptime-dynamic {
+        animation: disappear step-end {{ 360000 - uptime }}s forwards;
+      }
+      @keyframes appear {
+        from {
+          width: 0;
+          visibility: hidden;
+        }
+      }
+      @keyframes disappear {
+        to {
+          height: 0;
+          opacity: 0;
+        }
+      }
+      @keyframes tick6 {
+        00.0000% { content: "0"; }
+        16.6667% { content: "1"; }
+        33.3333% { content: "2"; }
+        50.0000% { content: "3"; }
+        66.6667% { content: "4"; }
+        83.3333% { content: "5"; }
+      }
+      @keyframes tick10 {
+        00% { content: "0"; }
+        10% { content: "1"; }
+        20% { content: "2"; }
+        30% { content: "3"; }
+        40% { content: "4"; }
+        50% { content: "5"; }
+        60% { content: "6"; }
+        70% { content: "7"; }
+        80% { content: "8"; }
+        90% { content: "9"; }
+      }
+    {% endif %}
+
     #title > h1 {
       margin: 0;
       font-size: 18pt;
@@ -43,7 +136,38 @@
         </form>
       {% endif %}
       <div id="float__viewership">{{ viewership }} viewers</div>
-      <div id="float__uptime">{{ uptime }}</div>
+      <div id="float__uptime">
+        <div id="uptime-static"{% if uptime < 360000 %} data-hidden=""{% endif %}>
+          <span id="uptime-static__label">Uptime:</span>
+          <span>
+            {%- if uptime >= 3600 -%}
+              {{- (uptime // 3600) | int -}}
+              {{- ':' -}}
+              {{- '%02.0f' | format(uptime % 3600 // 60) -}}
+            {%- else -%}
+              {{- uptime % 3600 // 60 | int -}}
+            {%- endif -%}
+            {{- ':' -}}
+            {{- '%02.0f' | format(uptime % 60) -}}
+          </span>
+        </div>
+        {% if uptime < 360000 %}
+          <div id="uptime-dynamic">
+            <span id="h1"></span>
+            {{- '' -}}
+            <span id="h0"></span>
+            {{- '' -}}
+            <span id="m1"></span>
+            {{- '' -}}
+            <span id="m0"></span>
+            {{- '' -}}
+            <span id="s1"></span>
+            {{- '' -}}
+            <span id="s0"></span>
+          </div>
+          <div id="uptime-dynamic-overflow">100+ hours</div>
+        {% endif %}
+      </div>
     </aside>
   {% endif %}
   <header id="title"><h1>{{ title }}</h1></header>
