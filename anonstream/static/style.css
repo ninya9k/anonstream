@@ -192,6 +192,10 @@ noscript {
 .chat-message__time {
   color: #b2b2b3;
   font-size: 10pt;
+  cursor: default;
+}
+.chat-insignia {
+  text-shadow: 0 0 2px orangered;
   cursor: help;
 }
 .chat-name {

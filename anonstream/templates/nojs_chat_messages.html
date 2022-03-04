@@ -100,6 +100,10 @@
     .chat-message__time {
       color: #b2b2b3;
       font-size: 10pt;
+      cursor: default;
+    }
+    .chat-message__insignia {
+      text-shadow: 0 0 2px orangered;
       cursor: help;
     }
     .chat-message__name {
@@ -141,7 +145,7 @@
         {% with user = users_by_token[message.token] %}
           <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>
           {{- '&nbsp;' | safe -}}
-          {{ appearance(user, name_class='chat-message__name', tag_class='chat-message__name__tag') }}
+          {{ appearance(user, insignia_class='chat-message__insignia', name_class='chat-message__name', tag_class='chat-message__name__tag') }}
           {{- ': ' -}}
           <span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}

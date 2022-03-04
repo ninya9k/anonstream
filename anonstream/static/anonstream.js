@@ -120,11 +120,7 @@ const create_chat_message = (object) => {
   chat_message_time.title = `${object.date} ${object.time_seconds}`;
   chat_message_time.innerText = object.time_minutes;
 
-  const [
-    chat_message_name,
-    chat_message_tripcode_nbsp,
-    chat_message_tripcode,
-  ] = create_chat_user_components(user);
+  const chat_message_user_components = create_chat_user_components(user);
 
   const chat_message_markup = document.createElement("span");
   chat_message_markup.classList.add("chat-message__markup");
@@ -132,9 +128,9 @@ const create_chat_message = (object) => {
 
   chat_message.insertAdjacentElement("beforeend", chat_message_time);
   chat_message.insertAdjacentHTML("beforeend", "&nbsp;");
-  chat_message.insertAdjacentElement("beforeend", chat_message_name);
-  chat_message.insertAdjacentElement("beforeend", chat_message_tripcode_nbsp);
-  chat_message.insertAdjacentElement("beforeend", chat_message_tripcode);
+  for (const chat_message_user_component of chat_message_user_components) {
+    chat_message.insertAdjacentElement("beforeend", chat_message_user_component);
+  }
   chat_message.insertAdjacentHTML("beforeend", ": ");
   chat_message.insertAdjacentElement("beforeend", chat_message_markup);
 
@@ -146,9 +142,11 @@ const create_chat_user_name = (user) => {
   chat_user_name.innerText = get_user_name({user});
   //chat_user_name.dataset.color = user.color; // not working in any browser
   if (!user.broadcaster && user.name === null) {
+    const b = document.createElement("b");
+    b.innerText = user.tag;
     const chat_user_name_tag = document.createElement("sup");
     chat_user_name_tag.classList.add("chat-name__tag");
-    chat_user_name_tag.innerText = user.tag;
+    chat_user_name_tag.innerHTML = b.outerHTML;
     chat_user_name.insertAdjacentElement("beforeend", chat_user_name_tag);
   }
   return chat_user_name;
@@ -167,7 +165,20 @@ const create_chat_user_components = (user) => {
     chat_user_tripcode.innerHTML = user.tripcode.digest;
   }
 
-  return [chat_user_name, chat_user_tripcode_nbsp, chat_user_tripcode];
+  let result;
+  if (!user.broadcaster) {
+    result = [];
+  } else {
+    const chat_user_insignia = document.createElement("b");
+    chat_user_insignia.classList.add("chat-insignia")
+    chat_user_insignia.title = "Broadcaster";
+    chat_user_insignia.innerText = "##";
+    const chat_user_insignia_nbsp = document.createElement("span");
+    chat_user_insignia_nbsp.innerHTML = "&nbsp;"
+    result = [chat_user_insignia, chat_user_insignia_nbsp];
+  }
+  result.push(...[chat_user_name, chat_user_tripcode_nbsp, chat_user_tripcode]);
+  return result;
 }
 const create_and_add_chat_message = (object) => {
   const chat_message = create_chat_message(object);
@@ -386,9 +397,9 @@ const disable_captcha = () => {
 }
 
 const set_title = (title) => {
-  const element = document.createElement("h1");
-  element.innerText = title.replaceAll(/\r?\n/g, " ");
-  info_title.innerHTML = element.outerHTML;
+  const h1 = document.createElement("h1");
+  h1.innerText = title.replaceAll(/\r?\n/g, " ");
+  info_title.innerHTML = h1.outerHTML;
 }
 
 const update_uptime = () => {

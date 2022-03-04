@@ -1,6 +1,7 @@
 {%
   macro appearance(
     user,
+    insignia_class,
     name_class,
     tag_class,
     tripcode_nbsp_class='for-tripcode',
@@ -8,10 +9,14 @@
   )
 %}
   {{- '' -}}
+  {%- if user.broadcaster -%}
+    <b class="{{ insignia_class }}" title="Broadcaster">##</b>
+    {{- '&nbsp;' | safe -}}
+  {%- endif -%}
   <span class="{{ name_class }}" style="color:{{ user.color }};">
     {{- user.name or get_default_name(user) -}}
     {%- if not user.broadcaster and user.name is none -%}
-      <sup class="{{ tag_class }}">{{ user.tag }}</sup>
+      <sup class="{{ tag_class }}"><b>{{ user.tag }}</b></sup>
     {%- endif -%}
   </span>
   {%- if user.tripcode -%}

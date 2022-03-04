@@ -61,6 +61,9 @@
     .user {
       line-height: 1.4375;
     }
+    .user__insignia {
+      cursor: help;
+    }
     .user__name {
       font-weight: bold;
       cursor: default;
@@ -91,7 +94,7 @@
     <ul>
       {% for user_listed in users_watching %}
         <li class="user">
-          {{- appearance(user_listed, name_class='user__name', tag_class='user__name__tag') -}}
+          {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>
       {% endfor %}
@@ -101,7 +104,7 @@
     <ul>
       {% for user_listed in users_notwatching %}
         <li class="user">
-          {{- appearance(user_listed, name_class='user__name', tag_class='user__name__tag') -}}
+          {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>
       {% endfor %}
