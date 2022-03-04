@@ -142,7 +142,7 @@
           <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>
           {{- '&nbsp;' | safe -}}
           {{ appearance(user, name_class='chat-message__name', tag_class='chat-message__name__tag') }}
-          {{- ':&nbsp;' | safe -}}
+          {{- ': ' -}}
           <span class="chat-message__markup">{{ message.markup }}</span>
         {% endwith %}
       </li>

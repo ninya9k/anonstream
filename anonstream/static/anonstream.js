@@ -135,7 +135,7 @@ const create_chat_message = (object) => {
   chat_message.insertAdjacentElement("beforeend", chat_message_name);
   chat_message.insertAdjacentElement("beforeend", chat_message_tripcode_nbsp);
   chat_message.insertAdjacentElement("beforeend", chat_message_tripcode);
-  chat_message.insertAdjacentHTML("beforeend", ":&nbsp;");
+  chat_message.insertAdjacentHTML("beforeend", ": ");
   chat_message.insertAdjacentElement("beforeend", chat_message_markup);
 
   return chat_message;
