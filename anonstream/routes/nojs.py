@@ -37,9 +37,9 @@ async def nojs_info(user):
 
 @current_app.route('/chat/messages.html')
 @with_user_from(request)
-async def nojs_chat(user):
+async def nojs_chat_messages(user):
     return await render_template_with_etag(
-        'nojs_chat.html',
+        'nojs_chat_messages.html',
         user=user,
         users_by_token=USERS_BY_TOKEN,
         messages=get_scrollback(current_app.messages),
@@ -49,15 +49,15 @@ async def nojs_chat(user):
 
 @current_app.route('/chat/messages')
 @with_user_from(request)
-async def nojs_chat_redirect(user):
-    return redirect(url_for('nojs_chat', token=user['token'], _anchor='end'))
+async def nojs_chat_messages_redirect(user):
+    return redirect(url_for('nojs_chat_messages', token=user['token'], _anchor='end'))
 
 @current_app.route('/chat/users.html')
 @with_user_from(request)
-async def nojs_users(user):
+async def nojs_chat_users(user):
     users_by_presence = get_users_by_presence()
     return await render_template_with_etag(
-        'nojs_users.html',
+        'nojs_chat_users.html',
         user=user,
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
@@ -67,12 +67,12 @@ async def nojs_users(user):
 
 @current_app.route('/chat/form.html')
 @with_user_from(request)
-async def nojs_form(user):
+async def nojs_chat_form(user):
     state_id = request.args.get('state', type=int)
     state = pop_state(user, state_id)
     prefer_chat_form = request.args.get('landing') != 'appearance'
     return await render_template(
-        'nojs_form.html',
+        'nojs_chat_form.html',
         user=user,
         state=state,
         prefer_chat_form=prefer_chat_form,
@@ -83,7 +83,7 @@ async def nojs_form(user):
 
 @current_app.post('/chat/form')
 @with_user_from(request)
-async def nojs_form_redirect(user):
+async def nojs_chat_form_redirect(user):
     comment = (await request.form).get('comment', '')
     if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
         comment = ''
@@ -93,7 +93,7 @@ async def nojs_form_redirect(user):
     else:
         state_id = None
 
-    return redirect(url_for('nojs_form', token=user['token'], state=state_id))
+    return redirect(url_for('nojs_chat_form', token=user['token'], state=state_id))
 
 @current_app.post('/chat/message')
 @with_user_from(request)
@@ -128,7 +128,7 @@ async def nojs_submit_message(user):
                 deverify(user)
 
     return redirect(url_for(
-        'nojs_form',
+        'nojs_chat_form',
         token=user['token'],
         landing='chat',
         state=state_id,
@@ -165,7 +165,7 @@ async def nojs_submit_appearance(user):
 
     state_id = add_state(user, notice=notice, verbose=len(errors) > 1)
     return redirect(url_for(
-        'nojs_form',
+        'nojs_chat_form',
         token=user['token'],
         landing='appearance' if errors else 'chat',
         state=state_id,

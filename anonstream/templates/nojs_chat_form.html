@@ -214,7 +214,7 @@
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     {% if digest %}
       <input type="hidden" name="captcha-digest" value="{{ digest }}">
-      <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="Captcha failed to load" title="Click for a new captcha" tabindex="2">
+      <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_chat_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="Captcha failed to load" title="Click for a new captcha" tabindex="2">
       <input id="chat-form__captcha-answer" name="captcha-answer" required placeholder="Captcha" tabindex="3">
     {% endif %}
   </form>

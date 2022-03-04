@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="refresh" content="4">
-  <meta http-equiv="refresh" content="5; url={{ url_for('nojs_chat_redirect', token=user.token) }}">
+  <meta http-equiv="refresh" content="5; url={{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
   <style>
     html {
       height: 100%;
@@ -130,7 +130,7 @@
   <div id="end"></div>
   <div id="notimeout"></div>
   <aside id="timeout">
-    <a class="button" href="{{ url_for('nojs_chat_redirect', token=user.token) }}">
+    <a class="button" href="{{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
       <header>Timed out</header>
       <small>Click to refresh</small>
     </a>
@@ -152,7 +152,7 @@
     <a class="button" href="#notimeout">Hide timeout notice</a>
   </aside>
   <aside id="timeout-alt">
-    <a class="button" href="{{ url_for('nojs_chat_redirect', token=user.token) }}">Click to refresh</a>
+    <a class="button" href="{{ url_for('nojs_chat_messages_redirect', token=user.token) }}">Click to refresh</a>
   </aside>
 </body>
 </html>

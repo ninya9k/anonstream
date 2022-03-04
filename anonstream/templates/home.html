@@ -20,15 +20,15 @@
     </header>
     <article id="chat__body">
       <section id="chat__body__messages">
-        <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat', token=user.token, _anchor='end') }}" data-js="false"></iframe></noscript>
+        <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat_messages', token=user.token, _anchor='end') }}" data-js="false"></iframe></noscript>
       </section>
       <section id="chat__body__users">
         <header id="chat-users-header"><h4>Users in chat</h4></header>
-        <noscript><iframe id="chat-users_nojs" src="{{ url_for('nojs_users', token=user.token) }}" data-js="false"></iframe></noscript>
+        <noscript><iframe id="chat-users_nojs" src="{{ url_for('nojs_chat_users', token=user.token) }}" data-js="false"></iframe></noscript>
       </section>
     </article>
     <section id="chat__form">
-      <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_form', token=user.token) }}" data-js="false"></iframe></noscript>
+      <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_chat_form', token=user.token) }}" data-js="false"></iframe></noscript>
     </section>
   </aside>
   <nav id="nav">
