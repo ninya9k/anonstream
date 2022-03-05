@@ -107,9 +107,7 @@ noscript {
 #chat__toggle {
   opacity: 0;
   position: absolute;
-  top: calc(0.5rem + 1px);
-  left: calc(0.5rem + 4px);
-  margin: 0;
+  pointer-events: none;
 }
 #chat__toggle:checked ~ #chat__body > #chat__body__messages,
 #chat__toggle:not(:checked) ~ #chat__body > #chat__body__users {

@@ -56,6 +56,7 @@
       height: 100%;
       box-sizing: border-box;
       align-items: center;
+      cursor: pointer;
     }
     #notice h2 {
       margin: 0;
@@ -73,7 +74,7 @@
       grid-gap: 0.375rem;
     }
     #chat-form__exit,
-    #appearance-form__exit,
+    #appearance-form__buttons__exit,
     #appearance-form__label-name,
     #appearance-form__label-password {
       font-size: 11pt;
@@ -120,6 +121,7 @@
     }
 
     #appearance-form {
+      display: grid;
       grid-auto-rows: 1fr 1fr 2rem;
       grid-auto-columns: min-content 1fr min-content;
     }
@@ -172,46 +174,48 @@
       display: none;
     }
 
-    #appearance-form {
+    #toggle {
+      opacity: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+    #chat-form__exit > label,
+    #appearance-form__buttons__exit > label {
+      padding: 1px;
+    }
+    #toggle:focus-visible ~ #chat-form > #chat-form__exit > label,
+    #toggle:focus-visible ~ #appearance-form #appearance-form__buttons__exit > label {
+      padding: 0;
+      border: 1px dotted;
+    }
+    #notice-radio {
       display: none;
     }
-    #appearance:target ~ #appearance-form {
-      display: grid;
-    }
-    #appearance:target ~ #chat-form {
+    #toggle:checked ~ #chat-form,
+    #toggle:not(:checked) ~ #appearance-form {
       display: none;
     }
-    #chat:target ~ #appearance-form {
+    #notice-radio:checked + #notice,
+    #notice-radio:not(:checked) ~ #chat-form,
+    #notice-radio:not(:checked) ~ #appearance-form {
       display: none;
     }
-    {% if state.notice %}
-      #chat-form {
-        display: none;
-      }
-      #chat:target ~ #chat-form {
-        display: grid;
-      }
-      #chat:target ~ #notice,
-      #appearance:target ~ #notice {
-        display: none;
-      }
-    {% endif %}
   </style>
 </head>
 <body>
-  <div id="chat"></div>
-  <div id="appearance"></div>
+  <input id="toggle" type="checkbox"{% if not prefer_chat_form %} checked{% endif %}>
   {% if state.notice %}
-    <a id="notice" {% if state.verbose %}class="verbose" {% endif %}{% if prefer_chat_form %}href="#chat"{% else %}href="#appearance"{% endif %}>
+    <input id="notice-radio" type="radio">
+    <label id="notice" for="notice-radio"{% if state.verbose %} class="verbose"{% endif %}>
       <header><h2>{{ state.notice }}</h2></header>
       <small>Click to dismiss</small>
-    </a>
+    </label>
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
     <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus>{{ state.comment }}</textarea>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
-    <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
+    <div id="chat-form__exit"><label for="toggle" class="pseudolink">Settings</label></div>
     {% if digest %}
       <input type="hidden" name="captcha-digest" value="{{ digest }}">
       <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_chat_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="Captcha failed to load" title="Click for a new captcha" tabindex="2">
@@ -239,7 +243,7 @@
     <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="1024">
     <div id="hide-password"><label for="password-toggle" class="pseudolink x">&cross;</label></div>
     <div id="appearance-form__buttons">
-      <div id="appearance-form__exit"><a href="#chat">Return to chat</a></div>
+      <div id="appearance-form__buttons__exit"><label for="toggle" class="pseudolink">Return to chat</label></div>
       <input type="submit" value="Update">
     </div>
   </form>
