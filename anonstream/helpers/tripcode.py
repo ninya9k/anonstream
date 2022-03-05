@@ -11,19 +11,27 @@ CONFIG = current_app.config
 def _generate_tripcode_digest_legacy(password):
     hexdigest, _ = werkzeug.security._hash_internal(
         'pbkdf2:sha256:150000',
-        CONFIG['SECRET_KEY'],
+        CONFIG['SECRET_KEY_STRING'],
         password,
     )
     digest = bytes.fromhex(hexdigest)
     return base64.b64encode(digest)[:8].decode()
 
-def generate_tripcode_digest(password):
+def _generate_tripcode_digest(password):
     parts = CONFIG['SECRET_KEY'] + b'tripcode\0' + password.encode()
     digest = hashlib.sha256(parts).digest()
     return base64.b64encode(digest)[:8].decode()
 
-def generate_tripcode(password, generate_digest=generate_tripcode_digest):
-    digest = generate_digest(password)
+def generate_tripcode_digest(password):
+    algorithm = (
+        _generate_tripcode_digest_legacy
+        if CONFIG['CHAT_LEGACY_TRIPCODE_ALGORITHM'] else
+        _generate_tripcode_digest
+    )
+    return algorithm(password)
+
+def generate_tripcode(password):
+    digest = generate_tripcode_digest(password)
     background_colour = generate_colour(
         seed='tripcode-background\0' + digest,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],

@@ -45,6 +45,7 @@ max_comment_length = 512
 max_name_length = 24
 min_name_contrast = 3.0
 background_color = "#232327"
+legacy_tripcode_algorithm = false
 
 [flood]
 duration = 20.0

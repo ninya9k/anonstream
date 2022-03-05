@@ -25,6 +25,7 @@ def create_app(config_file):
         'lstrip_blocks': True,
     })
     app.config.update({
+        'SECRET_KEY_STRING': config['secret_key'],
         'SECRET_KEY': config['secret_key'].encode(),
         'AUTH_USERNAME': config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
@@ -56,6 +57,7 @@ def create_app(config_file):
         'CHAT_NAME_MAX_LENGTH': config['chat']['max_name_length'],
         'CHAT_NAME_MIN_CONTRAST': config['chat']['min_name_contrast'],
         'CHAT_BACKGROUND_COLOUR': color_to_colour(config['chat']['background_color']),
+        'CHAT_LEGACY_TRIPCODE_ALGORITHM': config['chat']['legacy_tripcode_algorithm'],
         'FLOOD_DURATION': config['flood']['duration'],
         'FLOOD_THRESHOLD': config['flood']['threshold'],
         'CAPTCHA_LIFETIME': config['captcha']['lifetime'],
