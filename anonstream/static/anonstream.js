@@ -31,7 +31,7 @@ const jsmarkup_chat_form = `\
     <span id="chat-live__status"><span>Not connected<span data-verbose='true'> to chat</span></span></span>
   </div>
   <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
-  <img id="chat-form_js__captcha-image" width="72" height="30">
+  <input id="chat-form_js__captcha-image" type="image" width="72" height="30">
   <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
   <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <article id="chat-form_js__notice">
@@ -379,16 +379,16 @@ chat_form_captcha_image.addEventListener("error", (event) => {
   chat_form_captcha_image.title = "Click for a new captcha";
 });
 chat_form_captcha_image.addEventListener("click", (event) => {
-  if (chat_form_captcha_image.dataset.reloadable === undefined) {
-    return;
+  event.preventDefault();
+  if (chat_form_captcha_image.dataset.reloadable !== undefined) {
+    chat_form_submit.disabled = true;
+    chat_form_captcha_image.alt = "Waiting...";
+    chat_form_captcha_image.removeAttribute("title");
+    chat_form_captcha_image.removeAttribute("data-reloadable");
+    chat_form_captcha_image.removeAttribute("src");
+    const payload = {type: "captcha"};
+    ws.send(JSON.stringify(payload));
   }
-  chat_form_submit.disabled = true;
-  chat_form_captcha_image.alt = "Waiting...";
-  chat_form_captcha_image.removeAttribute("title");
-  chat_form_captcha_image.removeAttribute("data-reloadable");
-  chat_form_captcha_image.removeAttribute("src");
-  const payload = {type: "captcha"};
-  ws.send(JSON.stringify(payload));
 });
 const enable_captcha = (digest) => {
   chat_form_captcha_digest.value = digest;
