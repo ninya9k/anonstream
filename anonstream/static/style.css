@@ -265,7 +265,8 @@ noscript {
   grid-template-columns: 1fr min-content min-content 5rem;
   grid-template-rows: auto var(--button-height);
   grid-gap: 0.375rem;
-  margin: 0 0.5rem 0.5rem 0.5rem;
+  padding: 0 0.5rem 0.5rem 0.5rem;
+  position: relative;
 }
 #chat-form_js__submit {
   grid-column: 2 / span 1;
@@ -306,6 +307,33 @@ noscript {
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-image,
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-answer {
   display: none;
+}
+#chat-form_js:not([data-notice]) > #chat-form_js__notice {
+  display: none;
+}
+#chat-form_js__notice {
+  position: absolute;
+  width: 100%;
+  background: linear-gradient(#2323277f 25%, #232327);
+  height: 100%;
+  display: grid;
+}
+#chat-form_js__notice__button {
+  color: inherit;
+  border-color: black;
+  background-color: #232327;
+  border-radius: 4px;
+  text-align: center;
+  margin: auto;
+  display: grid;
+  grid-gap: 0.375rem;
+  padding: 0.625rem 1.25rem;
+  box-shadow: 0 0 12px black;
+  cursor: pointer;
+}
+#chat-form_js__notice__button__header {
+  font-size: 14pt;
+  line-height: 1.5;
 }
 #chat-form_nojs {
   height: 13ch;

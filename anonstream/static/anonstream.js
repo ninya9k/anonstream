@@ -34,6 +34,12 @@ const jsmarkup_chat_form = `\
   <img id="chat-form_js__captcha-image" width="72" height="30">
   <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
   <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
+  <article id="chat-form_js__notice">
+    <button id="chat-form_js__notice__button" type="button">
+      <header id="chat-form_js__notice__button__header"></header>
+      <small>Click to dismiss</small>
+    </button>
+  </article>
 </form>`;
 
 const insert_jsmarkup = () => {jsmarkup_info_float_viewership
@@ -95,6 +101,19 @@ insert_jsmarkup();
 const stylesheet_color = document.styleSheets[1];
 const stylesheet_tripcode_display = document.styleSheets[2];
 const stylesheet_tripcode_colors = document.styleSheets[3];
+
+/* override chat form notice button */
+const chat_form = document.getElementById("chat-form_js");
+const chat_form_notice_button = document.getElementById("chat-form_js__notice__button");
+const chat_form_notice_header = document.getElementById("chat-form_js__notice__button__header");
+chat_form_notice_button.addEventListener("click", (event) => {
+  chat_form.removeAttribute("data-notice");
+  chat_form_notice_header.innerText = "";
+});
+const show_notice = (text) => {
+  chat_form_notice_header.innerText = text;
+  chat_form.dataset.notice = "";
+}
 
 /* create websocket */
 const info_title = document.getElementById("info_js__title");
@@ -594,6 +613,11 @@ const on_websocket_message = (event) => {
 
     case "ack":
       console.log("ws ack", receipt);
+
+      if (receipt.notice !== null) {
+        show_notice(receipt.notice);
+      }
+
       const existing_nonce = chat_form_nonce.value;
       if (receipt.clear && receipt.nonce === existing_nonce) {
         chat_form_comment.value = "";
@@ -603,6 +627,7 @@ const on_websocket_message = (event) => {
       chat_form_nonce.value = receipt.next;
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
       chat_form_submit.disabled = false;
+
       break;
 
     case "message":
@@ -709,7 +734,6 @@ stream.addEventListener("error", (event) => {
 });
 
 /* override js-only chat form */
-const chat_form = document.getElementById("chat-form_js");
 const chat_form_nonce = document.getElementById("chat-form_js__nonce");
 const chat_form_comment = document.getElementById("chat-form_js__comment");
 const chat_form_submit = document.getElementById("chat-form_js__submit");
