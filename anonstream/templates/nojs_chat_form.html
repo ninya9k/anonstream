@@ -209,7 +209,7 @@
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1">{{ state.comment }}</textarea>
+    <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus>{{ state.comment }}</textarea>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
     <div id="chat-form__exit"><a href="#appearance">Settings</a></div>
     {% if digest %}

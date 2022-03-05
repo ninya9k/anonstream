@@ -25,7 +25,7 @@ const jsmarkup_chat_users = `\
 const jsmarkup_chat_form = `\
 <form id="chat-form_js" data-js="true" action="/chat" method="post">
   <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
-  <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1"></textarea>
+  <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1" autofocus></textarea>
   <div id="chat-live">
     <span id="chat-live__ball"></span>
     <span id="chat-live__status"><span>Not connected<span data-verbose='true'> to chat</span></span></span>
