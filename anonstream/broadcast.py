@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022 n9k [https://git.076.ne.jp/ninya9k]
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from quart import current_app
 
 from anonstream.utils.user import get_user_for_websocket

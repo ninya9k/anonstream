@@ -1,4 +1,5 @@
 aiofiles==0.8.0
+asgiref==3.5.0
 blinker==1.4
 git+https://github.com/lepture/captcha@27920681b86c27c990da484984f673dba1dd47e5#egg=captcha
 click==8.0.4
@@ -16,5 +17,6 @@ Pillow==9.0.1
 priority==2.0.0
 quart==0.16.3
 toml==0.10.2
+uvicorn==0.17.5
 Werkzeug==2.0.3
 wsproto==1.1.0
