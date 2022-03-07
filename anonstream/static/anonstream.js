@@ -313,26 +313,26 @@ const update_user_tripcodes = (token_hash=null) => {
   for (const this_token_hash of token_hashes) {
     const tripcode = users[this_token_hash].tripcode;
     if (tripcode === null) {
-      if (!to_ignore_display.has(token_hash)) {
+      if (!to_ignore_display.has(this_token_hash)) {
         stylesheet_tripcode_display.insertRule(
           `[data-token-hash="${this_token_hash}"] > .for-tripcode { display: none; }`,
           stylesheet_tripcode_display.cssRules.length,
        );
       }
-      if (!to_ignore_colors.has(token_hash)) {
+      if (!to_ignore_colors.has(this_token_hash)) {
         stylesheet_tripcode_colors.insertRule(
           `[data-token-hash="${this_token_hash}"] > .tripcode { background-color: initial; color: initial; }`,
           stylesheet_tripcode_colors.cssRules.length,
         );
       }
     } else {
-      if (!to_ignore_display.has(token_hash)) {
+      if (!to_ignore_display.has(this_token_hash)) {
         stylesheet_tripcode_display.insertRule(
           `[data-token-hash="${this_token_hash}"] > .for-tripcode { display: inline; }`,
           stylesheet_tripcode_display.cssRules.length,
         );
       }
-      if (!to_ignore_colors.has(token_hash)) {
+      if (!to_ignore_colors.has(this_token_hash)) {
         stylesheet_tripcode_colors.insertRule(
           `[data-token-hash="${this_token_hash}"] > .tripcode { background-color: ${tripcode.background_color}; color: ${tripcode.foreground_color}; }`,
           stylesheet_tripcode_colors.cssRules.length,
