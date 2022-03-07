@@ -13,7 +13,7 @@
     <b class="{{ insignia_class }}" title="Broadcaster">##</b>
     {{- '&nbsp;' | safe -}}
   {%- endif -%}
-  <span class="{{ name_class }}" style="color:{{ user.color }};">
+  <span class="{{ name_class }}">
     {{- user.name or get_default_name(user) -}}
     {%- if not user.broadcaster and user.name is none -%}
       <sup class="{{ tag_class }}"><b>{{ user.tag }}</b></sup>
@@ -22,6 +22,6 @@
   {%- if user.tripcode -%}
     <span class="{{ tripcode_nbsp_class }}">&nbsp;</span>
     {{- '' -}}
-    <span class="{{ tripcode_class }}" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</span>
+    <span class="{{ tripcode_class }}">{{ user.tripcode.digest }}</span>
   {%- endif -%}
 {% endmacro %}

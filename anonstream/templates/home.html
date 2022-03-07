@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src 'self'; img-src 'self'; frame-src 'self'; media-src 'self'; script-src 'self'; style-src 'self' 'nonce-{{ csp }}';">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
 </head>
-<body id="both" data-token="{{ user.token }}" data-token-hash="{{ user.token_hash }}">
+<body id="both" data-token="{{ user.token }}" data-token-hash="{{ user.token_hash }}" data-csp="{{ csp }}">
   <article id="stream">
     <noscript><iframe id="stream_nojs" name="stream_nojs" src="{{ url_for('nojs_stream', token=user.token) }}"></iframe></noscript>
   </article>

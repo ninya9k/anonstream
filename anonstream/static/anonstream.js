@@ -2,10 +2,10 @@
 const TOKEN = document.body.dataset.token;
 const TOKEN_HASH = document.body.dataset.tokenHash;
 
+/* Content Security Policy nonce */
+const CSP = document.body.dataset.csp;
+
 /* insert js-only markup */
-const jsmarkup_style_color = '<style id="style-color"></style>'
-const jsmarkup_style_tripcode_display = '<style id="style-tripcode-display"></style>'
-const jsmarkup_style_tripcode_colors = '<style id="style-tripcode-colors"></style>'
 const jsmarkup_stream = `<video id="stream_js" src="/stream.mp4?token=${encodeURIComponent(TOKEN)}" autoplay controls></video>`
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
@@ -57,18 +57,24 @@ const jsmarkup_chat_form = `\
   </div>
 </form>`;
 
-const insert_jsmarkup = () => {jsmarkup_info_float_viewership
+const insert_jsmarkup = () => {
   if (document.getElementById("style-color") === null) {
-    const parent = document.head;
-    parent.insertAdjacentHTML("beforeend", jsmarkup_style_color);
+    const style_color = document.createElement("style");
+    style_color.id = "style-color";
+    style_color.nonce = CSP;
+    document.head.insertAdjacentElement("beforeend", style_color);
   }
   if (document.getElementById("style-tripcode-display") === null) {
-    const parent = document.head;
-    parent.insertAdjacentHTML("beforeend", jsmarkup_style_tripcode_display);
+    const style_tripcode_display = document.createElement("style");
+    style_tripcode_display.id = "style-tripcode-display";
+    style_tripcode_display.nonce = CSP;
+    document.head.insertAdjacentElement("beforeend", style_tripcode_display);
   }
   if (document.getElementById("style-tripcode-colors") === null) {
-    const parent = document.head;
-    parent.insertAdjacentHTML("beforeend", jsmarkup_style_tripcode_colors);
+    const style_tripcode_colors = document.createElement("style");
+    style_tripcode_colors.id = "style-tripcode-colors";
+    style_tripcode_colors.nonce = CSP;
+    document.head.insertAdjacentElement("beforeend", style_tripcode_colors);
   }
   if (document.getElementById("stream_js") === null) {
     const parent = document.getElementById("stream");

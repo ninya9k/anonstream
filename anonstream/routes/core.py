@@ -5,11 +5,16 @@ from anonstream.segments import segments
 from anonstream.stream import is_online, get_stream_uptime
 from anonstream.user import watched
 from anonstream.routes.wrappers import with_user_from, auth_required
+from anonstream.utils.security import generate_csp
 
 @current_app.route('/')
 @with_user_from(request)
 async def home(user):
-    return await render_template('home.html', user=user)
+    return await render_template(
+        'home.html',
+        csp=generate_csp(),
+        user=user,
+    )
 
 @current_app.route('/stream.mp4')
 @with_user_from(request)

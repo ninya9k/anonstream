@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+  <meta http-equiv="content-security-policy" content="default-src 'none'; media-src 'self'; style-src 'nonce-{{ csp }}';">
+  <style nonce="{{ csp }}">
     html {
       height: 100%;
     }

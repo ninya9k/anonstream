@@ -8,6 +8,7 @@ from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
 from anonstream.utils.chat import generate_nonce
+from anonstream.utils.security import generate_csp
 from anonstream.utils.user import concatenate_for_notice
 
 CONFIG = current_app.config
@@ -18,6 +19,7 @@ USERS_BY_TOKEN = current_app.users_by_token
 async def nojs_stream(user):
     return await render_template(
         'nojs_stream.html',
+        csp=generate_csp(),
         user=user,
     )
 
@@ -28,6 +30,7 @@ async def nojs_info(user):
     uptime, viewership = get_stream_uptime_and_viewership()
     return await render_template(
         'nojs_info.html',
+        csp=generate_csp(),
         user=user,
         viewership=viewership,
         uptime=uptime,
@@ -40,6 +43,7 @@ async def nojs_info(user):
 async def nojs_chat_messages(user):
     return await render_template_with_etag(
         'nojs_chat_messages.html',
+        {'csp': generate_csp()},
         user=user,
         users_by_token=USERS_BY_TOKEN,
         messages=get_scrollback(current_app.messages),
@@ -58,6 +62,7 @@ async def nojs_chat_users(user):
     users_by_presence = get_users_by_presence()
     return await render_template_with_etag(
         'nojs_chat_users.html',
+        {'csp': generate_csp()},
         user=user,
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
@@ -73,6 +78,7 @@ async def nojs_chat_form(user):
     prefer_chat_form = request.args.get('landing') != 'appearance'
     return await render_template(
         'nojs_chat_form.html',
+        csp=generate_csp(),
         user=user,
         state=state,
         prefer_chat_form=prefer_chat_form,

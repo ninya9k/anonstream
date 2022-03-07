@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+  <meta http-equiv="content-security-policy" content="default-src 'none'; img-src 'self'; style-src 'nonce-{{ csp }}';">
+  <style nonce="{{ csp }}">
     :root {
       --link-color: #42a5d7;
       --padding-size: 0.5rem;
@@ -41,6 +42,8 @@
       padding: 0;
     }
     #tripcode {
+      background-color: {{ user.tripcode.background_color }};
+      color: {{ user.tripcode.foreground_color }};
       cursor: pointer;
     }
     .x {
@@ -230,11 +233,11 @@
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
     <input id="cleared-toggle" name="clear-tripcode" type="checkbox"{% if user.tripcode != none %} accesskey="c"{% endif %}>
     <div id="password-column">
-      {% if user.tripcode == none %}
+      {% if user.tripcode is none %}
         <span class="tripcode">(no tripcode)</span>
         <label for="password-toggle" class="show-password pseudolink">set</label>
       {% else %}
-        <label id="tripcode" for="password-toggle" class="show-password tripcode" style="background-color:{{ user.tripcode.background_color }};color:{{ user.tripcode.foreground_color }};">{{ user.tripcode.digest }}</label>
+        <label id="tripcode" for="password-toggle" class="show-password tripcode">{{ user.tripcode.digest }}</label>
         <label id="show-cleared" for="cleared-toggle" class="pseudolink x">&cross;</label>
         <div id="cleared" class="tripcode">(cleared)</div>
         <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>

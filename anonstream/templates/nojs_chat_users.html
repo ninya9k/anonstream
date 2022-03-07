@@ -4,8 +4,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'nonce-{{ csp }}';">
   <meta http-equiv="refresh" content="6">
-  <style>
+  <style nonce="{{ csp }}">
     html {
       min-height: 100%;
     }
@@ -80,6 +81,18 @@
       font-size: 9pt;
       cursor: default;
     }
+
+    {% for user in users_watching + users_notwatching %}
+      [data-token-hash="{{ user.token_hash }}"] > .user__name {
+        color: {{ user.color }};
+      }
+      {% if user.tripcode %}
+        [data-token-hash="{{ user.token_hash }}"] > .tripcode {
+          background-color: {{ user.tripcode.background_color }};
+          color: {{ user.tripcode.foreground_color }};
+        }
+      {% endif %}
+    {% endfor %}
   </style>
 </head>
 <body>
@@ -93,7 +106,7 @@
     <h5>Watching ({{ users_watching | length }})</h5>
     <ul>
       {% for user_listed in users_watching %}
-        <li class="user">
+        <li class="user" data-token-hash="{{ user.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>
@@ -103,7 +116,7 @@
     <h5>Not watching ({{ users_notwatching | length }})</h5>
     <ul>
       {% for user_listed in users_notwatching %}
-        <li class="user">
+        <li class="user" data-token-hash="{{ user.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>

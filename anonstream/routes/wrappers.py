@@ -86,11 +86,16 @@ def with_user_from(context):
 
     return with_user_from_context
 
-async def render_template_with_etag(*args, **kwargs):
-    rendered_template = await render_template(*args, **kwargs)
-    tag = hashlib.sha256(rendered_template.encode()).hexdigest()
+async def render_template_with_etag(template, deferred_kwargs, **kwargs):
+    render = await render_template(template, **kwargs)
+    tag = hashlib.sha256(render.encode()).hexdigest()
     etag = f'W/"{tag}"'
     if request.if_none_match.contains_weak(tag):
         return '', 304, {'ETag': etag}
     else:
+        rendered_template = await render_template(
+            template,
+            **deferred_kwargs,
+            **kwargs,
+        )
         return rendered_template, {'ETag': etag}
