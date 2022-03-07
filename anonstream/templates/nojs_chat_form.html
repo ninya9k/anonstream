@@ -203,9 +203,9 @@
   </style>
 </head>
 <body>
-  <input id="toggle" type="checkbox"{% if not prefer_chat_form %} checked{% endif %}>
+  <input id="toggle" type="checkbox" {% if not prefer_chat_form %}checked {% endif %}accesskey="x">
   {% if state.notice %}
-    <input id="notice-radio" type="radio">
+    <input id="notice-radio" type="radio" accesskey="z">
     <label id="notice" for="notice-radio"{% if state.verbose %} class="verbose"{% endif %}>
       <header><h2>{{ state.notice }}</h2></header>
       <small>Click to dismiss</small>
@@ -213,7 +213,7 @@
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus>{{ state.comment }}</textarea>
+    <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
     <div id="chat-form__exit"><label for="toggle" class="pseudolink">Settings</label></div>
     {% if digest %}
