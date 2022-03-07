@@ -4,7 +4,7 @@ from math import inf
 from quart import current_app
 
 from anonstream.wrappers import try_except_log, with_timestamp
-from anonstream.helpers.user import get_presence, Presence
+from anonstream.helpers.user import get_default_name, get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
 from anonstream.utils.colour import color_to_colour, get_contrast, NotAColor
@@ -69,6 +69,8 @@ def try_change_appearance(user, name, color, password, want_tripcode):
 
 def change_name(user, name, dry_run=False):
     if dry_run:
+        if name == get_default_name(user):
+            name = None
         if name is not None:
             if len(name) == 0:
                 raise BadAppearance('Name was empty')
@@ -91,7 +93,7 @@ def change_color(user, color, dry_run=False):
         if contrast < min_contrast:
             raise BadAppearance(
                 'Colour had insufficient contrast:',
-                (f'{contrast:.2f}', f'/{min_contrast}'),
+                (f'{contrast:.2f}', f'/{min_contrast:.2f}'),
             )
     else:
         user['color'] = color

@@ -258,19 +258,19 @@ noscript {
 #chat-users_nojs {
   height: 100%;
 }
+#chat__form {
+  position: relative;
+}
 #chat-form_js {
   display: grid;
-  grid-template-columns: 1fr min-content min-content 5rem;
+  grid-template-columns: 1fr min-content min-content min-content 5rem;
   grid-template-rows: auto var(--button-height);
   grid-gap: 0.375rem;
   padding: 0 0.5rem 0.5rem 0.5rem;
   position: relative;
 }
-#chat-form_js__submit {
-  grid-column: 2 / span 1;
-}
 #chat-form_js__comment {
-  grid-column: 1 / span 4;
+  grid-column: 1 / span 5;
   background-color: #434347;
   border-radius: 4px;
   border: 2px solid transparent;
@@ -299,8 +299,19 @@ noscript {
 #chat-form_js__captcha-answer {
   width: 8ch;
 }
-#chat-form_js__submit {
+#chat-form_js__settings {
+  align-self: center;
+  padding: 5px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  color: var(--text-color);
   grid-column: 4;
+}
+#chat-form_js__settings:hover {
+  background-color: #434347;
+}
+#chat-form_js__submit {
+  grid-column: 5;
 }
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-image,
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-answer {
@@ -312,9 +323,10 @@ noscript {
 #chat-form_js__notice {
   position: absolute;
   width: 100%;
-  background: linear-gradient(#2323277f 25%, #232327);
+  background: linear-gradient(#23232700, #2323277f 8%, #232327);
   height: 100%;
   display: grid;
+  z-index: 1;
 }
 #chat-form_js__notice__button {
   color: inherit;
@@ -335,6 +347,51 @@ noscript {
 }
 #chat-form_nojs {
   height: 13ch;
+}
+#appearance-form_js {
+  position: absolute;
+  bottom: 3rem;
+  padding: 0.5rem;
+  margin: 0 1rem;
+  width: calc(100% - 2rem);
+  box-sizing: border-box;
+  background: #343437df;
+  border: 2px outset #434347;
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: min-content 1fr min-content;
+  grid-template-rows: 1fr 1fr auto;
+  grid-gap: 0.375rem;
+}
+#appearance-form_js[data-hidden] {
+  display: none;
+}
+#appearance-form_js__label-name,
+#appearance-form_js__label-tripcode {
+  align-self: center;
+}
+#appearance-form_js__name,
+#appearance-form_js__password {
+  min-width: 12ch;
+}
+#appearance-form_js__row {
+  grid-column: 1 / span 3;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: auto 4rem;
+  align-items: end;
+}
+#appearance-form_js__row__result {
+  font-weight: bold;
+  font-size: 11pt;
+}
+#appearance-form_js__row__result > ul {
+  margin: 0;
+  padding-left: 1.125rem;
+  font-size: 10pt;
+}
+#appearance-form_js__row__submit {
+  min-height: 1.75rem;
 }
 #chat-live {
   position: relative;

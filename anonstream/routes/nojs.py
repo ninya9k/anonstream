@@ -141,7 +141,7 @@ async def nojs_submit_appearance(user):
 
     # Collect form data
     name = form.get('name', '').strip()
-    if len(name) == 0 or name == get_default_name(user):
+    if len(name) == 0:
         name = None
 
     color = form.get('color', '')

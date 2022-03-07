@@ -1,3 +1,7 @@
+from enum import Enum
+
+WS = Enum('WS', names=('MESSAGE, CAPTCHA, APPEARANCE'))
+
 class Malformed(Exception):
     pass
 
@@ -19,13 +23,27 @@ def parse_websocket_data(receipt):
             comment = get(str, form, 'comment')
             digest = get(str, form, 'captcha-digest', '')
             answer = get(str, form, 'captcha-answer', '')
-            return nonce, comment, digest, answer
+            return WS.MESSAGE, (nonce, comment, digest, answer)
 
         case 'appearance':
-            raise NotImplemented
+            form = get(dict, receipt, 'form')
+            name = get(str, form, 'name').strip()
+            if len(name) == 0:
+                name = None
+            color = get(str, form, 'color')
+            password = get(str, form, 'password')
+            #match get(str | None, form, 'want-tripcode'):
+            #    case '0':
+            #        want_tripcode = False
+            #    case '1':
+            #        want_tripcode = True
+            #    case _:
+            #        want_tripcode = None
+            want_tripcode = bool(password)
+            return WS.APPEARANCE, (name, color, password, want_tripcode)
 
         case 'captcha':
-            return None
+            return WS.CAPTCHA, ()
 
         case _:
             raise Malformed('malformed type')

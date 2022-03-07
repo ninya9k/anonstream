@@ -6,9 +6,9 @@ from quart import current_app, websocket
 from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import get_all_users_for_websocket, see, verify, deverify, BadCaptcha
+from anonstream.user import get_all_users_for_websocket, see, verify, deverify, BadCaptcha, try_change_appearance
 from anonstream.utils.chat import generate_nonce
-from anonstream.utils.websocket import parse_websocket_data, Malformed
+from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
 
 CONFIG = current_app.config
 
@@ -41,7 +41,7 @@ async def websocket_inbound(queue, user):
         finally:
             see(user)
         try:
-            parsed = parse_websocket_data(receipt)
+            receipt_type, parsed = parse_websocket_data(receipt)
         except Malformed as e:
             error , *_ = e.args
             payload = {
@@ -49,12 +49,14 @@ async def websocket_inbound(queue, user):
                 'because': error,
             }
         else:
-            match parsed:
-                case [nonce, comment, digest, answer]:
-                    payload = handle_inbound_message(user, *parsed)
-
-                case None:
-                    payload = handle_inbound_captcha(user)
+            match receipt_type:
+                case WS.MESSAGE:
+                    handle = handle_inbound_message
+                case WS.APPEARANCE:
+                    handle = handle_inbound_appearance
+                case WS.CAPTCHA:
+                    handle = handle_inbound_captcha
+            payload = handle(user, *parsed)
 
         queue.put_nowait(payload)
 
@@ -63,6 +65,22 @@ def handle_inbound_captcha(user):
         'type': 'captcha',
         'digest': get_random_captcha_digest_for(user),
     }
+
+def handle_inbound_appearance(user, name, color, password, want_tripcode):
+    errors = try_change_appearance(user, name, color, password, want_tripcode)
+    if errors:
+        return {
+            'type': 'appearance',
+            'errors': [error.args for error in errors],
+        }
+    else:
+        return {
+            'type': 'appearance',
+            'result': 'Changed appearance',
+            'name': user['name'],
+            'color': user['color'],
+            #'tripcode': user['tripcode'],
+        }
 
 def handle_inbound_message(user, nonce, comment, digest, answer):
     try:

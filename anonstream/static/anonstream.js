@@ -28,11 +28,15 @@ const jsmarkup_chat_form = `\
   <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1" autofocus></textarea>
   <div id="chat-live">
     <span id="chat-live__ball"></span>
-    <span id="chat-live__status"><span>Not connected<span data-verbose='true'> to chat</span></span></span>
+    <span id="chat-live__status">
+      <span data-verbose="true">Not connected to chat</span>
+      <span data-verbose="false">&times;</span>
+    </span>
   </div>
   <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
   <input id="chat-form_js__captcha-image" type="image" width="72" height="30">
   <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
+  <input id="chat-form_js__settings" type="image" src="/static/settings.svg" width="28" height="28" alt="Settings">
   <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <article id="chat-form_js__notice">
     <button id="chat-form_js__notice__button" type="button">
@@ -40,6 +44,17 @@ const jsmarkup_chat_form = `\
       <small>Click to dismiss</small>
     </button>
   </article>
+</form>
+<form id="appearance-form_js" data-hidden="">
+  <span id="appearance-form_js__label-name">Name:</span>
+  <input id="appearance-form_js__name" name="name" maxlength="24">
+  <input id="appearance-form_js__color" type="color" name="color">
+  <span id="appearance-form_js__label-tripcode">Tripcode:</span>
+  <input id="appearance-form_js__password" type="password" name="password" placeholder="(tripcode password)" maxlength="1024">
+  <div id="appearance-form_js__row">
+    <article id="appearance-form_js__row__result"></article>
+    <input id="appearance-form_js__row__submit" type="submit" value="Update">
+  </div>
 </form>`;
 
 const insert_jsmarkup = () => {jsmarkup_info_float_viewership
@@ -114,6 +129,30 @@ const show_notice = (text) => {
   chat_form_notice_header.innerText = text;
   chat_form.dataset.notice = "";
 }
+
+/* override chat form settings input */
+const chat_appearance_form = document.getElementById("appearance-form_js");
+const chat_appearance_form_result = document.getElementById("appearance-form_js__row__result");
+const chat_form_settings = document.getElementById("chat-form_js__settings");
+chat_form_settings.addEventListener("click", (event) => {
+  event.preventDefault();
+  if (chat_appearance_form.dataset.hidden === undefined) {
+    chat_appearance_form.dataset.hidden = "";
+    chat_form_settings.style.backgroundColor = "";
+    chat_appearance_form_result.innerText = "";
+    if (!chat_appearance_form_submit.disabled) {
+      chat_appearance_form.reset();
+    }
+  } else {
+    chat_appearance_form.removeAttribute("data-hidden");
+    chat_form_settings.style.backgroundColor = "#4f4f53";
+  }
+});
+
+/* appearance form */
+const chat_appearance_form_name = document.getElementById("appearance-form_js__name");
+const chat_appearance_form_color = document.getElementById("appearance-form_js__color");
+const chat_appearance_form_password = document.getElementById("appearance-form_js__password");
 
 /* create websocket */
 const info_title = document.getElementById("info_js__title");
@@ -523,6 +562,7 @@ const on_websocket_message = (event) => {
     case "error":
       console.log("ws error", receipt);
       chat_form_submit.disabled = false;
+      chat_appearance_form_submit.disabled = false;
       break;
 
     case "init":
@@ -575,6 +615,14 @@ const on_websocket_message = (event) => {
       update_user_colors();
       update_user_tripcodes();
       update_users_list()
+
+      // appearance form default values
+      const user = users[TOKEN_HASH];
+      if (user.name !== null) {
+        chat_appearance_form_name.setAttribute("value", user.name);
+      }
+      chat_appearance_form_name.setAttribute("placeholder", default_name[user.broadcaster]);
+      chat_appearance_form_color.setAttribute("value", user.color);
 
       // insert new messages
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
@@ -666,6 +714,41 @@ const on_websocket_message = (event) => {
       receipt.digest === null ? disable_captcha() : enable_captcha(receipt.digest);
       break;
 
+    case "appearance":
+      console.log("ws appearance", receipt);
+
+      if (receipt.errors === undefined) {
+        if (receipt.name !== null) {
+          chat_appearance_form_name.setAttribute("value", receipt.name);
+        }
+        chat_appearance_form_color.setAttribute("value", receipt.color);
+        chat_appearance_form_result.innerHTML = receipt.result;
+      } else {
+        const ul = document.createElement("ul");
+        for (const error of receipt.errors) {
+          const li = document.createElement("li");
+          li.innerText = error[0];
+          for (const tuple of error.slice(1)) {
+            const mark = document.createElement("mark");
+            mark.innerText = tuple[0];
+            li.insertAdjacentText("beforeend", " ");
+            li.insertAdjacentElement("beforeend", mark);
+            li.insertAdjacentText("beforeend", tuple[1]);
+          }
+          ul.insertAdjacentElement("beforeend", li);
+        }
+        const result = document.createElement("div");
+        result.innerText = "Errors:";
+        result.insertAdjacentElement("beforeend", ul);
+        chat_appearance_form_result.innerHTML = result.innerHTML;
+      }
+
+      chat_appearance_form_submit.disabled = false;
+      chat_appearance_form.removeAttribute("data-hidden");
+      chat_form_settings.style.backgroundColor = "#4f4f53";
+
+      break;
+
     default:
       console.log("incomprehensible websocket message", receipt);
   }
@@ -680,13 +763,13 @@ const connect_websocket = () => {
     return;
   }
   chat_live_ball.style.borderColor = "gold";
-  chat_live_status.innerHTML = "<span data-verbose='false'>Waiting...</span> <span data-verbose='true'>Connecting to chat...</span>";
+  chat_live_status.innerHTML = "<span data-verbose='true'>Connecting to chat...</span><span data-verbose='false'>&middot;&middot;&middot;</span>";
   ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);
     chat_form_submit.disabled = false;
     chat_live_ball.style.borderColor = "green";
-    chat_live_status.innerHTML = "<span>Connected<span data-verbose='true'> to chat</span></span>";
+    chat_live_status.innerHTML = "<span><span data-verbose='true'>Connected to chat</span><span data-verbose='false'>&check;</span></span>";
     // When the server is offline, a newly opened websocket can take a second
     // to close. This timeout tries to ensure the backoff doesn't instantly
     // (erroneously) reset to 2 seconds in that case.
@@ -702,7 +785,7 @@ const connect_websocket = () => {
     console.log("websocket close", event);
     chat_form_submit.disabled = true;
     chat_live_ball.style.borderColor = "maroon";
-    chat_live_status.innerHTML = "<span data-verbose='false'>Failed to connect</span> <span data-verbose='true'>Disconnected from chat</span>";
+    chat_live_status.innerHTML = "<span data-verbose='true'>Disconnected from chat</span><span data-verbose='false'>&times;</span>";
     if (!ws.successor) {
       ws.successor = true;
       setTimeout(connect_websocket, websocket_backoff);
@@ -742,6 +825,18 @@ chat_form.addEventListener("submit", (event) => {
   const form = Object.fromEntries(new FormData(chat_form));
   const payload = {type: "message", form: form};
   chat_form_submit.disabled = true;
+  ws.send(JSON.stringify(payload));
+});
+
+/* override js-only appearance form */
+const chat_appearance_form_submit = document.getElementById("appearance-form_js__row__submit");
+chat_appearance_form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = Object.fromEntries(new FormData(chat_appearance_form));
+  const payload = {type: "appearance", form: form};
+  chat_appearance_form_submit.disabled = true;
+  chat_appearance_form_password.value = "";
+  chat_appearance_form_result.innerText = "";
   ws.send(JSON.stringify(payload));
 });
 
