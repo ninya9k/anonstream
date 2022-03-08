@@ -11,6 +11,59 @@ These mirrors also exist:
 * <https://gitlab.com/ninya9k/anonstream>
 * <https://github.com/ninya9k/anonstream>
 
+## Setup
+
+You must have Python 3.10 at a minimum.
+
+Clone the repo:
+```sh
+git clone https://git.076.ne.jp/ninya9k/anonstream.git
+cd anonstream
+```
+
+Install dependencies in a virtual environment:
+```sh
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+Before you run it might want to edit [/config.toml][config]:
+
+* `secret_key`:
+  used for cryptography, make it any long random string
+  (e.g. `$ dd if=/dev/urandom bs=16 count=1 | base64`)
+
+* `segments/directory`:
+  directory containing stream segments, the default is `stream/` in
+  the project root
+
+* `title/file`:
+  location of the stream title, the default is `title.txt` in the
+  project root
+
+* `captcha/fonts`:
+  locations of fonts for the captcha, leaving it blank will use the
+  default font
+
+Run it:
+```sh
+python -m uvicorn app:app --port 5051
+```
+
+This will start a webserver listening on localhost port 5051.
+
+If you go to `http://localhost:5051` in a regular web browser now
+you should see the interface. When you started the webserver some
+credentials were printed in the terminal; you can log in with those at
+`http://localhost:5051/login` (requires cookies).
+
+The only things left are (1) streaming, and (2) letting other people
+access your stream. [/STREAMING.md][streaming] has instructions for
+setting up OBS Studio and a Tor onion service. The instructions will
+be useful even if you want to use different streaming software and put
+your stream on the Internet some other way.
+
 ## Copying
 
 anonstream is AGPL 3.0 or later, see

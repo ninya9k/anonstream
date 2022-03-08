@@ -1,4 +1,4 @@
-secret_key = "test"
+secret_key = "place secret key here"
 
 [auth]
 username = "broadcaster"
