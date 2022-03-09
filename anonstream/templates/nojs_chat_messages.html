@@ -136,14 +136,14 @@
     }
 
     {% for token in messages | map(attribute='token') | list | unique %}
-      {% with user = users_by_token[token] %}
-        [data-token-hash="{{ user.token_hash }}"] > .chat-message__name {
-          color: {{ user.color }};
+      {% with this_user = users_by_token[token] %}
+        [data-token-hash="{{ this_user.token_hash }}"] > .chat-message__name {
+          color: {{ this_user.color }};
         }
-        {% if user.tripcode %}
-          [data-token-hash="{{ user.token_hash }}"] > .tripcode {
-            background-color: {{ user.tripcode.background_color }};
-            color: {{ user.tripcode.foreground_color }};
+        {% if this_user.tripcode %}
+          [data-token-hash="{{ this_user.token_hash }}"] > .tripcode {
+            background-color: {{ this_user.tripcode.background_color }};
+            color: {{ this_user.tripcode.foreground_color }};
           }
         {% endif %}
       {% endwith %}
@@ -161,15 +161,15 @@
   </aside>
   <ol id="chat-messages">
     {% for message in messages | reverse %}
-      <li class="chat-message" data-seq="{{ message.seq }}" data-token-hash="{{ user.token_hash }}">
-        {% with user = users_by_token[message.token] %}
+      {% with this_user = users_by_token[message.token] %}
+        <li class="chat-message" data-seq="{{ message.seq }}" data-token-hash="{{ this_user.token_hash }}">
           <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>
           {{- '&nbsp;' | safe -}}
-          {{ appearance(user, insignia_class='chat-message__insignia', name_class='chat-message__name', tag_class='chat-message__name__tag') }}
+          {{ appearance(this_user, insignia_class='chat-message__insignia', name_class='chat-message__name', tag_class='chat-message__name__tag') }}
           {{- ': ' -}}
           <span class="chat-message__markup">{{ message.markup }}</span>
-        {% endwith %}
-      </li>
+        </li>
+      {% endwith %}
     {% endfor %}
   </ol>
   <aside id="timeout-dismiss">

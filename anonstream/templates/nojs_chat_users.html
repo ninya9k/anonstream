@@ -86,14 +86,14 @@
       cursor: default;
     }
 
-    {% for user in users_watching + users_notwatching %}
-      [data-token-hash="{{ user.token_hash }}"] > .user__name {
-        color: {{ user.color }};
+    {% for user_listed in users_watching + users_notwatching %}
+      [data-token-hash="{{ user_listed.token_hash }}"] > .user__name {
+        color: {{ user_listed.color }};
       }
-      {% if user.tripcode %}
-        [data-token-hash="{{ user.token_hash }}"] > .tripcode {
-          background-color: {{ user.tripcode.background_color }};
-          color: {{ user.tripcode.foreground_color }};
+      {% if user_listed.tripcode %}
+        [data-token-hash="{{ user_listed.token_hash }}"] > .tripcode {
+          background-color: {{ user_listed.tripcode.background_color }};
+          color: {{ user_listed.tripcode.foreground_color }};
         }
       {% endif %}
     {% endfor %}
@@ -110,7 +110,7 @@
     <h5>Watching ({{ users_watching | length }})</h5>
     <ul>
       {% for user_listed in users_watching %}
-        <li class="user" data-token-hash="{{ user.token_hash }}">
+        <li class="user" data-token-hash="{{ user_listed.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>
@@ -120,7 +120,7 @@
     <h5>Not watching ({{ users_notwatching | length }})</h5>
     <ul>
       {% for user_listed in users_notwatching %}
-        <li class="user" data-token-hash="{{ user.token_hash }}">
+        <li class="user" data-token-hash="{{ user_listed.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
           {%- if user.token == user_listed.token %} (You){% endif -%}
         </li>
