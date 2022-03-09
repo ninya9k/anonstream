@@ -5,6 +5,7 @@ import asyncio
 
 from quart import current_app, websocket
 
+from anonstream.user import see
 from anonstream.websocket import websocket_outbound, websocket_inbound
 from anonstream.routes.wrappers import with_user_from
 
@@ -19,4 +20,9 @@ async def live(user):
     try:
         await asyncio.gather(producer, consumer)
     finally:
+        see(user)
         user['websockets'].remove(queue)
+        try:
+            await websocket.close(1000)
+        except RuntimeError:
+            pass
