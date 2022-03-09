@@ -214,6 +214,7 @@ noscript {
   vertical-align: top;
 }
 .chat-message__markup {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
   line-height: 1.3125;
 }
