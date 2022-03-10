@@ -18,7 +18,9 @@ const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload s
 const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
-const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
+const jsmarkup_chat_messages = `\
+<ol id="chat-messages_js" data-js="true"></ol>
+<button id="chat-messages-unlock">Chat scroll paused. Click to resume.</button>`;
 const jsmarkup_chat_users = `\
 <article id="chat-users_js">
   <h5 id="chat-users_js__watching-header"></h5>
@@ -692,11 +694,13 @@ const on_websocket_message = (event) => {
     case "message":
       console.log("ws message", receipt);
       create_and_add_chat_message(receipt.message);
-      chat_messages.scrollTo({
-        left: 0,
-        top: chat_messages.scrollTopMax,
-        behavior: "smooth",
-      });
+      if (chat_messages.dataset.scrollLock === undefined) {
+        chat_messages.scrollTo({
+          left: 0,
+          top: chat_messages.scrollTopMax,
+          behavior: "smooth",
+        });
+      }
       break;
 
     case "set-users":
@@ -866,7 +870,20 @@ const peg_bottom = (entries) => {
 }
 const resize = new ResizeObserver(peg_bottom);
 resize.observe(chat_messages);
+track_scroll(chat_messages);
+
+/* chat scroll lock */
 chat_messages.addEventListener("scroll", (event) => {
   track_scroll(chat_messages);
+  const scroll = chat_messages.scrollTopMax - chat_messages.scrollTop;
+  const locked = chat_messages.dataset.scrollLock !== undefined
+  if (scroll >= 160 && !locked) {
+    chat_messages.dataset.scrollLock = "";
+  } else if (scroll == 0 && locked) {
+    chat_messages.removeAttribute("data-scroll-lock");
+  }
 });
-track_scroll(chat_messages);
+const chat_messages_unlock = document.getElementById("chat-messages-unlock");
+chat_messages_unlock.addEventListener("click", (event) => {
+  chat_messages.scrollTop = chat_messages.scrollTopMax;
+});
