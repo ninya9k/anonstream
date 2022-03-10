@@ -7,11 +7,14 @@ import toml
 from collections import OrderedDict
 
 from quart import Quart
+from quart_compress import Compress
 from werkzeug.security import generate_password_hash
 
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.utils.colour import color_to_colour
 from anonstream.utils.user import generate_token
+
+compress = Compress()
 
 def create_app(config_file):
     with open(config_file) as fp:
@@ -111,5 +114,12 @@ def create_app(config_file):
     async def startup():
         import anonstream.routes
         import anonstream.tasks
+
+    # Compress some responses
+    compress.init_app(app)
+    app.config.update({
+        "COMPRESS_MIN_SIZE": 2048,
+        "COMPRESS_LEVEL": 9,
+    })
 
     return app
