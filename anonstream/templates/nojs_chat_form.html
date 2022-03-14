@@ -242,13 +242,13 @@
         <label for="password-toggle" class="show-password pseudolink">set</label>
       {% else %}
         <label id="tripcode" for="password-toggle" class="show-password tripcode">{{ user.tripcode.digest }}</label>
-        <label id="show-cleared" for="cleared-toggle" class="pseudolink x">&cross;</label>
+        <label id="show-cleared" for="cleared-toggle" class="pseudolink x">&times;</label>
         <div id="cleared" class="tripcode">(cleared)</div>
         <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>
       {% endif %}
     </div>
     <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="1024">
-    <div id="hide-password"><label for="password-toggle" class="pseudolink x">&cross;</label></div>
+    <div id="hide-password"><label for="password-toggle" class="pseudolink x">&times;</label></div>
     <div id="appearance-form__buttons">
       <div id="appearance-form__buttons__exit"><label for="toggle" class="pseudolink">Return to chat</label></div>
       <input type="submit" value="Update">
