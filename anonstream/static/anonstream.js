@@ -11,7 +11,8 @@ const TOKEN_HASH = document.body.dataset.tokenHash;
 const CSP = document.body.dataset.csp;
 
 /* insert js-only markup */
-const jsmarkup_stream = `<video id="stream_js" src="/stream.mp4?token=${encodeURIComponent(TOKEN)}" autoplay controls></video>`
+const jsmarkup_stream_video = '<video id="stream__video" autoplay controls></video>'
+const jsmarkup_stream_offline = '<header id="stream__offline"><h1>[offline]</h1></header>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
 const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload stream</button>';
@@ -83,9 +84,13 @@ const insert_jsmarkup = () => {
     style_tripcode_colors.nonce = CSP;
     document.head.insertAdjacentElement("beforeend", style_tripcode_colors);
   }
-  if (document.getElementById("stream_js") === null) {
+  if (document.getElementById("stream__video") === null) {
     const parent = document.getElementById("stream");
-    parent.insertAdjacentHTML("beforeend", jsmarkup_stream);
+    parent.insertAdjacentHTML("beforeend", jsmarkup_stream_video);
+  }
+  if (document.getElementById("stream__offline") === null) {
+    const parent = document.getElementById("stream");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_stream_offline);
   }
   if (document.getElementById("info_js") === null) {
     const parent = document.getElementById("info");
@@ -568,6 +573,12 @@ const update_users_list = () => {
   chat_users_notwatching_header.innerText = `Not watching (${notwatching})`;
 }
 
+const show_offline_screen = () => {
+  video.removeAttribute("src");
+  video.load();
+  stream.dataset.offline = "";
+}
+
 const on_websocket_message = (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -664,7 +675,7 @@ const on_websocket_message = (event) => {
       }
 
       // stream reload button
-      if (stats === null || stream.networkState === stream.NETWORK_LOADING) {
+      if (stats === null || video.networkState === video.NETWORK_LOADING) {
         info_button.removeAttribute("data-visible");
       } else {
         info_button.dataset.visible = "";
@@ -819,17 +830,25 @@ const connect_websocket = () => {
 connect_websocket();
 
 /* stream reload button */
-const stream = document.getElementById("stream_js");
+const video = document.getElementById("stream__video");
 const info_button = document.getElementById("info_js__float__button");
 info_button.addEventListener("click", (event) => {
-  stream.load();
+  stream.removeAttribute("data-offline");
+  video.src = `/stream.mp4?token=${encodeURIComponent(TOKEN)}`;
+  video.load();
   info_button.removeAttribute("data-visible");
 });
-stream.addEventListener("error", (event) => {
+video.addEventListener("error", (event) => {
+  if (video.error !== null && video.error.message === "404: Not Found") {
+    show_offline_screen();
+  }
   if (stats !== null) {
     info_button.dataset.visible = "";
   }
 });
+
+/* load stream */
+video.src = `/stream.mp4?token=${encodeURIComponent(TOKEN)}`;
 
 /* override js-only chat form */
 const chat_form_nonce = document.getElementById("chat-form_js__nonce");
