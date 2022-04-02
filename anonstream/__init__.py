@@ -53,6 +53,8 @@ def create_app(config_file):
         'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
         'TASK_PERIOD_ROTATE_USERS': config['tasks']['rotate_users'],
         'TASK_PERIOD_ROTATE_CAPTCHAS': config['tasks']['rotate_captchas'],
+        'TASK_PERIOD_ROTATE_WEBSOCKETS': config['tasks']['rotate_websockets'],
+        'TASK_PERIOD_BROADCAST_PING': config['tasks']['broadcast_ping'],
         'TASK_PERIOD_BROADCAST_USERS_UPDATE': config['tasks']['broadcast_users_update'],
         'TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE': config['tasks']['broadcast_stream_info_update'],
         'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],

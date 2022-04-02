@@ -3,6 +3,8 @@
 
 import asyncio
 
+from math import inf
+
 from quart import current_app, websocket
 
 from anonstream.user import see
@@ -13,7 +15,7 @@ from anonstream.routes.wrappers import with_user_from
 @with_user_from(websocket)
 async def live(user):
     queue = asyncio.Queue(maxsize=0)
-    user['websockets'].add(queue)
+    user['websockets'][queue] = -inf
 
     producer = websocket_outbound(queue, user)
     consumer = websocket_inbound(queue, user)
@@ -21,8 +23,8 @@ async def live(user):
         await asyncio.gather(producer, consumer)
     finally:
         see(user)
-        user['websockets'].remove(queue)
+        user['websockets'].pop(queue)
         try:
-            await websocket.close(1000)
+            await websocket.close(1001)
         except RuntimeError:
             pass

@@ -3,7 +3,7 @@
 
 from enum import Enum
 
-WS = Enum('WS', names=('MESSAGE, CAPTCHA, APPEARANCE'))
+WS = Enum('WS', names=('PONG', 'MESSAGE', 'CAPTCHA', 'APPEARANCE'))
 
 class Malformed(Exception):
     pass
@@ -47,6 +47,9 @@ def parse_websocket_data(receipt):
 
         case 'captcha':
             return WS.CAPTCHA, ()
+
+        case 'pong':
+            return WS.PONG, ()
 
         case _:
             raise Malformed('malformed type')

@@ -35,7 +35,7 @@ def generate_user(timestamp, token, broadcaster, presence):
         'tag': tag,
         'broadcaster': broadcaster,
         'verified': broadcaster,
-        'websockets': set(),
+        'websockets': {},
         'name': None,
         'color': colour_to_color(colour),
         'tripcode': None,

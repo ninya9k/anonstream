@@ -269,6 +269,9 @@ let stats = null;
 let stats_received = null;
 let default_name = {true: "Broadcaster", false: "Anonymous"};
 let max_chat_scrollback = 256;
+let pingpong_period = 8.0;
+let ping = null;
+const pingpong_timeout = () => pingpong_period * 1.5 + 4.0;
 const tidy_stylesheet = ({stylesheet, selector_regex, ignore_condition}) => {
   const to_delete = [];
   const to_ignore = new Set();
@@ -592,7 +595,7 @@ const on_websocket_message = (event) => {
     case "init":
       console.log("ws init", receipt);
 
-      // set title
+      pingpong_period = receipt.pingpong;
       set_title(receipt.title);
 
       // update stats (uptime/viewership)
@@ -775,6 +778,13 @@ const on_websocket_message = (event) => {
 
       break;
 
+    case "ping":
+      console.log("ws ping");
+      ping = new Date();
+      const payload = {type: "pong"};
+      ws.send(JSON.stringify(payload));
+      break;
+
     default:
       console.log("incomprehensible websocket message", receipt);
   }
@@ -906,3 +916,14 @@ const chat_messages_unlock = document.getElementById("chat-messages-unlock");
 chat_messages_unlock.addEventListener("click", (event) => {
   chat_messages.scrollTop = chat_messages.scrollTopMax;
 });
+
+/* close websocket after prolonged absence of pings */
+const rotate_websocket = () => {
+  const this_pingpong_timeout = pingpong_timeout();
+  if (ping === null || (new Date() - ping) / 1000 > this_pingpong_timeout) {
+    console.log(`no pings heard in ${this_pingpong_timeout} seconds, closing websocket...`);
+    ws.close();
+  }
+  setTimeout(rotate_websocket, this_pingpong_timeout * 1000);
+};
+setTimeout(rotate_websocket, pingpong_timeout() * 1000);
