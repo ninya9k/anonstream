@@ -44,6 +44,7 @@ a {
   color: #42a5d7;
 }
 iframe {
+  display: grid;
   width: 100%;
   border: none;
   box-sizing: border-box;
@@ -119,13 +120,11 @@ noscript {
 
 #chat {
   display: grid;
-  grid-auto-rows: auto 1fr auto;
+  grid-auto-rows: auto minmax(150px, 1fr) auto;
   background-color: var(--chat-bg-color);
   border-top: var(--chat-border);
   border-bottom: var(--chat-border);
   grid-area: chat;
-  height: 50vh;
-  min-height: 24ch;
   position: relative;
 }
 #chat__toggle {
@@ -511,7 +510,7 @@ footer {
   border-style: inset;
 }
 #both:target #info_nojs {
-  height: 9ch;
+  height: 11ch;
 }
 #info:target {
   grid-row-end: chat-end;
