@@ -24,7 +24,3 @@ async def live(user):
     finally:
         see(user)
         user['websockets'].pop(queue)
-        try:
-            await websocket.close(1001)
-        except RuntimeError:
-            pass
