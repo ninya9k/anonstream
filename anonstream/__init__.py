@@ -6,10 +6,10 @@ import secrets
 import toml
 from collections import OrderedDict
 
-from quart import Quart
 from quart_compress import Compress
 from werkzeug.security import generate_password_hash
 
+from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.utils.colour import color_to_colour
 from anonstream.utils.user import generate_token
