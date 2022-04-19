@@ -239,7 +239,12 @@ noscript {
   cursor: default;
 }
 .chat-insignia {
-  text-shadow: 0 0 2px orangered;
+  color: var(--chat-bg);
+  border: 1px outset #0000007f;
+  text-shadow: 0 0 1px var(--chat-bg-color);
+  background-color: orangered;
+  padding: 0 2px;
+  border-radius: 3px;
   cursor: help;
 }
 .chat-name {
