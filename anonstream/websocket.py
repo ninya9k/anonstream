@@ -33,6 +33,7 @@ async def websocket_outbound(queue, user):
         'pingpong': CONFIG['TASK_PERIOD_BROADCAST_PING'],
     }
     await websocket.send_json(payload)
+    await websocket.send_json({'type': 'ping'})
     while True:
         payload = await queue.get()
         if payload['type'] == 'close':
@@ -74,6 +75,7 @@ async def websocket_inbound(queue, user):
 
 @with_timestamp
 def handle_inbound_pong(timestamp, queue, user):
+    print(f'[pong] {user["token"]}')
     user['websockets'][queue] = timestamp
     return None
 
