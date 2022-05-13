@@ -85,7 +85,8 @@ async def get_segment_uris(token):
             f'stream went offline before we could find any segments'
         )
         return
-    else:
+
+    if segment.init_section is not None:
         yield segment.init_section.uri
 
     while True:
