@@ -59,6 +59,8 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         raise Rejected('Discarded suspected duplicate message')
     if len(comment) == 0:
         raise Rejected('Message was empty')
+    if len(comment.strip()) == 0:
+        raise Rejected('Message was practically empty')
     if len(comment) > 512:
         raise Rejected('Message exceeded 512 chars')
     if comment.count('\n') + 1 > 12:
