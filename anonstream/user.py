@@ -152,12 +152,12 @@ def deverify(timestamp, user):
     n_user_messages = 0
     for message in reversed(MESSAGES):
         message_sent_ago = timestamp - message['timestamp']
-        if message_sent_ago >= CONFIG['FLOOD_DURATION']:
+        if message_sent_ago >= CONFIG['FLOOD_MESSAGE_DURATION']:
             break
         elif message['token'] == user['token']:
             n_user_messages += 1
 
-    if n_user_messages >= CONFIG['FLOOD_THRESHOLD']:
+    if n_user_messages >= CONFIG['FLOOD_MESSAGE_THRESHOLD']:
         user['verified'] = False
 
 def _update_presence(timestamp, user):

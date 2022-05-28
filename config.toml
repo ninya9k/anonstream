@@ -49,9 +49,13 @@ min_name_contrast = 3.0
 background_color = "#232327"
 legacy_tripcode_algorithm = false
 
-[flood]
+[flood.messages]
 duration = 20.0
 threshold = 4
+
+[flood.lines]
+duration = 20.0
+threshold = 20
 
 [thresholds]
 user_notwatching = 8.0

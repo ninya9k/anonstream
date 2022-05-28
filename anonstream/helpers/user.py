@@ -3,7 +3,7 @@
 
 import hashlib
 import base64
-from collections import OrderedDict
+from collections import deque, OrderedDict
 from math import inf
 
 from quart import current_app
@@ -45,6 +45,7 @@ def generate_user(timestamp, token, broadcaster, presence):
             'watching': -inf,
         },
         'presence': presence,
+        'linespan': deque(),
     }
 
 def get_default_name(user):
