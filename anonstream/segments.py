@@ -76,10 +76,14 @@ def get_next_segment(uri):
         segment = None
     return segment
 
-async def get_segment_uris():
+async def get_segment_uris(token):
     try:
         segment = get_starting_segment()
     except Offline:
+        print(
+            f'[debug @ {time.time():.3f}: {token=}] '
+            f'stream went offline before we could find any segments'
+        )
         return
     else:
         yield segment.init_section.uri
@@ -92,12 +96,22 @@ async def get_segment_uris():
             try:
                 next_segment = get_next_segment(segment.uri)
             except Offline:
+                print(
+                    f'[debug @ {time.time():.3f}: {token=}] '
+                    f'stream went offline while looking for the segment '
+                    f'following {uri=}'
+                )
                 return
             else:
                 if next_segment is not None:
                     segment = next_segment
                     break
                 elif time.monotonic() - t0 >= CONFIG['SEGMENT_SEARCH_TIMEOUT']:
+                    print(
+                        f'[debug @ {time.time():.3f}: {token=}] '
+                        f'timed out looking for the segment following {uri=}'
+                        f'(timeout={CONFIG["SEGMENT_SEARCH_TIMEOUT"]}s)'
+                    )
                     return
                 else:
                     await asyncio.sleep(CONFIG['SEGMENT_SEARCH_COOLDOWN'])
@@ -112,8 +126,7 @@ def path_for(uri):
 
 async def segments(segment_read_hook=lambda uri: None, token=None):
     print(f'[debug @ {time.time():.3f}: {token=}] entering segment generator')
-    uri = None
-    async for uri in get_segment_uris():
+    async for uri in get_segment_uris(token):
         #print(f'[debug @ {time.time():.3f}: {token=}] {uri=}')
         try:
             path = path_for(uri)
@@ -136,10 +149,4 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
                 f'segment {uri=} at {path=} unexpectedly does not exist'
             )
             break
-    else:
-        print(
-            f'[debug @ {time.time():.3f}: {token=}] '
-            f'could not find segment following {uri=} after at least '
-            f'{CONFIG["SEGMENT_SEARCH_TIMEOUT"]} seconds'
-        )
     print(f'[debug @ {time.time():.3f}: {token=}] exiting segment generator')
