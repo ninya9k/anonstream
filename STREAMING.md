@@ -24,8 +24,10 @@ Click `Settings` and set these:
 * Advanced
   * Recording
     * Filename Formatting: `stream`
+    * Overwrite if file exists: yes
 * Video
   * Output (Scaled) Resolution: `960x540` or lower
+  * Common FPS Values: any integer framerate (e.g. 30 or 60)
 * Output
   * Output Mode: `Advanced`
   * Recording:
@@ -37,7 +39,7 @@ Click `Settings` and set these:
     | Container Format           | `hls`                                                                                          |
     | Muxer Settings (if any)    | `hls_init_time=0 hls_time=2 hls_list_size=120 hls_flags=delete_segments hls_segment_type=fmp4` |
     | Video bitrate              | `420 Kbps` or lower                                                                            |
-    | Keyframe interval (frames) | `30` (same as the framerate, or exactly half)                                                  |
+    | Keyframe interval (frames) | `framerate*hls_time`, e.g. for 60fps and an `hls_time` of 2 seconds, use 120                   |
     | Video Encoder              | libx264, or an H.264 hardware encoder (e.g. `h264_nvenc` for Nvidia, [see here][ffmpeg])       |
     | Audio Bitrate              | `96 Kbps`                                                                                      |
     | Audio Encoder              | `aac`                                                                                          |
