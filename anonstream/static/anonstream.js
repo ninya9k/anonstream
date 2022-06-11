@@ -41,11 +41,11 @@ const jsmarkup_chat_form = `\
       <span data-verbose="false">&times;</span>
     </span>
   </div>
+  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
   <input id="chat-form_js__captcha-image" type="image" width="72" height="30">
   <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
   <input id="chat-form_js__settings" type="image" src="/static/settings.svg" width="28" height="28" alt="Settings">
-  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <article id="chat-form_js__notice">
     <button id="chat-form_js__notice__button" type="button">
       <header id="chat-form_js__notice__button__header"></header>

@@ -364,6 +364,7 @@ noscript {
 }
 #chat-form_js__submit {
   grid-column: 5;
+  grid-row: 2;
 }
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-image,
 #chat-form_js:not([data-captcha]) > #chat-form_js__captcha-answer {
