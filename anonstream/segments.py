@@ -25,11 +25,12 @@ class UnsafePath(Exception):
 def get_mtime():
     try:
         mtime = os.path.getmtime(CONFIG['SEGMENT_PLAYLIST'])
-    except FileNotFoundError as e:
-        raise Stale from e
+    except OSError as e:
+        raise Stale(f"couldn't stat playlist: {e}") from e
     else:
-        if time.time() - mtime >= CONFIG['SEGMENT_PLAYLIST_STALE_THRESHOLD']:
-            raise Stale
+        mtime_ago = time.time() - mtime
+        if mtime_ago >= CONFIG['SEGMENT_PLAYLIST_STALE_THRESHOLD']:
+            raise Stale(f'last modified {mtime_ago:.1f}s ago')
     return mtime
 
 @ttl_cache(CONFIG['SEGMENT_PLAYLIST_CACHE_LIFETIME'])
@@ -38,13 +39,18 @@ def get_playlist():
     try:
         mtime = get_mtime()
     except Stale as e:
-        raise Offline from e
+        reason, *_ = e.args
+        raise Offline(f'stale playlist: {reason}') from e
     else:
-        playlist = m3u8._load_from_file(CONFIG['SEGMENT_PLAYLIST'])
-        if playlist.is_endlist:
-            raise Offline
-        if len(playlist.segments) == 0:
-            raise Offline
+        try:
+            playlist = m3u8._load_from_file(CONFIG['SEGMENT_PLAYLIST'])
+        except OSError:
+            raise Offline(f"couldn't read playlist: {e}") from e
+        else:
+            if playlist.is_endlist:
+                raise Offline('playlist ended')
+            if len(playlist.segments) == 0:
+                raise Offline('empty playlist')
 
     return playlist, mtime
 
@@ -79,10 +85,11 @@ def get_next_segment(uri):
 async def get_segment_uris(token):
     try:
         segment = get_starting_segment()
-    except Offline:
+    except Offline as e:
+        reason, *_ = e.args
         print(
             f'[debug @ {time.time():.3f}: {token=}] '
-            f'stream went offline before we could find any segments'
+            f'stream went offline before we could find any segments ({reason})'
         )
         return
 
@@ -96,11 +103,12 @@ async def get_segment_uris(token):
         while True:
             try:
                 next_segment = get_next_segment(segment.uri)
-            except Offline:
+            except Offline as e:
+                reason, *_ = e.args
                 print(
                     f'[debug @ {time.time():.3f}: {token=}] '
-                    f'stream went offline while looking for the segment '
-                    f'following {uri=}'
+                    f'stream went offline while looking for the '
+                    f'segment following {segment.uri!r} ({reason})'
                 )
                 return
             else:
@@ -110,7 +118,8 @@ async def get_segment_uris(token):
                 elif time.monotonic() - t0 >= CONFIG['SEGMENT_SEARCH_TIMEOUT']:
                     print(
                         f'[debug @ {time.time():.3f}: {token=}] '
-                        f'timed out looking for the segment following {uri=}'
+                        f'timed out looking for the segment following '
+                        f'{segment.uri!r} '
                         f'(timeout={CONFIG["SEGMENT_SEARCH_TIMEOUT"]}s)'
                     )
                     return
@@ -135,7 +144,7 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
             unsafe_path, *_ = e.args
             print(
                 f'[debug @ {time.time():.3f}: {token=}] '
-                f'segment {uri=} has unsafe {path=}'
+                f'segment {uri=} has {unsafe_path=}'
             )
             break
 
@@ -148,6 +157,12 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
             print(
                 f'[debug @ {time.time():.3f}: {token=}] '
                 f'segment {uri=} at {path=} unexpectedly does not exist'
+            )
+            break
+        except OSError as e:
+            print(
+                f'[debug @ {time.time():.3f}: {token=}] '
+                f'segment {uri=} at {path=} cannot be read: {e}'
             )
             break
     print(f'[debug @ {time.time():.3f}: {token=}] exiting segment generator')
