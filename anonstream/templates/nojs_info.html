@@ -140,7 +140,7 @@
       {% if user.presence != Presence.WATCHING %}
         <form id="float__form" action="{{ url_for('nojs_stream') }}" target="stream_nojs">
           <input type="hidden" name="token" value="{{ user.token }}">
-          <input type="submit" value="Reload stream">
+          <input type="submit" value="Reload stream" accesskey="r">
         </form>
       {% endif %}
       <div id="float__viewership">{{ viewership }} viewers</div>

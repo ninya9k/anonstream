@@ -15,7 +15,7 @@ const jsmarkup_stream_video = '<video id="stream__video" autoplay controls></vid
 const jsmarkup_stream_offline = '<header id="stream__offline"><h1>[offline]</h1></header>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
-const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload stream</button>';
+const jsmarkup_info_float_button = '<button id="info_js__float__button" accesskey="r">Reload stream</button>';
 const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
