@@ -11,14 +11,17 @@ const TOKEN_HASH = document.body.dataset.tokenHash;
 const CSP = document.body.dataset.csp;
 
 /* insert js-only markup */
-const jsmarkup_stream = `<video id="stream_js" src="/stream.mp4?token=${encodeURIComponent(TOKEN)}" autoplay controls></video>`
+const jsmarkup_stream_video = '<video id="stream__video" autoplay controls></video>'
+const jsmarkup_stream_offline = '<header id="stream__offline"><h1>[offline]</h1></header>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
-const jsmarkup_info_float_button = '<button id="info_js__float__button">Reload stream</button>';
+const jsmarkup_info_float_button = '<button id="info_js__float__button" accesskey="r">Reload stream</button>';
 const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
-const jsmarkup_chat_messages = '<ol id="chat-messages_js" data-js="true"></ol>';
+const jsmarkup_chat_messages = `\
+<ol id="chat-messages_js" data-js="true"></ol>
+<button id="chat-messages-unlock">Chat scroll paused. Click to resume.</button>`;
 const jsmarkup_chat_users = `\
 <article id="chat-users_js">
   <h5 id="chat-users_js__watching-header"></h5>
@@ -38,11 +41,11 @@ const jsmarkup_chat_form = `\
       <span data-verbose="false">&times;</span>
     </span>
   </div>
+  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
   <input id="chat-form_js__captcha-image" type="image" width="72" height="30">
   <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
   <input id="chat-form_js__settings" type="image" src="/static/settings.svg" width="28" height="28" alt="Settings">
-  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
   <article id="chat-form_js__notice">
     <button id="chat-form_js__notice__button" type="button">
       <header id="chat-form_js__notice__button__header"></header>
@@ -81,9 +84,13 @@ const insert_jsmarkup = () => {
     style_tripcode_colors.nonce = CSP;
     document.head.insertAdjacentElement("beforeend", style_tripcode_colors);
   }
-  if (document.getElementById("stream_js") === null) {
+  if (document.getElementById("stream__video") === null) {
     const parent = document.getElementById("stream");
-    parent.insertAdjacentHTML("beforeend", jsmarkup_stream);
+    parent.insertAdjacentHTML("beforeend", jsmarkup_stream_video);
+  }
+  if (document.getElementById("stream__offline") === null) {
+    const parent = document.getElementById("stream");
+    parent.insertAdjacentHTML("beforeend", jsmarkup_stream_offline);
   }
   if (document.getElementById("info_js") === null) {
     const parent = document.getElementById("info");
@@ -262,6 +269,9 @@ let stats = null;
 let stats_received = null;
 let default_name = {true: "Broadcaster", false: "Anonymous"};
 let max_chat_scrollback = 256;
+let pingpong_period = 8.0;
+let ping = null;
+const pingpong_timeout = () => pingpong_period * 1.5 + 4.0;
 const tidy_stylesheet = ({stylesheet, selector_regex, ignore_condition}) => {
   const to_delete = [];
   const to_ignore = new Set();
@@ -566,6 +576,12 @@ const update_users_list = () => {
   chat_users_notwatching_header.innerText = `Not watching (${notwatching})`;
 }
 
+const show_offline_screen = () => {
+  video.removeAttribute("src");
+  video.load();
+  stream.dataset.offline = "";
+}
+
 const on_websocket_message = (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
@@ -579,7 +595,7 @@ const on_websocket_message = (event) => {
     case "init":
       console.log("ws init", receipt);
 
-      // set title
+      pingpong_period = receipt.pingpong;
       set_title(receipt.title);
 
       // update stats (uptime/viewership)
@@ -662,7 +678,7 @@ const on_websocket_message = (event) => {
       }
 
       // stream reload button
-      if (stats === null || stream.networkState === stream.NETWORK_LOADING) {
+      if (stats === null || video.networkState === video.NETWORK_LOADING) {
         info_button.removeAttribute("data-visible");
       } else {
         info_button.dataset.visible = "";
@@ -692,11 +708,13 @@ const on_websocket_message = (event) => {
     case "message":
       console.log("ws message", receipt);
       create_and_add_chat_message(receipt.message);
-      chat_messages.scrollTo({
-        left: 0,
-        top: chat_messages.scrollTopMax,
-        behavior: "smooth",
-      });
+      if (chat_messages.dataset.scrollLock === undefined) {
+        chat_messages.scrollTo({
+          left: 0,
+          top: chat_messages.scrollTopMax,
+          behavior: "smooth",
+        });
+      }
       break;
 
     case "set-users":
@@ -760,6 +778,13 @@ const on_websocket_message = (event) => {
 
       break;
 
+    case "ping":
+      console.log("ws ping");
+      ping = new Date();
+      const payload = {type: "pong"};
+      ws.send(JSON.stringify(payload));
+      break;
+
     default:
       console.log("incomprehensible websocket message", receipt);
   }
@@ -815,17 +840,25 @@ const connect_websocket = () => {
 connect_websocket();
 
 /* stream reload button */
-const stream = document.getElementById("stream_js");
+const video = document.getElementById("stream__video");
 const info_button = document.getElementById("info_js__float__button");
 info_button.addEventListener("click", (event) => {
-  stream.load();
+  stream.removeAttribute("data-offline");
+  video.src = `/stream.mp4?token=${encodeURIComponent(TOKEN)}`;
+  video.load();
   info_button.removeAttribute("data-visible");
 });
-stream.addEventListener("error", (event) => {
+video.addEventListener("error", (event) => {
+  if (video.error !== null && video.error.message === "404: Not Found") {
+    show_offline_screen();
+  }
   if (stats !== null) {
     info_button.dataset.visible = "";
   }
 });
+
+/* load stream */
+video.src = `/stream.mp4?token=${encodeURIComponent(TOKEN)}`;
 
 /* override js-only chat form */
 const chat_form_nonce = document.getElementById("chat-form_js__nonce");
@@ -866,7 +899,31 @@ const peg_bottom = (entries) => {
 }
 const resize = new ResizeObserver(peg_bottom);
 resize.observe(chat_messages);
+track_scroll(chat_messages);
+
+/* chat scroll lock */
 chat_messages.addEventListener("scroll", (event) => {
   track_scroll(chat_messages);
+  const scroll = chat_messages.scrollTopMax - chat_messages.scrollTop;
+  const locked = chat_messages.dataset.scrollLock !== undefined
+  if (scroll >= 160 && !locked) {
+    chat_messages.dataset.scrollLock = "";
+  } else if (scroll == 0 && locked) {
+    chat_messages.removeAttribute("data-scroll-lock");
+  }
 });
-track_scroll(chat_messages);
+const chat_messages_unlock = document.getElementById("chat-messages-unlock");
+chat_messages_unlock.addEventListener("click", (event) => {
+  chat_messages.scrollTop = chat_messages.scrollTopMax;
+});
+
+/* close websocket after prolonged absence of pings */
+const rotate_websocket = () => {
+  const this_pingpong_timeout = pingpong_timeout();
+  if (ping === null || (new Date() - ping) / 1000 > this_pingpong_timeout) {
+    console.log(`no pings heard in ${this_pingpong_timeout} seconds, closing websocket...`);
+    ws.close();
+  }
+  setTimeout(rotate_websocket, this_pingpong_timeout * 1000);
+};
+setTimeout(rotate_websocket, pingpong_timeout() * 1000);

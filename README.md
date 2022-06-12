@@ -28,7 +28,8 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Before you run it might want to edit [/config.toml][config]:
+Before you run it you should edit [/config.toml][config], e.g. these
+options:
 
 * `secret_key`:
   used for cryptography, make it any long random string
@@ -36,11 +37,11 @@ Before you run it might want to edit [/config.toml][config]:
 
 * `segments/directory`:
   directory containing stream segments, the default is `stream/` in
-  the project root
+  the cloned repository
 
 * `title/file`:
   location of the stream title, the default is `title.txt` in the
-  project root
+  cloned repository
 
 * `captcha/fonts`:
   locations of fonts for the captcha, leaving it blank will use the
@@ -53,16 +54,16 @@ python -m uvicorn app:app --port 5051
 
 This will start a webserver listening on localhost port 5051.
 
-If you go to `http://localhost:5051` in a regular web browser now
-you should see the interface. When you started the webserver some
-credentials were printed in the terminal; you can log in with those at
+If you go to `http://localhost:5051` in a web browser now you should see
+the site.  When you started the webserver some credentials were
+printed in the terminal; you can log in with those at
 `http://localhost:5051/login` (requires cookies).
 
 The only things left are (1) streaming, and (2) letting other people
-access your stream. [/STREAMING.md][streaming] has instructions for
-setting up OBS Studio and a Tor onion service. The instructions will
-be useful even if you want to use different streaming software and put
-your stream on the Internet some other way.
+access your stream.  [/STREAMING.md][streaming] has instructions for
+setting up OBS Studio and a Tor onion service.  If you want to use
+different streaming software and put your stream on the Internet some
+other way, still read those instructions and copy the gist.
 
 ## Copying
 
@@ -102,10 +103,10 @@ anonstream is AGPL 3.0 or later, see
 * werkzeug <https://github.com/pallets/werkzeug>
   ([BSD 3-Clause][werkzeug])
 
-[config]:       https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/config.toml
-[licence]:      https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/LICENSES/AGPL-3.0-or-later.md
+[config]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/config.toml
+[licence]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/LICENSES/AGPL-3.0-or-later.md
 [settings.svg]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/anonstream/static/settings.svg
-[streaming]:    https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/STREAMING.md
+[streaming]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/STREAMING.md
 
 [aiofiles]: https://github.com/Tinche/aiofiles/blob/master/LICENSE
 [captcha]: https://github.com/lepture/captcha/blob/master/LICENSE

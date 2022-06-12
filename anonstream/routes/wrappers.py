@@ -33,14 +33,21 @@ def auth_required(f):
     async def wrapper(*args, **kwargs):
         if check_auth(request):
             return await f(*args, **kwargs)
-        hint = 'The broadcaster should log in with the credentials printed ' \
-               'in their terminal.'
-        body = (
-            f'<p>{hint}</p>'
-            if request.authorization is None else
-             '<p>Wrong username or password. Refresh the page to try again.</p>'
-            f'<p>{hint}</p>'
+        hint = (
+            'The broadcaster should log in with the credentials printed in '
+            'their terminal.'
         )
+        if request.authorization is None:
+            body = (
+                f'<!doctype html>\n'
+                f'<p>{hint}</p>\n'
+            )
+        else:
+            body = (
+                f'<!doctype html>\n'
+                f'<p>Wrong username or password. Refresh the page to try again.</p>\n'
+                f'<p>{hint}</p>\n'
+            )
         return body, 401, {'WWW-Authenticate': 'Basic'}
 
     return wrapper

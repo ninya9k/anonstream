@@ -6,12 +6,15 @@ import secrets
 import toml
 from collections import OrderedDict
 
-from quart import Quart
+from quart_compress import Compress
 from werkzeug.security import generate_password_hash
 
+from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.utils.colour import color_to_colour
 from anonstream.utils.user import generate_token
+
+compress = Compress()
 
 def create_app(config_file):
     with open(config_file) as fp:
@@ -50,6 +53,8 @@ def create_app(config_file):
         'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
         'TASK_PERIOD_ROTATE_USERS': config['tasks']['rotate_users'],
         'TASK_PERIOD_ROTATE_CAPTCHAS': config['tasks']['rotate_captchas'],
+        'TASK_PERIOD_ROTATE_WEBSOCKETS': config['tasks']['rotate_websockets'],
+        'TASK_PERIOD_BROADCAST_PING': config['tasks']['broadcast_ping'],
         'TASK_PERIOD_BROADCAST_USERS_UPDATE': config['tasks']['broadcast_users_update'],
         'TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE': config['tasks']['broadcast_stream_info_update'],
         'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
@@ -61,8 +66,10 @@ def create_app(config_file):
         'CHAT_NAME_MIN_CONTRAST': config['chat']['min_name_contrast'],
         'CHAT_BACKGROUND_COLOUR': color_to_colour(config['chat']['background_color']),
         'CHAT_LEGACY_TRIPCODE_ALGORITHM': config['chat']['legacy_tripcode_algorithm'],
-        'FLOOD_DURATION': config['flood']['duration'],
-        'FLOOD_THRESHOLD': config['flood']['threshold'],
+        'FLOOD_MESSAGE_DURATION': config['flood']['messages']['duration'],
+        'FLOOD_MESSAGE_THRESHOLD': config['flood']['messages']['threshold'],
+        'FLOOD_LINE_DURATION': config['flood']['lines']['duration'],
+        'FLOOD_LINE_THRESHOLD': config['flood']['lines']['threshold'],
         'CAPTCHA_LIFETIME': config['captcha']['lifetime'],
         'CAPTCHA_FONTS': config['captcha']['fonts'],
         'CAPTCHA_ALPHABET': config['captcha']['alphabet'],
@@ -111,5 +118,12 @@ def create_app(config_file):
     async def startup():
         import anonstream.routes
         import anonstream.tasks
+
+    # Compress some responses
+    compress.init_app(app)
+    app.config.update({
+        "COMPRESS_MIN_SIZE": 2048,
+        "COMPRESS_LEVEL": 9,
+    })
 
     return app

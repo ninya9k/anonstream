@@ -33,6 +33,8 @@ chat_scrollback = 256
 [tasks]
 rotate_users = 60.0
 rotate_captchas = 60.0
+rotate_websockets = 2.0
+broadcast_ping = 8.0
 broadcast_users_update = 4.0
 broadcast_stream_info_update = 3.0
 
@@ -47,9 +49,13 @@ min_name_contrast = 3.0
 background_color = "#232327"
 legacy_tripcode_algorithm = false
 
-[flood]
+[flood.messages]
 duration = 20.0
 threshold = 4
+
+[flood.lines]
+duration = 20.0
+threshold = 20
 
 [thresholds]
 user_notwatching = 8.0

@@ -5,7 +5,7 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
-from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
+from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
 from anonstream.user import add_state, pop_state, try_change_appearance, update_presence, get_users_by_presence, Presence, verify, deverify, BadCaptcha
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
@@ -24,6 +24,7 @@ async def nojs_stream(user):
         'nojs_stream.html',
         csp=generate_csp(),
         user=user,
+        online=is_online(),
     )
 
 @current_app.route('/info.html')

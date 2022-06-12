@@ -3,6 +3,7 @@
 
 import base64
 import hashlib
+import math
 import secrets
 
 class NonceReuse(Exception):
@@ -18,3 +19,10 @@ def get_message_for_websocket(user, message):
         **{key: message[key] for key in message_keys},
         **{key: user[key] for key in user_keys},
     }
+
+def get_approx_linespan(text):
+    def height(line):
+        return math.ceil(len(line) / 48)
+    linespan = sum(map(height, text.splitlines()))
+    linespan = linespan if linespan > 0 else 1
+    return linespan

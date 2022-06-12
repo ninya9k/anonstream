@@ -5,7 +5,7 @@ import asyncio
 import itertools
 from functools import wraps
 
-from quart import current_app
+from quart import current_app, websocket
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
@@ -86,6 +86,27 @@ async def t_expire_captchas(iteration):
     for digest in to_delete:
         CAPTCHAS.pop(digest)
 
+@with_period(CONFIG['TASK_PERIOD_ROTATE_WEBSOCKETS'])
+@with_timestamp
+async def t_close_websockets(timestamp, iteration):
+    THRESHOLD = CONFIG['TASK_PERIOD_BROADCAST_PING'] * 1.5 + 4.0
+    if iteration == 0:
+        return
+    else:
+        for user in USERS:
+            for queue in user['websockets']:
+                last_pong = user['websockets'][queue]
+                last_pong_ago = timestamp - last_pong
+                if last_pong_ago > THRESHOLD:
+                    queue.put_nowait({'type': 'close'})
+
+@with_period(CONFIG['TASK_PERIOD_BROADCAST_PING'])
+async def t_broadcast_ping(iteration):
+    if iteration == 0:
+        return
+    else:
+        broadcast(USERS, payload={'type': 'ping'})
+
 @with_period(CONFIG['TASK_PERIOD_BROADCAST_USERS_UPDATE'])
 async def t_broadcast_users_update(iteration):
     if iteration == 0:
@@ -147,5 +168,7 @@ async def t_broadcast_stream_info_update(iteration):
 
 current_app.add_background_task(t_sunset_users)
 current_app.add_background_task(t_expire_captchas)
+current_app.add_background_task(t_close_websockets)
+current_app.add_background_task(t_broadcast_ping)
 current_app.add_background_task(t_broadcast_users_update)
 current_app.add_background_task(t_broadcast_stream_info_update)
