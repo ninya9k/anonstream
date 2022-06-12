@@ -1,5 +1,8 @@
 secret_key = "place secret key here"
 
+[control]
+address = "control.sock"
+
 [auth]
 username = "broadcaster"
 

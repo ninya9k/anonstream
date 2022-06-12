@@ -59,6 +59,13 @@ def create_app(config_file):
 
     @app.before_serving
     async def startup():
+        # Start control server
+        from anonstream.control.server import start_control_server_at
+        async def start_control_server():
+            return await start_control_server_at(app.config['CONTROL_ADDRESS'])
+        app.add_background_task(start_control_server)
+
+        # Create routes and background tasks
         import anonstream.routes
         import anonstream.tasks
 

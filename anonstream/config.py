@@ -13,6 +13,7 @@ def update_flask_from_toml(toml_config, flask_config):
     flask_config.update({
         'SECRET_KEY_STRING': toml_config['secret_key'],
         'SECRET_KEY': toml_config['secret_key'].encode(),
+        'CONTROL_ADDRESS': toml_config['control']['address'],
         'AUTH_USERNAME': toml_config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
         'AUTH_TOKEN': generate_token(),
