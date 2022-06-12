@@ -43,7 +43,7 @@ def with_period(period):
 
     return periodically
 
-@with_period(CONFIG['TASK_PERIOD_ROTATE_USERS'])
+@with_period(CONFIG['TASK_ROTATE_USERS'])
 @with_timestamp
 async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
@@ -69,7 +69,7 @@ async def t_sunset_users(timestamp, iteration):
             },
         )
 
-@with_period(CONFIG['TASK_PERIOD_ROTATE_CAPTCHAS'])
+@with_period(CONFIG['TASK_ROTATE_CAPTCHAS'])
 async def t_expire_captchas(iteration):
     if iteration == 0:
         return
@@ -86,10 +86,10 @@ async def t_expire_captchas(iteration):
     for digest in to_delete:
         CAPTCHAS.pop(digest)
 
-@with_period(CONFIG['TASK_PERIOD_ROTATE_WEBSOCKETS'])
+@with_period(CONFIG['TASK_ROTATE_WEBSOCKETS'])
 @with_timestamp
 async def t_close_websockets(timestamp, iteration):
-    THRESHOLD = CONFIG['TASK_PERIOD_BROADCAST_PING'] * 1.5 + 4.0
+    THRESHOLD = CONFIG['TASK_BROADCAST_PING'] * 1.5 + 4.0
     if iteration == 0:
         return
     else:
@@ -100,21 +100,21 @@ async def t_close_websockets(timestamp, iteration):
                 if last_pong_ago > THRESHOLD:
                     queue.put_nowait({'type': 'close'})
 
-@with_period(CONFIG['TASK_PERIOD_BROADCAST_PING'])
+@with_period(CONFIG['TASK_BROADCAST_PING'])
 async def t_broadcast_ping(iteration):
     if iteration == 0:
         return
     else:
         broadcast(USERS, payload={'type': 'ping'})
 
-@with_period(CONFIG['TASK_PERIOD_BROADCAST_USERS_UPDATE'])
+@with_period(CONFIG['TASK_BROADCAST_USERS_UPDATE'])
 async def t_broadcast_users_update(iteration):
     if iteration == 0:
         return
     else:
         broadcast_users_update()
 
-@with_period(CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE'])
+@with_period(CONFIG['TASK_BROADCAST_STREAM_INFO_UPDATE'])
 async def t_broadcast_stream_info_update(iteration):
     if iteration == 0:
         title = await get_stream_title()
@@ -139,7 +139,7 @@ async def t_broadcast_stream_info_update(iteration):
         else:
             expected_uptime = (
                 current_app.stream_uptime
-                + CONFIG['TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE']
+                + CONFIG['TASK_BROADCAST_STREAM_INFO_UPDATE']
             )
         current_app.stream_uptime = uptime
         if uptime is None and expected_uptime is None:
