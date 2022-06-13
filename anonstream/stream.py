@@ -20,7 +20,8 @@ async def get_stream_title():
     try:
         async with aiofiles.open(CONFIG['STREAM_TITLE']) as fp:
             title = await fp.read(8192)
-    except FileNotFoundError:
+    except OSError as e:
+        print(f'WARNING: could not read stream title: {e}')
         title = ''
     return title
 
