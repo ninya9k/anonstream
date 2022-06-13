@@ -24,6 +24,10 @@ async def get_stream_title():
         title = ''
     return title
 
+async def set_stream_title(title):
+    async with aiofiles.open(CONFIG['STREAM_TITLE'], 'w') as fp:
+        await fp.write(title)
+
 def get_stream_uptime(rounded=True):
     try:
         playlist, mtime = get_playlist()
