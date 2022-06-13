@@ -63,7 +63,7 @@ The only things left are (1) streaming, and (2) letting other people
 access your stream.  [/STREAMING.md][streaming] has instructions for
 setting up OBS Studio and a Tor onion service.  If you want to use
 different streaming software and put your stream on the Internet some
-other way, still read those instructions and copy the gist.
+other way, read those instructions and copy the gist.
 
 ## Copying
 
