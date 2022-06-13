@@ -1,6 +1,7 @@
 import asyncio
 import json
 
+from anonstream.chat import delete_chat_messages
 from anonstream.stream import get_stream_title, set_stream_title
 
 class UnknownMethod(Exception):
@@ -122,11 +123,17 @@ async def command_help(args):
                 'Usage: METHOD [COMMAND | help]\n'
                 'Examples:\n'
                 ' help.......................show this help message\n'
-                ' exit.......................close the connection\n'
+                ' exit.......................close the control connection\n'
                 ' title [show]...............show the stream title\n'
                 ' title set TITLE............set the stream title\n'
                 ' user [show]................show a list of users\n'
                 ' user set USER ATTR VALUE...set an attribute of a user\n'
+                ' user show USERS............show a list of users\n'
+                ' user kick USERS [FAREWELL].kick users\n'
+                ' user eyes USER [show]......show a list of active video responses\n'
+                ' user eyes USER blind IDS...kill a set of video responses\n'
+                ' chat show MESSAGES.........show a list of messages\n'
+                ' chat delete MESSAGES.......delete a set of messages\n'
             )
         case [*garbage]:
             raise Garbage(garbage)
@@ -172,7 +179,7 @@ async def command_title_help(args):
                 'Commands:\n'
                 ' title [show].......show the stream title\n'
                 ' title set TITLE....set the stream title to TITLE\n'
-                'Arguments:\n'
+                'Definitions:\n'
                 ' TITLE..............a json-encoded string, whitespace must be \\uXXXX-escaped\n'
             )
         case [*garbage]:
@@ -211,9 +218,42 @@ async def command_title_set(args):
             raise Garbage(garbage)
     return normal_options, response
 
+async def command_chat_help(args):
+    match args:
+        case []:
+            normal_options = ['help']
+            response = (
+                'Usage: chat {show [MESSAGES] | delete SEQS}\n'
+                'Commands:\n'
+                ' chat show [MESSAGES]......show chat messages\n'
+                ' chat delete SEQS..........delete chat messages\n'
+                'Definitions:\n'
+                ' MESSAGES..................undefined\n'
+                ' SEQS......................=SEQ [SEQ...]\n'
+                ' SEQ.......................a chat message\'s seq, base-10 integer\n'
+            )
+        case [*garbage]:
+            raise Garbage(garbage)
+    return normal_options, response
+
+async def command_chat_delete(args):
+    match args:
+        case []:
+            raise Incomplete
+        case _:
+            try:
+                seqs = list(map(int, args))
+            except ValueError as e:
+                raise BadArgument('SEQ must be a base-10 integer') from e
+            delete_chat_messages(seqs)
+            normal_options = ['delete', *map(str, seqs)]
+            response = ''
+    return normal_options, response
+
 METHOD_HELP = 'help'
 METHOD_EXIT = 'exit'
 METHOD_TITLE = 'title'
+METHOD_CHAT = 'chat'
 
 METHOD_COMMAND_FUNCTIONS = {
     METHOD_HELP: {
@@ -230,4 +270,9 @@ METHOD_COMMAND_FUNCTIONS = {
         'show': command_title_show,
         'set': command_title_set,
     },
+    METHOD_CHAT: {
+        None: command_chat_help,
+        'help': command_chat_help,
+        'delete': command_chat_delete,
+    }
 }

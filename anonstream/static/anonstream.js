@@ -263,6 +263,17 @@ const create_and_add_chat_message = (object) => {
     chat_messages.children[0].remove();
   }
 }
+const delete_chat_messages = (seqs) => {
+  string_seqs = new Set(seqs.map(n => n.toString()));
+  to_delete = [];
+  for (const chat_message of chat_messages.children) {
+    if (string_seqs.has(chat_message.dataset.seq))
+      to_delete.push(chat_message);
+  }
+  for (const chat_message of to_delete) {
+    chat_message.remove();
+  }
+}
 
 let users = {};
 let stats = null;
@@ -715,6 +726,11 @@ const on_websocket_message = (event) => {
           behavior: "smooth",
         });
       }
+      break;
+
+    case "delete":
+      console.log("ws delete", receipt);
+      delete_chat_messages(receipt.seqs);
       break;
 
     case "set-users":

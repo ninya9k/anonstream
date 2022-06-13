@@ -116,3 +116,25 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     )
 
     return True
+
+def delete_chat_messages(seqs):
+    seq_set = set(seqs)
+    message_ids = set()
+    for message_id, message in MESSAGES_BY_ID.items():
+        if len(seq_set) == 0:
+            break
+        try:
+            seq_set.remove(message['seq'])
+        except KeyError:
+            pass
+        else:
+            message_ids.add(message_id)
+    for message_id in message_ids:
+        MESSAGES_BY_ID.pop(message_id)
+    broadcast(
+        USERS,
+        payload={
+            'type': 'delete',
+            'seqs': seqs,
+        },
+    )
