@@ -10,6 +10,8 @@ from math import inf
 
 from quart import escape, Markup
 
+USER_WEBSOCKET_ATTRS = {'broadcaster', 'name', 'color', 'tripcode', 'tag'}
+
 Presence = Enum(
     'Presence',
     names=(
@@ -44,8 +46,7 @@ def trilean(presence):
             return None
 
 def get_user_for_websocket(user):
-    keys = ('broadcaster', 'name', 'color', 'tripcode', 'tag')
     return {
-        **{key: user[key] for key in keys},
+        **{key: user[key] for key in USER_WEBSOCKET_ATTRS},
         'watching': trilean(user['presence']),
     }
