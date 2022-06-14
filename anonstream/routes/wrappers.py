@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import hashlib
+import re
+import string
 import time
 from functools import wraps
 
@@ -18,6 +20,15 @@ MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
 USERS_UPDATE_BUFFER = current_app.users_update_buffer
+
+TOKEN_ALPHABET = (
+    string.digits
+    + string.ascii_lowercase
+    + string.ascii_uppercase
+    + string.punctuation
+    + ' '
+)
+RE_TOKEN = re.compile(r'[%s]{1,256}' % re.escape(TOKEN_ALPHABET))
 
 def check_auth(context):
     auth = context.authorization
@@ -68,6 +79,10 @@ def with_user_from(context):
                     or context.cookies.get('token')
                     or generate_token()
                 )
+
+            # Reject invalid tokens
+            if not RE_TOKEN.fullmatch(token):
+                raise abort(400)
 
             # Update / create user
             user = USERS_BY_TOKEN.get(token)
