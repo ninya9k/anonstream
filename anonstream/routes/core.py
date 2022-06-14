@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: 2022 n9k [https://git.076.ne.jp/ninya9k]
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import math
+
 from quart import current_app, request, render_template, abort, make_response, redirect, url_for, abort
+from werkzeug.exceptions import TooManyRequests
 
 from anonstream.captcha import get_captcha_image
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
-from anonstream.user import watched, create_eyes, renew_eyes, EyesException
+from anonstream.user import watched, create_eyes, renew_eyes, EyesException, RatelimitedEyes
 from anonstream.routes.wrappers import with_user_from, auth_required
 from anonstream.utils.security import generate_csp
 
@@ -27,6 +30,9 @@ async def stream(user):
 
     try:
         eyes_id = create_eyes(user, dict(request.headers))
+    except RatelimitedEyes as e:
+        retry_after, *_ = e.args
+        return TooManyRequests(), {'Retry-After': math.ceil(retry_after)}
     except EyesException:
         return abort(429)
 

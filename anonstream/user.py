@@ -239,13 +239,11 @@ def get_users_by_presence(timestamp):
 @with_timestamp
 def create_eyes(timestamp, user, headers):
     # Enforce cooldown
-    last_created = max(
-        map(operator.itemgetter('created'), user['eyes']['current'].values()),
-        default=-inf,
-    )
-    last_created_ago = timestamp - last_created
-    if last_created_ago < CONFIG['FLOOD_VIDEO_COOLDOWN']:
-        raise RatelimitedEyes
+    last_created_ago = timestamp - user['last']['eyes']
+    cooldown_ended_ago = last_created_ago - CONFIG['FLOOD_VIDEO_COOLDOWN']
+    cooldown_remaining = -cooldown_ended_ago
+    if cooldown_remaining > 0:
+        raise RatelimitedEyes(cooldown_remaining)
 
     # Enforce max_eyes & overwrite
     if len(user['eyes']['current']) >= CONFIG['FLOOD_VIDEO_MAX_EYES']:
@@ -262,6 +260,7 @@ def create_eyes(timestamp, user, headers):
     # Create eyes
     eyes_id = user['eyes']['total']
     user['eyes']['total'] += 1
+    user['last']['eyes'] = timestamp
     user['eyes']['current'][eyes_id] = {
         'id': eyes_id,
         'token': user['token'],

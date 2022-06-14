@@ -43,6 +43,7 @@ def generate_user(timestamp, token, broadcaster, presence):
         'last': {
             'seen': timestamp,
             'watching': -inf,
+            'eyes': -inf,
         },
         'presence': presence,
         'linespan': deque(),
