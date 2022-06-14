@@ -25,6 +25,9 @@ class BadAppearance(ValueError):
 class BadCaptcha(ValueError):
     pass
 
+class ExpiredEyes(Exception):
+    pass
+
 def add_state(user, **state):
     state_id = time.time_ns() // 1_000_000
     user['state'][state_id] = state
@@ -219,3 +222,28 @@ def get_users_by_presence(timestamp):
     for user in get_users_and_update_presence(timestamp):
         users_by_presence[user['presence']].append(user)
     return users_by_presence
+
+@with_timestamp
+def create_eyes(timestamp, user, headers):
+    eyes_id = user['eyes']['total']
+    user['eyes']['total'] += 1
+    user['eyes']['current'][eyes_id] = {
+        'id': eyes_id,
+        'token': user['token'],
+        'n_segments': 0,
+        'headers': headers,
+        'created': timestamp,
+        'renewed': timestamp,
+    }
+    return eyes_id
+
+@with_timestamp
+def renew_eyes(timestamp, user, eyes_id):
+    try:
+        eyes = user['eyes']['current'][eyes_id]
+    except KeyError:
+        raise ExpiredEyes(None)
+    if timestamp - eyes['renewed'] >= 20.0: # TODO remove magic number
+        user['eyes']['current'].pop(eyes_id)
+        raise ExpiredEyes(eyes)
+    eyes['renewed'] = timestamp

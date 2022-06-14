@@ -22,6 +22,9 @@ class Stale(Exception):
 class UnsafePath(Exception):
     pass
 
+class StopSendingSegments(Exception):
+    pass
+
 def get_mtime():
     try:
         mtime = os.path.getmtime(CONFIG['SEGMENT_PLAYLIST'])
@@ -148,7 +151,15 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
             )
             break
 
-        segment_read_hook(uri)
+        try:
+            segment_read_hook(uri)
+        except StopSendingSegments as e:
+            reason, *_ = e.args
+            print(
+                f'[debug @ {time.time():.3f}: {token=}] '
+                f'told to stop sending segments: {reason}'
+            )
+            break
         try:
             async with aiofiles.open(path, 'rb') as fp:
                 while chunk := await fp.read(8192):

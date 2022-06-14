@@ -46,6 +46,10 @@ def generate_user(timestamp, token, broadcaster, presence):
         },
         'presence': presence,
         'linespan': deque(),
+        'eyes': {
+            'total': 0,
+            'current': {},
+        },
     }
 
 def get_default_name(user):
