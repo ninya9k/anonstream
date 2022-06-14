@@ -1,7 +1,12 @@
 secret_key = "place secret key here"
 
-[control]
+[socket.control]
+enabled = true
 address = "control.sock"
+
+[socket.event]
+enabled = true
+address = "event.sock"
 
 [auth]
 username = "broadcaster"

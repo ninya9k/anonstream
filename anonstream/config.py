@@ -13,7 +13,6 @@ def update_flask_from_toml(toml_config, flask_config):
     flask_config.update({
         'SECRET_KEY_STRING': toml_config['secret_key'],
         'SECRET_KEY': toml_config['secret_key'].encode(),
-        'CONTROL_ADDRESS': toml_config['control']['address'],
         'AUTH_USERNAME': toml_config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
         'AUTH_TOKEN': generate_token(),
@@ -25,6 +24,7 @@ def update_flask_from_toml(toml_config, flask_config):
 
 def toml_to_flask_sections(config):
     TOML_TO_FLASK_SECTIONS = (
+        toml_to_flask_section_socket,
         toml_to_flask_section_segments,
         toml_to_flask_section_title,
         toml_to_flask_section_names,
@@ -37,6 +37,15 @@ def toml_to_flask_sections(config):
     )
     for toml_to_flask_section in TOML_TO_FLASK_SECTIONS:
         yield toml_to_flask_section(config)
+
+def toml_to_flask_section_socket(config):
+    cfg = config['socket']
+    return {
+        'SOCKET_CONTROL_ENABLED': cfg['control']['enabled'],
+        'SOCKET_CONTROL_ADDRESS': cfg['control']['address'],
+        'SOCKET_EVENT_ENABLED': cfg['event']['enabled'],
+        'SOCKET_EVENT_ADDRESS': cfg['event']['address'],
+    }
 
 def toml_to_flask_section_segments(config):
     cfg = config['segments']

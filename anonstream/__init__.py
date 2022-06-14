@@ -51,6 +51,9 @@ def create_app(config_file):
     # Background tasks' asyncio.sleep tasks, cancelled on shutdown
     app.background_sleep = set()
 
+    # Queues for event socket clients
+    app.event_queues = set()
+
     @app.after_serving
     async def shutdown():
         # Force all background tasks to finish
@@ -60,10 +63,23 @@ def create_app(config_file):
     @app.before_serving
     async def startup():
         # Start control server
-        from anonstream.control.server import start_control_server_at
-        async def start_control_server():
-            return await start_control_server_at(app.config['CONTROL_ADDRESS'])
-        app.add_background_task(start_control_server)
+        if app.config['SOCKET_CONTROL_ENABLED']:
+            from anonstream.control.server import start_control_server_at
+            async def start_control_server():
+                return await start_control_server_at(
+                    app.config['SOCKET_CONTROL_ADDRESS']
+                )
+            app.add_background_task(start_control_server)
+
+        # Start event server
+        if app.config['SOCKET_EVENT_ENABLED']:
+            from anonstream.events import start_event_server_at
+            async def start_event_server():
+                return await start_event_server_at(
+                        app.config['SOCKET_EVENT_ADDRESS']
+                )
+            app.add_background_task(start_event_server)
+
 
         # Create routes and background tasks
         import anonstream.routes
