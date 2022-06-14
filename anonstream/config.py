@@ -82,6 +82,7 @@ def toml_to_flask_section_memory(config):
 def toml_to_flask_section_tasks(config):
     cfg = config['tasks']
     return {
+        'TASK_ROTATE_EYES': cfg['rotate_eyes'],
         'TASK_ROTATE_USERS': cfg['rotate_users'],
         'TASK_ROTATE_CAPTCHAS': cfg['rotate_captchas'],
         'TASK_ROTATE_WEBSOCKETS': cfg['rotate_websockets'],
@@ -112,11 +113,16 @@ def toml_to_flask_section_chat(config):
 
 def toml_to_flask_section_flood(config):
     cfg = config['flood']
+    assert cfg['video']['max_eyes'] >= 0
     return {
         'FLOOD_MESSAGE_DURATION': cfg['messages']['duration'],
         'FLOOD_MESSAGE_THRESHOLD': cfg['messages']['threshold'],
         'FLOOD_LINE_DURATION': cfg['lines']['duration'],
         'FLOOD_LINE_THRESHOLD': cfg['lines']['threshold'],
+        'FLOOD_VIDEO_MAX_EYES': cfg['video']['max_eyes'],
+        #'FLOOD_VIDEO_COOLDOWN': cfg['video']['cooldown'],
+        'FLOOD_VIDEO_EYES_EXPIRE_AFTER': cfg['video']['expire_after'],
+        'FLOOD_VIDEO_OVERWRITE': cfg['video']['overwrite'],
     }
 
 def toml_to_flask_section_captcha(config):

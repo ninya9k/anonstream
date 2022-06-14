@@ -34,6 +34,7 @@ chat_messages = 8192
 chat_scrollback = 256
 
 [tasks]
+rotate_eyes = 3.0
 rotate_users = 60.0
 rotate_captchas = 60.0
 rotate_websockets = 2.0
@@ -59,6 +60,12 @@ threshold = 4
 [flood.lines]
 duration = 20.0
 threshold = 20
+
+[flood.video]
+max_eyes = 3
+#cooldown = 12.0
+expire_after = 5.0
+overwrite = true
 
 [thresholds]
 user_notwatching = 8.0

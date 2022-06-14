@@ -6,7 +6,7 @@ from quart import current_app, request, render_template, abort, make_response, r
 from anonstream.captcha import get_captcha_image
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
-from anonstream.user import watched, create_eyes, renew_eyes, ExpiredEyes
+from anonstream.user import watched, create_eyes, renew_eyes, EyesException
 from anonstream.routes.wrappers import with_user_from, auth_required
 from anonstream.utils.security import generate_csp
 
@@ -25,12 +25,16 @@ async def stream(user):
     if not is_online():
         return abort(404)
 
-    eyes_id = create_eyes(user, dict(request.headers))
+    try:
+        eyes_id = create_eyes(user, dict(request.headers))
+    except EyesException:
+        return abort(429)
+
     def segment_read_hook(uri):
         try:
-            renew_eyes(user, eyes_id)
-        except ExpiredEyes as e:
-            raise StopSendingSegments(f'eyes {eyes_id} expired: {e}') from e
+            renew_eyes(user, eyes_id, just_read_new_segment=True)
+        except EyesException as e:
+            raise StopSendingSegments(f'eyes {eyes_id} not allowed: {e!r}') from e
         print(f'{uri}: {eyes_id}~{user["token"]}')
         watched(user)
 

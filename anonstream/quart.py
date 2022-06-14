@@ -6,7 +6,7 @@ from quart.asgi import ASGIHTTPConnection as ASGIHTTPConnection_
 from quart.utils import encode_headers
 
 
-RESPONSE_ITERATOR_TIMEOUT = 10
+RESPONSE_ITERATOR_TIMEOUT = 10.0
 
 
 class ASGIHTTPConnection(ASGIHTTPConnection_):

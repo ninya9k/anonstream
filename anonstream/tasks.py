@@ -43,6 +43,21 @@ def with_period(period):
 
     return periodically
 
+@with_period(CONFIG['TASK_ROTATE_EYES'])
+@with_timestamp
+async def t_delete_eyes(timestamp, iteration):
+    if iteration == 0:
+        return
+    else:
+        for user in USERS:
+            to_delete = []
+            for eyes_id, eyes in user['eyes']['current'].items():
+                renewed_ago = timestamp - eyes['renewed']
+                if renewed_ago >= CONFIG['FLOOD_VIDEO_EYES_EXPIRE_AFTER']:
+                    to_delete.append(eyes_id)
+            for eyes_id in to_delete:
+                user['eyes']['current'].pop(eyes_id)
+
 @with_period(CONFIG['TASK_ROTATE_USERS'])
 @with_timestamp
 async def t_sunset_users(timestamp, iteration):
@@ -166,6 +181,7 @@ async def t_broadcast_stream_info_update(iteration):
         if payload:
             broadcast(USERS, payload={'type': 'info', **payload})
 
+current_app.add_background_task(t_delete_eyes)
 current_app.add_background_task(t_sunset_users)
 current_app.add_background_task(t_expire_captchas)
 current_app.add_background_task(t_close_websockets)

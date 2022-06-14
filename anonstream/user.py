@@ -25,7 +25,16 @@ class BadAppearance(ValueError):
 class BadCaptcha(ValueError):
     pass
 
-class ExpiredEyes(Exception):
+class EyesException(Exception):
+    pass
+
+class TooManyEyes(EyesException):
+    pass
+
+class DeletedEyes(EyesException):
+    pass
+
+class ExpiredEyes(EyesException):
     pass
 
 def add_state(user, **state):
@@ -225,6 +234,16 @@ def get_users_by_presence(timestamp):
 
 @with_timestamp
 def create_eyes(timestamp, user, headers):
+    if len(user['eyes']['current']) >= CONFIG['FLOOD_VIDEO_MAX_EYES']:
+        # treat eyes as a stack, do not create new eyes if it would
+        # cause the limit to be exceeded
+        if not CONFIG['FLOOD_VIDEO_OVERWRITE']:
+            raise TooManyEyes
+        # treat eyes as a queue, expire old eyes upon creating new eyes
+        # if the limit would have been exceeded
+        elif user['eyes']['current']:
+            oldest_eyes_id = min(user['eyes']['current'])
+            user['eyes']['current'].pop(oldest_eyes_id)
     eyes_id = user['eyes']['total']
     user['eyes']['total'] += 1
     user['eyes']['current'][eyes_id] = {
@@ -238,12 +257,15 @@ def create_eyes(timestamp, user, headers):
     return eyes_id
 
 @with_timestamp
-def renew_eyes(timestamp, user, eyes_id):
+def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     try:
         eyes = user['eyes']['current'][eyes_id]
     except KeyError:
-        raise ExpiredEyes(None)
-    if timestamp - eyes['renewed'] >= 20.0: # TODO remove magic number
+        raise DeletedEyes(eyes_id)
+    renewed_ago = timestamp - eyes['renewed']
+    if renewed_ago >= CONFIG['FLOOD_VIDEO_EYES_EXPIRE_AFTER']:
         user['eyes']['current'].pop(eyes_id)
         raise ExpiredEyes(eyes)
     eyes['renewed'] = timestamp
+    if just_read_new_segment:
+        eyes['n_segments'] += 1
