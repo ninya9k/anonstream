@@ -146,26 +146,26 @@ def generate_colour(seed, bg, min_contrast=4.5, max_contrast=inf, lighter=True):
     r.shuffle(indices)
     i, j, k = indices
 
-    # V[i] * ci + V[j] * 0 + V[k] * 0 <= max_desired_luma
-    # V[i] * ci + V[j] * 1 + V[k] * 1 >= min_desired_luma
-    ci_upper = (max_desired_luma - V[j] * 0 - V[k] * 0) / V[i]
-    ci_lower = (min_desired_luma - V[j] * 1 - V[k] * 1) / V[i]
-    ci = r.uniform(max(0, ci_lower), min(1, ci_upper))
+    # V[i] * ti + V[j] * 0 + V[k] * 0 <= max_desired_luma
+    # V[i] * ti + V[j] * 1 + V[k] * 1 >= min_desired_luma
+    ti_upper = (max_desired_luma - V[j] * 0 - V[k] * 0) / V[i]
+    ti_lower = (min_desired_luma - V[j] * 1 - V[k] * 1) / V[i]
+    ti = r.uniform(max(0, ti_lower), min(1, ti_upper))
 
-    # V[i] * ci + V[j] * cj + V[k] * 0 <= max_desired_luma
-    # V[i] * ci + V[j] * cj + V[k] * 1 >= min_desired_luma
-    cj_upper = (max_desired_luma - V[i] * ci - V[k] * 0) / V[j]
-    cj_lower = (min_desired_luma - V[i] * ci - V[k] * 1) / V[j]
-    cj = r.uniform(max(0, cj_lower), min(1, cj_upper))
+    # V[i] * ti + V[j] * tj + V[k] * 0 <= max_desired_luma
+    # V[i] * ti + V[j] * tj + V[k] * 1 >= min_desired_luma
+    tj_upper = (max_desired_luma - V[i] * ti - V[k] * 0) / V[j]
+    tj_lower = (min_desired_luma - V[i] * ti - V[k] * 1) / V[j]
+    tj = r.uniform(max(0, tj_lower), min(1, tj_upper))
 
-    # V[i] * ci + V[j] * cj + V[k] * ck <= max_desired_luma
-    # V[i] * ci + V[j] * cj + V[k] * ck >= min_desired_luma
-    ck_upper = (max_desired_luma - V[i] * ci - V[j] * cj) / V[k]
-    ck_lower = (min_desired_luma - V[i] * ci - V[j] * cj) / V[k]
-    ck = r.uniform(max(0, ck_lower), min(1, ck_upper))
+    # V[i] * ti + V[j] * tj + V[k] * tk <= max_desired_luma
+    # V[i] * ti + V[j] * tj + V[k] * tk >= min_desired_luma
+    tk_upper = (max_desired_luma - V[i] * ti - V[j] * tj) / V[k]
+    tk_lower = (min_desired_luma - V[i] * ti - V[j] * tj) / V[k]
+    tk = r.uniform(max(0, tk_lower), min(1, tk_upper))
 
     t = [None, None, None]
-    t[i], t[j], t[k] = ci, cj, ck
+    t[i], t[j], t[k] = ti, tj, tk
 
     s = map(_tc_to_sc, t)
     colour = map(lambda sc: round(sc * 255), s)
