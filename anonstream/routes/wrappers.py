@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import hashlib
+import hmac
 import re
 import string
 import time
@@ -79,6 +80,8 @@ def with_user_from(context):
                     or context.cookies.get('token')
                     or generate_token()
                 )
+                if hmac.compare_digest(token, CONFIG['AUTH_TOKEN']):
+                    raise abort(401)
 
             # Reject invalid tokens
             if not RE_TOKEN.fullmatch(token):
