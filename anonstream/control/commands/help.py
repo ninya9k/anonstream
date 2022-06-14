@@ -12,13 +12,14 @@ async def command_help(args):
                 ' title [show]...............show the stream title\n'
                 ' title set TITLE............set the stream title\n'
                 ' user [show]................show a list of users\n'
+                ' user attr USER.............set an attribute of a user\n'
+                ' user get USER ATTR.........set an attribute of a user\n'
                 ' user set USER ATTR VALUE...set an attribute of a user\n'
-                ' user show USERS............show a list of users\n'
-                ' user kick USERS [FAREWELL].kick users\n'
-                ' user eyes USER [show]......show a list of active video responses\n'
-                ' user eyes USER blind IDS...kill a set of video responses\n'
-                ' chat show MESSAGES.........show a list of messages\n'
-                ' chat delete MESSAGES.......delete a set of messages\n'
+                #' user kick USERS [FAREWELL].kick users\n'
+                #' user eyes USER [show]......show a list of active video responses\n'
+                #' user eyes USER delete IDS..kill a set of video responses\n'
+                #' chat show MESSAGES.........show a list of messages\n'
+                ' chat delete SEQS...........delete a set of messages\n'
             )
         case [*garbage]:
             raise Garbage(garbage)

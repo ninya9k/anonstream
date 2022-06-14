@@ -22,9 +22,10 @@ async def command_user_help(args):
                     ' user get USER ATTR....show an attribute of a user\n'
                     ' user set USER ATTR....set an attribute of a user\n'
                     'Definitions:\n'
-                    ' USER..................={token TOKEN | hash HASH}\n'
+                    #' USER..................={token TOKEN | hash HASH}\n'
+                    ' USER..................=token TOKEN\n'
                     ' TOKEN.................a token\n'
-                    ' HASH..................a token hash\n'
+                    #' HASH..................a token hash\n'
                     ' ATTR..................a user attribute, re:[a-z0-9_]+\n'
             )
         case [*garbage]:

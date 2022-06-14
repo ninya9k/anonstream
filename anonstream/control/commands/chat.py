@@ -8,10 +8,10 @@ async def command_chat_help(args):
             response = (
                 'Usage: chat {show [MESSAGES] | delete SEQS}\n'
                 'Commands:\n'
-                ' chat show [MESSAGES]......show chat messages\n'
+                #' chat show [MESSAGES]......show chat messages\n'
                 ' chat delete SEQS..........delete chat messages\n'
                 'Definitions:\n'
-                ' MESSAGES..................undefined\n'
+                #' MESSAGES..................undefined\n'
                 ' SEQS......................=SEQ [SEQ...]\n'
                 ' SEQ.......................a chat message\'s seq, base-10 integer\n'
             )
