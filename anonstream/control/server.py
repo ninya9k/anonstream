@@ -35,6 +35,9 @@ class Failed(Exception):
 class Exit(Exception):
     pass
 
+def json_dumps_contiguous(obj, **kwargs):
+    return json.dumps(obj, **kwargs).replace(' ', r'\u0020')
+
 def start_control_server_at(address):
     return asyncio.start_unix_server(serve_control_client, address)
 
@@ -217,7 +220,7 @@ async def command_title_set(args):
                         await set_stream_title(title)
                     except OSError as e:
                         raise Failed(str(e)) from e
-                    normal_options = ['set', json.dumps(title).replace(' ', r'\u0020')]
+                    normal_options = ['set', json_dumps_contiguous(title)]
                     response = ''
         case []:
             raise Incomplete
@@ -268,7 +271,7 @@ async def command_user_attr(args):
                 user = USERS_BY_TOKEN[token]
             except KeyError:
                 raise Failed(f"no user exists with token {token!r}, try 'user show'")
-            normal_options = ['attr', 'token', json.dumps(token).replace(' ', r'\u0020')]
+            normal_options = ['attr', 'token', json_dumps_contiguous(token)]
             response = json.dumps(tuple(user.keys())) + '\n'
         case [*garbage]:
             raise Garbage(garbage)
@@ -288,12 +291,12 @@ async def command_user_get(args):
             try:
                 value = user[attr]
             except KeyError:
-                raise Failed(f"user has no attribute {attr!r}, try 'user attr token {token}'")
+                raise Failed(f"user has no attribute {attr!r}, try 'user attr token {json_dumps_contiguous(token)}'")
             try:
                 value_json = json.dumps(value)
             except TypeError:
                 raise Failed(f'attribute {attr!r} is not JSON serializable')
-            normal_options = ['get', 'token', json.dumps(token).replace(' ', r'\u0020'), attr]
+            normal_options = ['get', 'token', json_dumps_contiguous(token), attr]
             response = value_json + '\n'
         case []:
             raise Incomplete
@@ -315,15 +318,15 @@ async def command_user_set(args):
             try:
                 value = user[attr]
             except KeyError:
-                raise Failed(f"user has no attribute {attr!r}, try 'user attr token {TOKEN}")
+                raise Failed(f"user has no attribute {attr!r}, try 'user attr token {json_dumps_contiguous(token)}")
             try:
                 value = json.loads(value_json)
-            except JSON.JSONDecodeError:
+            except json.JSONDecodeError:
                 raise Failed('could not decode json')
             user[attr] = value
             if attr in USER_WEBSOCKET_ATTRS:
                 USERS_UPDATE_BUFFER.add(token)
-            normal_options = ['set', 'token', json.dumps(token).replace(' ', r'\u0020'), attr, json.dumps(value)]
+            normal_options = ['set', 'token', json_dumps_contiguous(token), attr, json_dumps_contiguous(value)]
             response = ''
         case []:
             raise Incomplete
