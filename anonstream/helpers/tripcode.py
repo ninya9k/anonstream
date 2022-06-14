@@ -38,7 +38,8 @@ def generate_tripcode(password):
     background_colour = generate_colour(
         seed='tripcode-background\0' + digest,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
-        contrast=5.0,
+        min_contrast=5.0,
+        max_contrast=5.0,
     )
     foreground_colour = generate_maximum_contrast_colour(
         seed='tripcode-foreground\0' + digest,

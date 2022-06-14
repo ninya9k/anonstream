@@ -26,7 +26,7 @@ def generate_user(timestamp, token, broadcaster, presence):
     colour = generate_colour(
         seed='name\0' + token,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
-        contrast=4.53,
+        min_contrast=4.53,
     )
     token_hash, tag = generate_token_hash_and_tag(token)
     return {
