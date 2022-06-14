@@ -17,16 +17,19 @@ async def command_user_help(args):
             response = (
                     'Usage: user [show | attr USER | get USER ATTR | set USER ATTR VALUE]\n'
                     'Commands:\n'
-                    ' user [show]...........show all users\' tokens\n'
-                    ' user attr USER........show names of a user\'s attributes\n'
-                    ' user get USER ATTR....show an attribute of a user\n'
-                    ' user set USER ATTR....set an attribute of a user\n'
+                    ' user [show].......................show all users\' tokens\n'
+                    ' user attr USER....................show names of a user\'s attributes\n'
+                    ' user get USER ATTR................show an attribute of a user\n'
+                    ' user set USER ATTR................set an attribute of a user\n'
+                    ' user eyes USER [show].............show a user\'s active video responses\n'
+                    ' user eyes USER delete EYES_ID.....end a video response to a user\n'
                     'Definitions:\n'
-                    #' USER..................={token TOKEN | hash HASH}\n'
-                    ' USER..................=token TOKEN\n'
-                    ' TOKEN.................a token\n'
-                    #' HASH..................a token hash\n'
-                    ' ATTR..................a user attribute, re:[a-z0-9_]+\n'
+                    #' USER..............................={token TOKEN | hash HASH}\n'
+                    ' USER..............................=token TOKEN\n'
+                    ' TOKEN..............................a token\n'
+                    #' HASH..............................a token hash\n'
+                    ' ATTR...............................a user attribute, re:[a-z0-9_]+\n'
+                    ' EYES_ID............................a user\'s eyes_id, base 10 integer\n'
             )
         case [*garbage]:
             raise Garbage(garbage)
@@ -49,7 +52,7 @@ async def command_user_attr(args):
             try:
                 token = json.loads(token_json)
             except json.JSONDecodeError:
-                raise BadArgument('could not decode token as json')
+                raise BadArgument('could not decode TOKEN as json')
             try:
                 user = USERS_BY_TOKEN[token]
             except KeyError:
@@ -66,7 +69,7 @@ async def command_user_get(args):
             try:
                 token = json.loads(token_json)
             except json.JSONDecodeError:
-                raise BadArgument('could not decode token as json')
+                raise BadArgument('could not decode TOKEN as json')
             try:
                 user = USERS_BY_TOKEN[token]
             except KeyError:
@@ -93,7 +96,7 @@ async def command_user_set(args):
             try:
                 token = json.loads(token_json)
             except json.JSONDecodeError:
-                raise BadArgument('could not decode token as json')
+                raise BadArgument('could not decode TOKEN as json')
             try:
                 user = USERS_BY_TOKEN[token]
             except KeyError:
@@ -111,6 +114,38 @@ async def command_user_set(args):
                 USERS_UPDATE_BUFFER.add(token)
             normal_options = ['set', 'token', json_dumps_contiguous(token), attr, json_dumps_contiguous(value)]
             response = ''
+        case []:
+            raise Incomplete
+        case [*garbage]:
+            raise Garbage(garbage)
+    return normal_options, response
+
+async def command_user_eyes(args):
+    match args:
+        case ['token', token_json, *subargs]:
+            try:
+                token = json.loads(token_json)
+            except json.JSONDecodeError:
+                raise BadArgument('could not decode TOKEN as json')
+            try:
+                user = USERS_BY_TOKEN[token]
+            except KeyError:
+                raise Failed(f"no user exists with token {token!r}, try 'user show'")
+            match subargs:
+                case [] | ['show']:
+                    normal_options = ['eyes', 'token', json_dumps_contiguous(token), 'show']
+                    response = json.dumps(user['eyes']['current']) + '\n'
+                case ['delete', eyes_id_json]:
+                    try:
+                        eyes_id = json.loads(eyes_id_json)
+                    except json.JSONDecodeError:
+                        raise BadArgument('could not decode EYES_ID as json')
+                    try:
+                        user['eyes']['current'].pop(eyes_id)
+                    except KeyError:
+                        pass
+                    normal_options = ['eyes', 'token', json_dumps_contiguous(token), 'delete', json_dumps_contiguous(eyes_id)]
+                    response = ''
         case []:
             raise Incomplete
         case [*garbage]:

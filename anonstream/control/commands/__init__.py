@@ -37,6 +37,7 @@ METHOD_COMMAND_FUNCTIONS = {
         'attr': command_user_attr,
         'get': command_user_get,
         'set': command_user_set,
+        'eyes': command_user_eyes,
     },
 }
 
