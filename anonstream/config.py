@@ -120,7 +120,7 @@ def toml_to_flask_section_flood(config):
         'FLOOD_LINE_DURATION': cfg['lines']['duration'],
         'FLOOD_LINE_THRESHOLD': cfg['lines']['threshold'],
         'FLOOD_VIDEO_MAX_EYES': cfg['video']['max_eyes'],
-        #'FLOOD_VIDEO_COOLDOWN': cfg['video']['cooldown'],
+        'FLOOD_VIDEO_COOLDOWN': cfg['video']['cooldown'],
         'FLOOD_VIDEO_EYES_EXPIRE_AFTER': cfg['video']['expire_after'],
         'FLOOD_VIDEO_OVERWRITE': cfg['video']['overwrite'],
     }
