@@ -277,13 +277,13 @@ def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     try:
         eyes = user['eyes']['current'][eyes_id]
     except KeyError:
-        raise DeletedEyes(eyes_id)
+        raise DeletedEyes
 
     # Enforce expire_after (if the background task hasn't already)
     renewed_ago = timestamp - eyes['renewed']
     if renewed_ago >= CONFIG['FLOOD_VIDEO_EYES_EXPIRE_AFTER']:
         user['eyes']['current'].pop(eyes_id)
-        raise ExpiredEyes(eyes)
+        raise ExpiredEyes
 
     if just_read_new_segment:
         eyes['n_segments'] += 1
