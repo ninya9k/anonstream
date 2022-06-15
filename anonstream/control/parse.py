@@ -1,17 +1,17 @@
 from anonstream.control.spec import NoParse, Ambiguous, Parsed
 from anonstream.control.spec.common import Str
-#from anonstream.control.spec.methods.chat import SPEC as SPEC_CHAT
+from anonstream.control.spec.methods.chat import SPEC as SPEC_CHAT
 from anonstream.control.spec.methods.exit import SPEC as SPEC_EXIT
 from anonstream.control.spec.methods.help import SPEC as SPEC_HELP
-#from anonstream.control.spec.methods.title import SPEC as SPEC_TITLE
-#from anonstream.control.spec.methods.user import SPEC as SPEC_USER
+from anonstream.control.spec.methods.title import SPEC as SPEC_TITLE
+from anonstream.control.spec.methods.user import SPEC as SPEC_USER
 
 SPEC = Str({
     'help': SPEC_HELP,
     'exit': SPEC_EXIT,
-    #'title': SPEC_TITLE,
-    #'chat': SPEC_CHAT,
-    #'user': SPEC_USER,
+    'title': SPEC_TITLE,
+    'chat': SPEC_CHAT,
+    'user': SPEC_USER,
 })
 
 async def parse(request):
