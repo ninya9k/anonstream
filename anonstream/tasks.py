@@ -162,7 +162,7 @@ async def t_broadcast_stream_info_update(iteration):
         elif uptime is None or expected_uptime is None:
             stats_changed = True
         else:
-            stats_changed = abs(uptime - expected_uptime) >= 0.0625
+            stats_changed = abs(uptime - expected_uptime) >= 0.5
 
         # Check if viewership has changed
         if current_app.stream_viewership != viewership:
