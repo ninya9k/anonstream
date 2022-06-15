@@ -215,7 +215,7 @@ const create_chat_message = (object) => {
 const create_chat_user_name = (user) => {
   const chat_user_name = document.createElement("span");
   chat_user_name.classList.add("chat-name");
-  chat_user_name.innerText = get_user_name({user});
+  chat_user_name.innerText = get_user_name({user}).replaceAll(/\r?\n/g, " ");
   //chat_user_name.dataset.color = user.color; // not working in any browser
   if (!user.broadcaster && user.name === null) {
     const b = document.createElement("b");
