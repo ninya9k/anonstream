@@ -648,12 +648,25 @@ const on_websocket_message = (event) => {
       default_name = receipt.default;
       max_chat_scrollback = receipt.scrollback;
 
+      // if the chat is scrolled all the way to the bottom, make sure this is
+      // still the case after updating user names and tripcodes
+      at_bottom = chat_messages.scrollTop === chat_messages.scrollTopMax;
+
       // update users
       users = receipt.users;
       update_user_names();
       update_user_colors();
       update_user_tripcodes();
       update_users_list()
+
+      // ensure chat scroll (see above)
+      if (at_bottom) {
+        chat_messages.scrollTo({
+          left: 0,
+          top: chat_messages.scrollTopMax,
+          behavior: "instant",
+	});
+      }
 
       // appearance form default values
       const user = users[TOKEN_HASH];
@@ -739,10 +752,26 @@ const on_websocket_message = (event) => {
       for (const token_hash of Object.keys(receipt.users)) {
         users[token_hash] = receipt.users[token_hash];
       }
+
+      // if the chat is scrolled all the way to the bottom, make sure this is
+      // still the case after updating user names and tripcodes
+      at_bottom = chat_messages.scrollTop === chat_messages.scrollTopMax;
+
+      // update users
       update_user_names();
       update_user_colors();
       update_user_tripcodes();
       update_users_list()
+
+      // ensure chat scroll (see above)
+      if (at_bottom) {
+        chat_messages.scrollTo({
+          left: 0,
+          top: chat_messages.scrollTopMax,
+          behavior: "instant",
+	});
+      }
+
       break;
 
     case "rem-users":
