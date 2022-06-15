@@ -3,6 +3,7 @@
 
 import re
 import random
+from math import inf
 
 class NotAColor(Exception):
     pass
@@ -47,7 +48,7 @@ def _tc_to_sc(tc):
     Almost-inverse of _sc_to_tc.
 
     The function _sc_to_tc is not injective (because of the discontinuity at
-    sc=0.03928), thus it has no true inverse. In this implementation, whenever
+    sc=0.03928), thus it has no true inverse.  In this implementation, whenever
     for a given `tc` there are two distinct values of `sc` such that
     sc_to_tc(`sc`)=`tc`, the smaller sc is chosen. (The smaller one is less
     expensive to compute).
@@ -89,22 +90,23 @@ def get_contrast(bg, fg):
     )
     return (max(lumas) + 0.05) / (min(lumas) + 0.05)
 
-def generate_colour(seed, bg, contrast=4.5, lighter=True):
+def generate_colour(seed, bg, min_contrast=4.5, max_contrast=inf, lighter=True):
     '''
-    Generate a random colour with given contrast to `bg`.
+    Generate a random colour with a contrast to `bg` in a given interval.
 
-    Channels of `t` are uniformly distributed. No characteristics of the
-    returned colour are guaranteed to be chosen uniformly from the space of
-    possible values.
+    This works by generating an intermediate 3-tuple `t` and transforming it
+    into the returned colour.  Channels of `t` are uniformly distributed, but no
+    characteristics of the returned colour are guaranteed to be chosen uniformly
+    from the space of possible values.
 
     If `lighter` is true, the returned colour is forced to have a higher
-    relative luminance than `bg`. This is fine if `bg` is dark; if `bg` is
-    not dark, the space of possible returned colours will be a lot smaller
-    (and might be empty). If `lighter` is false, the returned colour is
-    forced to have a lower relative luminance than `bg`.
+    relative luminance than `bg`.  This is fine if `bg` is dark; if `bg` is not
+    dark, the space of possible returned colours will be a lot smaller (and
+    might be empty).  If `lighter` is false, the returned colour is forced to
+    have a lower relative luminance than `bg`.
 
-    It's simple to calculate the maximum possible contrast between `bg` and
-    any other colour. (The minimum contrast is always 1.)
+    It's simple to calculate the maximum possible contrast between `bg` and any
+    other colour.  (The minimum contrast is always 1.)
 
     >>> bg = (0x23, 0x23, 0x27)
     >>> luma = get_relative_luminance(bg)
@@ -113,11 +115,13 @@ def generate_colour(seed, bg, contrast=4.5, lighter=True):
     >>> 1.05 / (luma + 0.05) # maximum contrast for colours with greater luma
     15.657919499763137
 
-    There are values of `contrast` for which the space of possible returned
-    colours is empty. For example a `contrast` greater than 21 is always
-    impossible, but the exact upper bound depends on `bg`. The desired
-    relative luminance of the returned colour must exist in the interval [0,1].
-    The formula for desired luma is given below.
+    There are contrast intervals for which the space of possible returned
+    colours is empty.  For example a contrast greater than 21 is always
+    impossible, but the exact upper bound depends on `bg`.  The desired relative
+    luminance of the returned colour must exist in the interval [0,1].  The
+    formula for desired luma is given below.  This is for one particular
+    contrast but the same formula can be used twice (once with `min_contrast` and
+    once with `max_contrast`) to get a range of desired lumas.
 
     >>> bg_luma = get_relative_luminance(bg)
     >>> desired_luma = (
@@ -131,32 +135,37 @@ def generate_colour(seed, bg, contrast=4.5, lighter=True):
     r = random.Random(seed)
 
     if lighter:
-        desired_luma = contrast * (get_relative_luminance(bg) + 0.05) - 0.05
+        min_desired_luma = min_contrast * (get_relative_luminance(bg) + 0.05) - 0.05
+        max_desired_luma = max_contrast * (get_relative_luminance(bg) + 0.05) - 0.05
     else:
-        desired_luma = (get_relative_luminance(bg) + 0.05) / contrast - 0.05
+        min_desired_luma = (get_relative_luminance(bg) + 0.05) / max_contrast - 0.05
+        max_desired_luma = (get_relative_luminance(bg) + 0.05) / min_contrast - 0.05
 
     V = (0.2126, 0.7152, 0.0722)
     indices = [0, 1, 2]
     r.shuffle(indices)
     i, j, k = indices
 
-    # V[i] * ci + V[j] * 0 + V[k] * 0 <= desired_luma
-    # V[i] * ci + V[j] * 1 + V[k] * 1 >= desired_luma
-    ci_upper = (desired_luma - V[j] * 0 - V[k] * 0) / V[i]
-    ci_lower = (desired_luma - V[j] * 1 - V[k] * 1) / V[i]
-    ci = r.uniform(max(0, ci_lower), min(1, ci_upper))
+    # V[i] * ti + V[j] * 0 + V[k] * 0 <= max_desired_luma
+    # V[i] * ti + V[j] * 1 + V[k] * 1 >= min_desired_luma
+    ti_upper = (max_desired_luma - V[j] * 0 - V[k] * 0) / V[i]
+    ti_lower = (min_desired_luma - V[j] * 1 - V[k] * 1) / V[i]
+    ti = r.uniform(max(0, ti_lower), min(1, ti_upper))
 
-    # V[i] * ci + V[j] * cj + V[k] * 0 <= desired_luma
-    # V[i] * ci + V[j] * cj + V[k] * 1 >= desired_luma
-    cj_upper = (desired_luma - V[i] * ci - V[k] * 0) / V[j]
-    cj_lower = (desired_luma - V[i] * ci - V[k] * 1) / V[j]
-    cj = r.uniform(max(0, cj_lower), min(1, cj_upper))
+    # V[i] * ti + V[j] * tj + V[k] * 0 <= max_desired_luma
+    # V[i] * ti + V[j] * tj + V[k] * 1 >= min_desired_luma
+    tj_upper = (max_desired_luma - V[i] * ti - V[k] * 0) / V[j]
+    tj_lower = (min_desired_luma - V[i] * ti - V[k] * 1) / V[j]
+    tj = r.uniform(max(0, tj_lower), min(1, tj_upper))
 
-    # V[i] * ci + V[j] * cj + V[k] * ck = desired_luma
-    ck = (desired_luma - V[i] * ci - V[j] * cj) / V[k]
+    # V[i] * ti + V[j] * tj + V[k] * tk <= max_desired_luma
+    # V[i] * ti + V[j] * tj + V[k] * tk >= min_desired_luma
+    tk_upper = (max_desired_luma - V[i] * ti - V[j] * tj) / V[k]
+    tk_lower = (min_desired_luma - V[i] * ti - V[j] * tj) / V[k]
+    tk = r.uniform(max(0, tk_lower), min(1, tk_upper))
 
     t = [None, None, None]
-    t[i], t[j], t[k] = ci, cj, ck
+    t[i], t[j], t[k] = ti, tj, tk
 
     s = map(_tc_to_sc, t)
     colour = map(lambda sc: round(sc * 255), s)
@@ -185,10 +194,12 @@ def generate_maximum_contrast_colour(seed, bg, proportion_of_max=31/32):
     max_darker_contrast = get_maximum_contrast(bg, lighter=False)
 
     max_contrast = max(max_lighter_contrast, max_darker_contrast)
+    practical_max_contrast = max_contrast * proportion_of_max
     colour = generate_colour(
         seed,
         bg,
-        contrast=max_contrast * proportion_of_max,
+        min_contrast=practical_max_contrast,
+        max_contrast=practical_max_contrast,
         lighter=max_lighter_contrast > max_darker_contrast,
     )
 

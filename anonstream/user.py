@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 n9k [https://git.076.ne.jp/ninya9k]
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import operator
 import time
 from math import inf
 
@@ -23,6 +24,21 @@ class BadAppearance(ValueError):
     pass
 
 class BadCaptcha(ValueError):
+    pass
+
+class EyesException(Exception):
+    pass
+
+class TooManyEyes(EyesException):
+    pass
+
+class RatelimitedEyes(EyesException):
+    pass
+
+class DeletedEyes(EyesException):
+    pass
+
+class ExpiredEyes(EyesException):
     pass
 
 def add_state(user, **state):
@@ -219,3 +235,55 @@ def get_users_by_presence(timestamp):
     for user in get_users_and_update_presence(timestamp):
         users_by_presence[user['presence']].append(user)
     return users_by_presence
+
+@with_timestamp
+def create_eyes(timestamp, user, headers):
+    # Enforce cooldown
+    last_created_ago = timestamp - user['last']['eyes']
+    cooldown_ended_ago = last_created_ago - CONFIG['FLOOD_VIDEO_COOLDOWN']
+    cooldown_remaining = -cooldown_ended_ago
+    if cooldown_remaining > 0:
+        raise RatelimitedEyes(cooldown_remaining)
+
+    # Enforce max_eyes & overwrite
+    if len(user['eyes']['current']) >= CONFIG['FLOOD_VIDEO_MAX_EYES']:
+        # Treat eyes as a stack, do not create new eyes if it would
+        # cause the limit to be exceeded
+        if not CONFIG['FLOOD_VIDEO_OVERWRITE']:
+            raise TooManyEyes
+        # Treat eyes as a queue, expire old eyes upon creating new eyes
+        # if the limit would have been exceeded otherwise
+        elif user['eyes']['current']:
+            oldest_eyes_id = min(user['eyes']['current'])
+            user['eyes']['current'].pop(oldest_eyes_id)
+
+    # Create eyes
+    eyes_id = user['eyes']['total']
+    user['eyes']['total'] += 1
+    user['last']['eyes'] = timestamp
+    user['eyes']['current'][eyes_id] = {
+        'id': eyes_id,
+        'token': user['token'],
+        'n_segments': 0,
+        'headers': headers,
+        'created': timestamp,
+        'renewed': timestamp,
+    }
+    return eyes_id
+
+@with_timestamp
+def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
+    try:
+        eyes = user['eyes']['current'][eyes_id]
+    except KeyError:
+        raise DeletedEyes
+
+    # Enforce expire_after (if the background task hasn't already)
+    renewed_ago = timestamp - eyes['renewed']
+    if renewed_ago >= CONFIG['FLOOD_VIDEO_EYES_EXPIRE_AFTER']:
+        user['eyes']['current'].pop(eyes_id)
+        raise ExpiredEyes
+
+    if just_read_new_segment:
+        eyes['n_segments'] += 1
+    eyes['renewed'] = timestamp

@@ -263,6 +263,17 @@ const create_and_add_chat_message = (object) => {
     chat_messages.children[0].remove();
   }
 }
+const delete_chat_messages = (seqs) => {
+  string_seqs = new Set(seqs.map(n => n.toString()));
+  to_delete = [];
+  for (const chat_message of chat_messages.children) {
+    if (string_seqs.has(chat_message.dataset.seq))
+      to_delete.push(chat_message);
+  }
+  for (const chat_message of to_delete) {
+    chat_message.remove();
+  }
+}
 
 let users = {};
 let stats = null;
@@ -272,6 +283,7 @@ let max_chat_scrollback = 256;
 let pingpong_period = 8.0;
 let ping = null;
 const pingpong_timeout = () => pingpong_period * 1.5 + 4.0;
+const pingpong_timeout_ms = () => pingpong_timeout() * 1000;
 const tidy_stylesheet = ({stylesheet, selector_regex, ignore_condition}) => {
   const to_delete = [];
   const to_ignore = new Set();
@@ -717,6 +729,11 @@ const on_websocket_message = (event) => {
       }
       break;
 
+    case "delete":
+      console.log("ws delete", receipt);
+      delete_chat_messages(receipt.seqs);
+      break;
+
     case "set-users":
       console.log("ws set-users", receipt);
       for (const token_hash of Object.keys(receipt.users)) {
@@ -918,12 +935,15 @@ chat_messages_unlock.addEventListener("click", (event) => {
 });
 
 /* close websocket after prolonged absence of pings */
+
 const rotate_websocket = () => {
-  const this_pingpong_timeout = pingpong_timeout();
-  if (ping === null || (new Date() - ping) / 1000 > this_pingpong_timeout) {
-    console.log(`no pings heard in ${this_pingpong_timeout} seconds, closing websocket...`);
-    ws.close();
+  const timeout_ms = pingpong_timeout_ms();
+  if (ws.readyState !== ws.CLOSED) {
+    if (ping === null || new Date() - ping > timeout_ms) {
+      console.log(`no pings heard in ${timeout_ms / 1000} seconds, closing websocket...`);
+      ws.close();
+    }
   }
-  setTimeout(rotate_websocket, this_pingpong_timeout * 1000);
+  setTimeout(rotate_websocket, timeout_ms);
 };
-setTimeout(rotate_websocket, pingpong_timeout() * 1000);
+setTimeout(rotate_websocket, pingpong_timeout_ms());

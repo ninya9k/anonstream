@@ -1,94 +1,37 @@
 # SPDX-FileCopyrightText: 2022 n9k [https://git.076.ne.jp/ninya9k]
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-import os
-import secrets
-import toml
 from collections import OrderedDict
 
+import toml
 from quart_compress import Compress
-from werkzeug.security import generate_password_hash
 
-from anonstream.quart import Quart
+from anonstream.config import update_flask_from_toml
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
-from anonstream.utils.colour import color_to_colour
-from anonstream.utils.user import generate_token
+from anonstream.quart import Quart
 
 compress = Compress()
 
 def create_app(config_file):
-    with open(config_file) as fp:
-        config = toml.load(fp)
+    app = Quart('anonstream')
+    app.jinja_options['trim_blocks'] = True
+    app.jinja_options['lstrip_blocks'] = True
 
-    auth_password = secrets.token_urlsafe(6)
-    auth_pwhash = generate_password_hash(auth_password)
-    print('Broadcaster username:', config['auth']['username'])
+    with open(config_file) as fp:
+        toml_config = toml.load(fp)
+    auth_password = update_flask_from_toml(toml_config, app.config)
+
+    print('Broadcaster username:', app.config['AUTH_USERNAME'])
     print('Broadcaster password:', auth_password)
 
-    app = Quart('anonstream')
-    app.jinja_options.update({
-        'trim_blocks': True,
-        'lstrip_blocks': True,
-    })
+    # Compress some responses
+    compress.init_app(app)
     app.config.update({
-        'SECRET_KEY_STRING': config['secret_key'],
-        'SECRET_KEY': config['secret_key'].encode(),
-        'AUTH_USERNAME': config['auth']['username'],
-        'AUTH_PWHASH': auth_pwhash,
-        'AUTH_TOKEN': generate_token(),
-        'SEGMENT_DIRECTORY': os.path.realpath(config['segments']['directory']),
-        'SEGMENT_PLAYLIST': os.path.join(os.path.realpath(config['segments']['directory']), config['segments']['playlist']),
-        'SEGMENT_PLAYLIST_CACHE_LIFETIME': config['segments']['playlist_cache_lifetime'],
-        'SEGMENT_PLAYLIST_STALE_THRESHOLD': config['segments']['playlist_stale_threshold'],
-        'SEGMENT_SEARCH_COOLDOWN': config['segments']['search_cooldown'],
-        'SEGMENT_SEARCH_TIMEOUT': config['segments']['search_timeout'],
-        'SEGMENT_STREAM_INITIAL_BUFFER': config['segments']['stream_initial_buffer'],
-        'STREAM_TITLE': config['title']['file'],
-        'STREAM_TITLE_CACHE_LIFETIME': config['title']['file_cache_lifetime'],
-        'DEFAULT_HOST_NAME': config['names']['broadcaster'],
-        'DEFAULT_ANON_NAME': config['names']['anonymous'],
-        'MAX_STATES': config['memory']['states'],
-        'MAX_CAPTCHAS': config['memory']['captchas'],
-        'MAX_CHAT_MESSAGES': config['memory']['chat_messages'],
-        'MAX_CHAT_SCROLLBACK': config['memory']['chat_scrollback'],
-        'TASK_PERIOD_ROTATE_USERS': config['tasks']['rotate_users'],
-        'TASK_PERIOD_ROTATE_CAPTCHAS': config['tasks']['rotate_captchas'],
-        'TASK_PERIOD_ROTATE_WEBSOCKETS': config['tasks']['rotate_websockets'],
-        'TASK_PERIOD_BROADCAST_PING': config['tasks']['broadcast_ping'],
-        'TASK_PERIOD_BROADCAST_USERS_UPDATE': config['tasks']['broadcast_users_update'],
-        'TASK_PERIOD_BROADCAST_STREAM_INFO_UPDATE': config['tasks']['broadcast_stream_info_update'],
-        'THRESHOLD_USER_NOTWATCHING': config['thresholds']['user_notwatching'],
-        'THRESHOLD_USER_TENTATIVE': config['thresholds']['user_tentative'],
-        'THRESHOLD_USER_ABSENT': config['thresholds']['user_absent'],
-        'THRESHOLD_NOJS_CHAT_TIMEOUT': config['thresholds']['nojs_chat_timeout'],
-        'CHAT_COMMENT_MAX_LENGTH': config['chat']['max_name_length'],
-        'CHAT_NAME_MAX_LENGTH': config['chat']['max_name_length'],
-        'CHAT_NAME_MIN_CONTRAST': config['chat']['min_name_contrast'],
-        'CHAT_BACKGROUND_COLOUR': color_to_colour(config['chat']['background_color']),
-        'CHAT_LEGACY_TRIPCODE_ALGORITHM': config['chat']['legacy_tripcode_algorithm'],
-        'FLOOD_MESSAGE_DURATION': config['flood']['messages']['duration'],
-        'FLOOD_MESSAGE_THRESHOLD': config['flood']['messages']['threshold'],
-        'FLOOD_LINE_DURATION': config['flood']['lines']['duration'],
-        'FLOOD_LINE_THRESHOLD': config['flood']['lines']['threshold'],
-        'CAPTCHA_LIFETIME': config['captcha']['lifetime'],
-        'CAPTCHA_FONTS': config['captcha']['fonts'],
-        'CAPTCHA_ALPHABET': config['captcha']['alphabet'],
-        'CAPTCHA_LENGTH': config['captcha']['length'],
-        'CAPTCHA_BACKGROUND_COLOUR': color_to_colour(config['captcha']['background_color']),
-        'CAPTCHA_FOREGROUND_COLOUR': color_to_colour(config['captcha']['foreground_color']),
+        "COMPRESS_MIN_SIZE": 2048,
+        "COMPRESS_LEVEL": 9,
     })
 
-    assert app.config['MAX_STATES'] >= 0
-    assert app.config['MAX_CHAT_SCROLLBACK'] >= 0
-    assert (
-        app.config['MAX_CHAT_MESSAGES'] >= app.config['MAX_CHAT_SCROLLBACK']
-    )
-    assert (
-        app.config['THRESHOLD_USER_ABSENT']
-        >= app.config['THRESHOLD_USER_TENTATIVE']
-        >= app.config['THRESHOLD_USER_NOTWATCHING']
-    )
-
+    # Global state: messages, users, captchas
     app.messages_by_id = OrderedDict()
     app.messages = app.messages_by_id.values()
 
@@ -108,22 +51,38 @@ def create_app(config_file):
     # Background tasks' asyncio.sleep tasks, cancelled on shutdown
     app.background_sleep = set()
 
+    # Queues for event socket clients
+    app.event_queues = set()
+
     @app.after_serving
     async def shutdown():
-        # make all background tasks finish
+        # Force all background tasks to finish
         for task in app.background_sleep:
             task.cancel()
 
     @app.before_serving
     async def startup():
+        # Start control server
+        if app.config['SOCKET_CONTROL_ENABLED']:
+            from anonstream.control.server import start_control_server_at
+            async def start_control_server():
+                return await start_control_server_at(
+                    app.config['SOCKET_CONTROL_ADDRESS']
+                )
+            app.add_background_task(start_control_server)
+
+        # Start event server
+        if app.config['SOCKET_EVENT_ENABLED']:
+            from anonstream.events import start_event_server_at
+            async def start_event_server():
+                return await start_event_server_at(
+                        app.config['SOCKET_EVENT_ADDRESS']
+                )
+            app.add_background_task(start_event_server)
+
+
+        # Create routes and background tasks
         import anonstream.routes
         import anonstream.tasks
-
-    # Compress some responses
-    compress.init_app(app)
-    app.config.update({
-        "COMPRESS_MIN_SIZE": 2048,
-        "COMPRESS_LEVEL": 9,
-    })
 
     return app

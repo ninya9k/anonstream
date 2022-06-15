@@ -17,7 +17,8 @@ from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
 CONFIG = current_app.config
 
 async def websocket_outbound(queue, user):
-    payload = {
+    await websocket.send_json({'type': 'ping'})
+    await websocket.send_json({
         'type': 'init',
         'nonce': generate_nonce(),
         'title': await get_stream_title(),
@@ -30,10 +31,8 @@ async def websocket_outbound(queue, user):
         },
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
         'digest': get_random_captcha_digest_for(user),
-        'pingpong': CONFIG['TASK_PERIOD_BROADCAST_PING'],
-    }
-    await websocket.send_json(payload)
-    await websocket.send_json({'type': 'ping'})
+        'pingpong': CONFIG['TASK_BROADCAST_PING'],
+    })
     while True:
         payload = await queue.get()
         if payload['type'] == 'close':

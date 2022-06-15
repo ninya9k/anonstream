@@ -9,7 +9,7 @@ CONFIG = current_app.config
 
 def generate_nonce_hash(nonce):
     parts = CONFIG['SECRET_KEY'] + b'nonce-hash\0' + nonce.encode()
-    return hashlib.sha256(parts).digest()
+    return hashlib.sha256(parts).hexdigest()
 
 def get_scrollback(messages):
     n = CONFIG['MAX_CHAT_SCROLLBACK']
