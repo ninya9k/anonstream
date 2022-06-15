@@ -552,6 +552,9 @@ footer {
   #chat-form_js[data-captcha] #chat-live__status [data-verbose="false"] {
     display: inline;
   }
+  #info_nojs {
+    height: 100% !important;
+  }
   #nochat:target {
     --chat-width: 0px;
   }

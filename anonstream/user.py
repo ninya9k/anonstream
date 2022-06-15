@@ -127,16 +127,16 @@ def change_tripcode(user, password, dry_run=False):
 def delete_tripcode(user):
     user['tripcode'] = None
 
-@with_timestamp
+@with_timestamp()
 def see(timestamp, user):
     user['last']['seen'] = timestamp
 
-@with_timestamp
+@with_timestamp()
 def watched(timestamp, user):
     user['last']['seen'] = timestamp
     user['last']['watching'] = timestamp
 
-@with_timestamp
+@with_timestamp()
 def get_all_users_for_websocket(timestamp):
     return {
         user['token_hash']: get_user_for_websocket(user)
@@ -160,7 +160,7 @@ def verify(user, digest, answer):
 
     return verification_happened
 
-@with_timestamp
+@with_timestamp()
 def deverify(timestamp, user):
     if not user['verified']:
         return
@@ -182,7 +182,7 @@ def _update_presence(timestamp, user):
         USERS_UPDATE_BUFFER.add(user['token'])
     return user['presence']
 
-@with_timestamp
+@with_timestamp()
 def update_presence(timestamp, user):
     return _update_presence(timestamp, user)
 
@@ -224,7 +224,7 @@ def get_unsunsettable_users(timestamp):
         get_users_and_update_presence(timestamp),
     )
 
-@with_timestamp
+@with_timestamp()
 def get_users_by_presence(timestamp):
     users_by_presence = {
         Presence.WATCHING: [],
@@ -236,7 +236,7 @@ def get_users_by_presence(timestamp):
         users_by_presence[user['presence']].append(user)
     return users_by_presence
 
-@with_timestamp
+@with_timestamp(precise=True)
 def create_eyes(timestamp, user, headers):
     # Enforce cooldown
     last_created_ago = timestamp - user['last']['eyes']
@@ -271,7 +271,7 @@ def create_eyes(timestamp, user, headers):
     }
     return eyes_id
 
-@with_timestamp
+@with_timestamp(precise=True)
 def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     try:
         eyes = user['eyes']['current'][eyes_id]

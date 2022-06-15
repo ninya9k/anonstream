@@ -62,11 +62,16 @@ class ArgsInt(Args):
         return self.spec, 1, [n]
 
 class ArgsString(Args):
+    def transform_string(self, string):
+        return string
+
     def consume(self, words, index):
         try:
             string = words[index]
         except IndexError:
             raise NoParse(f'incomplete: expected string')
+        else:
+            string = self.transform_string(string)
         return self.spec, 1, [string]
 
 class ArgsJson(Args):
