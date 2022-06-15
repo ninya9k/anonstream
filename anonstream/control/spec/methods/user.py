@@ -20,10 +20,19 @@ class ArgsJsonTokenUser(ArgsJsonString):
             raise NoParse(f'no user with token {token!r}')
         return user
 
+class ArgsJsonHashUser(ArgsString):
+    def transform_string(self, token_hash):
+        for user in USERS:
+            if user['token_hash'] == token_hash:
+                break
+        else:
+            raise NoParse(f'no user with token_hash {token_hash!r}')
+        return user
+
 def ArgsUser(spec):
     return Str({
         'token': ArgsJsonTokenUser(spec),
-        #'hash': ArgsJsonHashUser(spec),
+        'hash': ArgsJsonHashUser(spec),
     })
 
 async def cmd_user_help():
@@ -31,19 +40,18 @@ async def cmd_user_help():
     response = (
             'Usage: user [show | attr USER | get USER ATTR | set USER ATTR VALUE]\n'
             'Commands:\n'
-            ' user [show].......................show all users\' tokens\n'
-            ' user attr USER....................show names of a user\'s attributes\n'
-            ' user get USER ATTR................show an attribute of a user\n'
-            ' user set USER ATTR................set an attribute of a user\n'
-            ' user eyes USER [show].............show a user\'s active video responses\n'
-            ' user eyes USER delete EYES_ID.....end a video response to a user\n'
+            ' user [show]...................show all users\' tokens\n'
+            ' user attr USER................show names of a user\'s attributes\n'
+            ' user get USER ATTR............show an attribute of a user\n'
+            ' user set USER ATTR............set an attribute of a user\n'
+            ' user eyes USER [show].........show a user\'s active video responses\n'
+            ' user eyes USER delete EYES_ID.end a video response to a user\n'
             'Definitions:\n'
-            #' USER..............................={token TOKEN | hash HASH}\n'
-            ' USER..............................=token TOKEN\n'
-            ' TOKEN..............................a token, json string\n'
-            #' HASH..............................a token hash\n'
-            ' ATTR...............................a user attribute, re:[a-z0-9_]+\n'
-            ' EYES_ID............................a user\'s eyes_id, base 10 integer\n'
+            ' USER..........................={token TOKEN | hash HASH}\n'
+            ' TOKEN.........................a token, json string\n'
+            ' HASH..........................a token hash\n'
+            ' ATTR..........................a user attribute, re:[a-z0-9_]+\n'
+            ' EYES_ID.......................a user\'s eyes_id, base 10 integer\n'
     )
     return normal, response
 
