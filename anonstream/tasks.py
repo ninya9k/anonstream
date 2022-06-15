@@ -130,56 +130,58 @@ async def t_broadcast_users_update(iteration):
         broadcast_users_update()
 
 @with_period(CONFIG['TASK_BROADCAST_STREAM_INFO_UPDATE'])
-async def t_broadcast_stream_info_update(iteration):
+@with_timestamp(precise=True)
+async def t_broadcast_stream_info_update(timestamp, iteration):
     if iteration == 0:
         title = await get_stream_title()
-        uptime, viewership = get_stream_uptime_and_viewership()
+        uptime, viewership = get_stream_uptime_and_viewership(rounded=False)
         current_app.stream_title = title
         current_app.stream_uptime = uptime
         current_app.stream_viewership = viewership
     else:
-        payload = {}
-
+        info = {}
         title = await get_stream_title()
-        uptime, viewership = get_stream_uptime_and_viewership()
+        uptime, viewership = get_stream_uptime_and_viewership(rounded=False)
 
         # Check if the stream title has changed
         if current_app.stream_title != title:
             current_app.stream_title = title
-            payload['title'] = title
+            info['title'] = title
 
         # Check if the stream uptime has changed unexpectedly
-        if current_app.stream_uptime is None:
-            expected_uptime = None
+        last_uptime, current_app.stream_uptime = (
+            current_app.stream_uptime, uptime
+        )
+        if last_uptime is None:
+            projected_uptime = None
         else:
-            expected_uptime = (
-                current_app.stream_uptime
-                + CONFIG['TASK_BROADCAST_STREAM_INFO_UPDATE']
-            )
-        current_app.stream_uptime = uptime
-        if uptime is None and expected_uptime is None:
+            last_info_task_ago = timestamp - current_app.last_info_task
+            projected_uptime = last_uptime + last_info_task_ago
+        if uptime is None and projected_uptime is None:
             stats_changed = False
-        elif uptime is None or expected_uptime is None:
+        elif uptime is None or projected_uptime is None:
             stats_changed = True
         else:
-            stats_changed = abs(uptime - expected_uptime) >= 0.5
+            stats_changed = abs(uptime - projected_uptime) >= 0.5
 
         # Check if viewership has changed
         if current_app.stream_viewership != viewership:
             current_app.stream_viewership = viewership
             stats_changed = True
 
+        # Broadcast iff anything has changed
         if stats_changed:
             if uptime is None:
-                payload['stats'] = None
+                info['stats'] = None
             else:
-                payload['stats'] = {
-                    'uptime': uptime,
+                info['stats'] = {
+                    'uptime': round(uptime, 2),
                     'viewership': viewership,
                 }
+        if info:
+            broadcast(USERS, payload={'type': 'info', **info})
 
-        if payload:
-            broadcast(USERS, payload={'type': 'info', **payload})
+    current_app.last_info_task = timestamp
 
 current_app.add_background_task(t_delete_eyes)
 current_app.add_background_task(t_sunset_users)
