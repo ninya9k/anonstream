@@ -44,7 +44,7 @@ def with_period(period):
     return periodically
 
 @with_period(CONFIG['TASK_ROTATE_EYES'])
-@with_timestamp
+@with_timestamp()
 async def t_delete_eyes(timestamp, iteration):
     if iteration == 0:
         return
@@ -59,7 +59,7 @@ async def t_delete_eyes(timestamp, iteration):
                 user['eyes']['current'].pop(eyes_id)
 
 @with_period(CONFIG['TASK_ROTATE_USERS'])
-@with_timestamp
+@with_timestamp()
 async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
@@ -102,7 +102,7 @@ async def t_expire_captchas(iteration):
         CAPTCHAS.pop(digest)
 
 @with_period(CONFIG['TASK_ROTATE_WEBSOCKETS'])
-@with_timestamp
+@with_timestamp()
 async def t_close_websockets(timestamp, iteration):
     THRESHOLD = CONFIG['TASK_BROADCAST_PING'] * 1.5 + 4.0
     if iteration == 0:

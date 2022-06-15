@@ -72,7 +72,7 @@ async def websocket_inbound(queue, user):
         if payload is not None:
             queue.put_nowait(payload)
 
-@with_timestamp
+@with_timestamp()
 def handle_inbound_pong(timestamp, queue, user):
     print(f'[pong] {user["token"]}')
     user['websockets'][queue] = timestamp

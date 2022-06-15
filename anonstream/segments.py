@@ -9,7 +9,7 @@ import aiofiles
 import m3u8
 from quart import current_app
 
-from anonstream.wrappers import ttl_cache, with_timestamp
+from anonstream.wrappers import ttl_cache
 
 CONFIG = current_app.config
 

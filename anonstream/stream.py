@@ -44,7 +44,7 @@ def get_stream_uptime(rounded=True):
         uptime = round(uptime, 2) if rounded else uptime
         return uptime
 
-@with_timestamp
+@with_timestamp()
 def get_raw_viewership(timestamp):
     users = get_watching_users(timestamp)
     return max(
@@ -52,8 +52,8 @@ def get_raw_viewership(timestamp):
         default=0,
     )
 
-def get_stream_uptime_and_viewership(for_websocket=False):
-    uptime = get_stream_uptime()
+def get_stream_uptime_and_viewership(rounded=True, for_websocket=False):
+    uptime = get_stream_uptime(rounded=rounded)
     if not for_websocket:
         viewership = None if uptime is None else get_raw_viewership()
         result = (uptime, viewership)
