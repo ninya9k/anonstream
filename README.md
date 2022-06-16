@@ -13,7 +13,8 @@ These mirrors also exist:
 
 ## Setup
 
-You must have Python 3.10 at a minimum.
+You must have Python 3.10 at a minimum.  You can check your version of Python
+with `python --version`.
 
 Clone the repo:
 ```sh
@@ -28,12 +29,14 @@ source venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Before you run it you should edit [/config.toml][config], e.g. these
-options:
+Before you run it you may want to edit the config ([/config.toml][config]).
+Most of the defaults are probably okay, but here are some that you might want
+to know what they do:
 
 * `secret_key`:
-  used for cryptography, make it any long random string
-  (e.g. `$ dd if=/dev/urandom bs=16 count=1 | base64`)
+  used for cryptography, make it any long random string (e.g.
+  `$ dd if=/dev/urandom bs=16 count=1 | base64`), definitely set this
+  yourself before running in "production" (whatever that is for you)
 
 * `segments/directory`:
   directory containing stream segments, the default is `stream/` in
@@ -52,12 +55,12 @@ Run it:
 python -m uvicorn app:app --port 5051
 ```
 
-This will start a webserver listening on localhost port 5051.
+This will start a webserver listening on the local host at port 5051.
 
 If you go to `http://localhost:5051` in a web browser now you should see
-the site.  When you started the webserver some credentials were
-printed in the terminal; you can log in with those at
-`http://localhost:5051/login` (requires cookies).
+the site.  When you started the webserver some credentials were printed
+in the terminal; you can log in with those at
+`http://localhost:5051/login`.
 
 The only things left are (1) streaming, and (2) letting other people
 access your stream.  [/STREAMING.md][streaming] has instructions for
