@@ -33,7 +33,7 @@ def toml_to_flask_sections(config):
         toml_to_flask_section_names,
         toml_to_flask_section_memory,
         toml_to_flask_section_tasks,
-        toml_to_flask_section_thresholds,
+        toml_to_flask_section_presence,
         toml_to_flask_section_chat,
         toml_to_flask_section_flood,
         toml_to_flask_section_captcha,
@@ -104,13 +104,13 @@ def toml_to_flask_section_tasks(config):
         'TASK_BROADCAST_STREAM_INFO_UPDATE': cfg['broadcast_stream_info_update'],
     }
 
-def toml_to_flask_section_thresholds(config):
-    cfg = config['thresholds']
-    assert cfg['user_notwatching'] <= cfg['user_tentative'] <= cfg['user_absent']
+def toml_to_flask_section_presence(config):
+    cfg = config['presence']
+    assert cfg['notwatching'] <= cfg['tentative'] <= cfg['absent']
     return {
-        'THRESHOLD_USER_NOTWATCHING': cfg['user_notwatching'],
-        'THRESHOLD_USER_TENTATIVE': cfg['user_tentative'],
-        'THRESHOLD_USER_ABSENT': cfg['user_absent'],
+        'PRESENCE_NOTWATCHING': cfg['notwatching'],
+        'PRESENCE_TENTATIVE': cfg['tentative'],
+        'PRESENCE_ABSENT': cfg['absent'],
     }
 
 def toml_to_flask_section_chat(config):

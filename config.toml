@@ -72,10 +72,10 @@ cooldown = 12.0
 expire_after = 5.0
 overwrite = true
 
-[thresholds]
-user_notwatching = 8.0
-user_tentative = 20.0
-user_absent = 360.0
+[presence]
+notwatching = 8.0
+tentative = 20.0
+absent = 360.0
 
 [nojs]
 refresh_messages = 4.0

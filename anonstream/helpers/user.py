@@ -62,16 +62,16 @@ def get_default_name(user):
 
 def get_presence(timestamp, user):
     last_watching_ago = timestamp - user['last']['watching']
-    if last_watching_ago < CONFIG['THRESHOLD_USER_NOTWATCHING']:
+    if last_watching_ago < CONFIG['PRESENCE_NOTWATCHING']:
         return Presence.WATCHING
 
     last_seen_ago = timestamp - user['last']['seen']
-    if last_seen_ago < CONFIG['THRESHOLD_USER_TENTATIVE']:
+    if last_seen_ago < CONFIG['PRESENCE_TENTATIVE']:
         return Presence.NOTWATCHING
     if user['websockets']:
         return Presence.NOTWATCHING
 
-    if last_seen_ago < CONFIG['THRESHOLD_USER_ABSENT']:
+    if last_seen_ago < CONFIG['PRESENCE_ABSENT']:
         return Presence.TENTATIVE
 
     return Presence.ABSENT
