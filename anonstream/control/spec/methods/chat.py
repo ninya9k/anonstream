@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import itertools
 
 from anonstream.chat import delete_chat_messages

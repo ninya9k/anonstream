@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from anonstream.control.spec import ParseException, Parsed
 from anonstream.control.spec.common import Str
 from anonstream.control.spec.methods.chat import SPEC as SPEC_CHAT
