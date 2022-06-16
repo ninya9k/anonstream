@@ -3,7 +3,6 @@
 
 from collections import OrderedDict
 
-import toml
 from quart_compress import Compress
 
 from anonstream.config import update_flask_from_toml
@@ -12,15 +11,12 @@ from anonstream.quart import Quart
 
 compress = Compress()
 
-def create_app(config_file):
+def create_app(toml_config):
     app = Quart('anonstream')
     app.jinja_options['trim_blocks'] = True
     app.jinja_options['lstrip_blocks'] = True
 
-    with open(config_file) as fp:
-        toml_config = toml.load(fp)
     auth_password = update_flask_from_toml(toml_config, app.config)
-
     print('Broadcaster username:', app.config['AUTH_USERNAME'])
     print('Broadcaster password:', auth_password)
 

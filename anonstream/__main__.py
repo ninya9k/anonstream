@@ -1,6 +1,7 @@
 import argparse
 import os
 
+import toml
 import uvicorn
 
 from anonstream import create_app
@@ -44,5 +45,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-app = create_app(args.config)
+with open(args.config) as fp:
+    config = toml.load(fp)
+app = create_app(config)
 uvicorn.run(app, port=args.port)

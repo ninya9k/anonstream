@@ -12,12 +12,15 @@ if __name__ == '__main__':
     exit(1)
 
 import os
+import toml
 import anonstream
 
-config = os.environ.get(
+config_file = os.environ.get(
     'ANONSTREAM_CONFIG',
     os.path.join(os.path.dirname(__file__), 'config.toml'),
 )
 
 def create_app():
+    with open(config_file) as fp:
+        config = toml.load(fp)
     return anonstream.create_app(config)
