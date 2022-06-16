@@ -68,6 +68,12 @@ setting up OBS Studio and a Tor onion service.  If you want to use
 different streaming software and put your stream on the Internet some
 other way, read those instructions and copy the gist.
 
+## Hacking
+
+anonstream has APIs for accessing internal state and hooking into
+internal events. They can be used by humans and other programs.  See
+[/HACKING.md][hacking].
+
 ## Copying
 
 anonstream is AGPL 3.0 or later, see
@@ -107,6 +113,7 @@ anonstream is AGPL 3.0 or later, see
   ([BSD 3-Clause][werkzeug])
 
 [config]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/config.toml
+[hacking]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/HACKING.md
 [licence]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/LICENSES/AGPL-3.0-or-later.md
 [settings.svg]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/anonstream/static/settings.svg
 [streaming]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/STREAMING.md
