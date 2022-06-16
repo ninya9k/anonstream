@@ -1,7 +1,13 @@
-class NoParse(Exception):
+class ParseException(Exception):
     pass
 
-class Ambiguous(Exception):
+class NoParse(ParseException):
+    pass
+
+class Ambiguous(ParseException):
+    pass
+
+class BadArgument(ParseException):
     pass
 
 class Parsed(Exception):

@@ -1,6 +1,6 @@
 import json
 
-from anonstream.control.exceptions import Fail
+from anonstream.control.exceptions import CommandFailed
 from anonstream.control.spec import Spec, NoParse
 from anonstream.control.spec.common import Str, End, ArgsJsonString
 from anonstream.control.spec.utils import get_item, json_dumps_contiguous
@@ -27,7 +27,7 @@ async def cmd_title_set(title):
     try:
         await set_stream_title(title)
     except OSError as e:
-        raise Fail(f'could not set title: {e}') from e
+        raise CommandFailed(f'could not set title: {e}') from e
     normal = ['title', 'set', json_dumps_contiguous(title)]
     response = ''
     return normal, response

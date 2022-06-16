@@ -1,4 +1,4 @@
-from anonstream.control.spec import NoParse, Ambiguous, Parsed
+from anonstream.control.spec import ParseException, Parsed
 from anonstream.control.spec.common import Str
 from anonstream.control.spec.methods.chat import SPEC as SPEC_CHAT
 from anonstream.control.spec.methods.exit import SPEC as SPEC_EXIT
@@ -25,10 +25,7 @@ async def parse(request):
         while True:
             try:
                 spec, n_consumed, more_args = spec.consume(words, index)
-            except NoParse as e:
-                normal, response = None, e.args[0] + '\n'
-                break
-            except Ambiguous as e:
+            except ParseException as e:
                 normal, response = None, e.args[0] + '\n'
                 break
             except Parsed as e:

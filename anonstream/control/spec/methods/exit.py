@@ -1,8 +1,8 @@
 from anonstream.control.spec.common import Str, End
-from anonstream.control.exceptions import Exit
+from anonstream.control.exceptions import ControlSocketExit
 
 async def cmd_exit():
-    raise Exit
+    raise ControlSocketExit
 
 async def cmd_exit_help():
     normal = ['exit', 'help']

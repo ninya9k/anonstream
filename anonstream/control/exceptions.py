@@ -1,5 +1,5 @@
-class Exit(Exception):
+class ControlSocketExit(Exception):
     pass
 
-class Fail(Exception):
+class CommandFailed(Exception):
     pass
