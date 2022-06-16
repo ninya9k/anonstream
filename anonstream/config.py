@@ -37,6 +37,7 @@ def toml_to_flask_sections(config):
         toml_to_flask_section_chat,
         toml_to_flask_section_flood,
         toml_to_flask_section_captcha,
+        toml_to_flask_section_nojs,
     )
     for toml_to_flask_section in TOML_TO_FLASK_SECTIONS:
         yield toml_to_flask_section(config)
@@ -110,7 +111,6 @@ def toml_to_flask_section_thresholds(config):
         'THRESHOLD_USER_NOTWATCHING': cfg['user_notwatching'],
         'THRESHOLD_USER_TENTATIVE': cfg['user_tentative'],
         'THRESHOLD_USER_ABSENT': cfg['user_absent'],
-        'THRESHOLD_NOJS_CHAT_TIMEOUT': cfg['nojs_chat_timeout'],
     }
 
 def toml_to_flask_section_chat(config):
@@ -146,4 +146,13 @@ def toml_to_flask_section_captcha(config):
         'CAPTCHA_LENGTH': cfg['length'],
         'CAPTCHA_BACKGROUND_COLOUR': color_to_colour(cfg['background_color']),
         'CAPTCHA_FOREGROUND_COLOUR': color_to_colour(cfg['foreground_color']),
+    }
+
+def toml_to_flask_section_nojs(config):
+    cfg = config['nojs']
+    return {
+        'NOJS_REFRESH_MESSAGES': round(cfg['refresh_messages']),
+        'NOJS_REFRESH_INFO': round(cfg['refresh_info']),
+        'NOJS_REFRESH_USERS': round(cfg['refresh_users']),
+        'NOJS_TIMEOUT_CHAT': round(cfg['timeout_chat']),
     }

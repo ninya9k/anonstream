@@ -35,6 +35,7 @@ async def nojs_info(user):
     return await render_template(
         'nojs_info.html',
         csp=generate_csp(),
+        refresh=CONFIG['NOJS_REFRESH_INFO'],
         user=user,
         viewership=viewership,
         uptime=uptime,
@@ -48,10 +49,11 @@ async def nojs_chat_messages(user):
     return await render_template_with_etag(
         'nojs_chat_messages.html',
         {'csp': generate_csp()},
+        refresh=CONFIG['NOJS_REFRESH_MESSAGES'],
         user=user,
         users_by_token=USERS_BY_TOKEN,
         messages=get_scrollback(current_app.messages),
-        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
+        timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
         get_default_name=get_default_name,
     )
 
@@ -67,11 +69,12 @@ async def nojs_chat_users(user):
     return await render_template_with_etag(
         'nojs_chat_users.html',
         {'csp': generate_csp()},
+        refresh=CONFIG['NOJS_REFRESH_USERS'],
         user=user,
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
         users_notwatching=users_by_presence[Presence.NOTWATCHING],
-        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
+        timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
     )
 
 @current_app.route('/chat/form.html')
