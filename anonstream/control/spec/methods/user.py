@@ -1,9 +1,12 @@
+# SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import json
 
 from quart import current_app
 
-from anonstream.control.exceptions import Fail
-from anonstream.control.spec import NoParse
+from anonstream.control.exceptions import CommandFailed
+from anonstream.control.spec import BadArgument
 from anonstream.control.spec.common import Str, End, ArgsInt, ArgsString, ArgsJson, ArgsJsonString
 from anonstream.control.spec.utils import get_item, json_dumps_contiguous
 from anonstream.utils.user import USER_WEBSOCKET_ATTRS
@@ -17,7 +20,7 @@ class ArgsJsonTokenUser(ArgsJsonString):
         try:
             user = USERS_BY_TOKEN[token]
         except KeyError:
-            raise NoParse(f'no user with token {token!r}')
+            raise BadArgument(f'no user with token {token!r}')
         return user
 
 class ArgsJsonHashUser(ArgsString):
@@ -26,7 +29,7 @@ class ArgsJsonHashUser(ArgsString):
             if user['token_hash'] == token_hash:
                 break
         else:
-            raise NoParse(f'no user with token_hash {token_hash!r}')
+            raise BadArgument(f'no user with token_hash {token_hash!r}')
         return user
 
 def ArgsUser(spec):
@@ -69,11 +72,11 @@ async def cmd_user_get(user, attr):
     try:
         value = user[attr]
     except KeyError as e:
-        raise Fail('user has no such attribute') from e
+        raise CommandFailed('user has no such attribute') from e
     try:
         value_json = json.dumps(value)
     except (TypeError, ValueError) as e:
-        raise Fail('value is not representable in json') from e
+        raise CommandFailed('value is not representable in json') from e
     normal = [
         'user',
         'get',
@@ -86,7 +89,7 @@ async def cmd_user_get(user, attr):
 
 async def cmd_user_set(user, attr, value):
     if attr not in user:
-        raise Fail(f'user has no attribute {attr!r}')
+        raise CommandFailed(f'user has no attribute {attr!r}')
     user[attr] = value
     if attr in USER_WEBSOCKET_ATTRS:
         USERS_UPDATE_BUFFER.add(user['token'])

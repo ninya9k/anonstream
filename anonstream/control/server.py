@@ -1,6 +1,9 @@
+# SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import asyncio
 
-from anonstream.control.exceptions import Exit, Fail
+from anonstream.control.exceptions import ControlSocketExit, CommandFailed
 from anonstream.control.parse import parse
 
 def start_control_server_at(address):
@@ -15,9 +18,9 @@ async def serve_control_client(reader, writer):
         else:
             try:
                 normal, response = await parse(request)
-            except Fail as e:
+            except CommandFailed as e:
                 normal, response = None, e.args[0] + '\n'
-            except Exit:
+            except ControlSocketExit:
                 writer.close()
                 break
 
