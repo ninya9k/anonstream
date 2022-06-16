@@ -52,10 +52,11 @@ to know what they do:
 
 Run it:
 ```sh
-python -m uvicorn app:app --port 5051
+python -m anonstream
 ```
 
-This will start a webserver listening on the local host at port 5051.
+This will start a webserver listening on the local host at port 5051 (use
+`--port PORT` to override).
 
 If you go to `http://localhost:5051` in a web browser now you should see
 the site.  When you started the webserver some credentials were printed
@@ -67,6 +68,24 @@ access your stream.  [/STREAMING.md][streaming] has instructions for
 setting up OBS Studio and a Tor onion service.  If you want to use
 different streaming software and put your stream on the Internet some
 other way, read those instructions and copy the gist.
+
+## Running
+
+Start anonstream like this:
+```sh
+python -m anonstream
+```
+The default port is 5051. Append `--help` to see options.
+
+If you want to use a different ASGI server, point it to the app factory
+at `asgi:create_app()`.  For example with `uvicorn`:
+```sh
+python -m uvicorn asgi:create_app --factory --port 5051
+```
+
+In either case you can explicitly set the location of the config file
+using the `ANONSTREAM_CONFIG` environment variable.
+
 
 ## Hacking
 
