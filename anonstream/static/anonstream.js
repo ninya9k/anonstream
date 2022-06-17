@@ -33,7 +33,7 @@ const jsmarkup_chat_users = `\
 const jsmarkup_chat_form = `\
 <form id="chat-form_js" data-js="true" action="/chat" method="post">
   <input id="chat-form_js__nonce" type="hidden" name="nonce" value="">
-  <textarea id="chat-form_js__comment" name="comment" maxlength="512" required placeholder="Send a message..." rows="1" autofocus></textarea>
+  <textarea id="chat-form_js__comment" name="comment" required placeholder="Send a message..." rows="1" autofocus></textarea>
   <div id="chat-live">
     <span id="chat-live__ball"></span>
     <span id="chat-live__status">
@@ -55,10 +55,10 @@ const jsmarkup_chat_form = `\
 </form>
 <form id="appearance-form_js" data-hidden="">
   <span id="appearance-form_js__label-name">Name:</span>
-  <input id="appearance-form_js__name" name="name" maxlength="24">
+  <input id="appearance-form_js__name" name="name">
   <input id="appearance-form_js__color" type="color" name="color">
   <span id="appearance-form_js__label-tripcode">Tripcode:</span>
-  <input id="appearance-form_js__password" type="password" name="password" placeholder="(tripcode password)" maxlength="1024">
+  <input id="appearance-form_js__password" type="password" name="password" placeholder="(tripcode password)">
   <div id="appearance-form_js__row">
     <article id="appearance-form_js__row__result"></article>
     <input id="appearance-form_js__row__submit" type="submit" value="Update">

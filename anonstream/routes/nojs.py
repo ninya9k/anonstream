@@ -35,6 +35,7 @@ async def nojs_info(user):
     return await render_template(
         'nojs_info.html',
         csp=generate_csp(),
+        refresh=CONFIG['NOJS_REFRESH_INFO'],
         user=user,
         viewership=viewership,
         uptime=uptime,
@@ -48,10 +49,11 @@ async def nojs_chat_messages(user):
     return await render_template_with_etag(
         'nojs_chat_messages.html',
         {'csp': generate_csp()},
+        refresh=CONFIG['NOJS_REFRESH_MESSAGES'],
         user=user,
         users_by_token=USERS_BY_TOKEN,
         messages=get_scrollback(current_app.messages),
-        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
+        timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
         get_default_name=get_default_name,
     )
 
@@ -67,11 +69,12 @@ async def nojs_chat_users(user):
     return await render_template_with_etag(
         'nojs_chat_users.html',
         {'csp': generate_csp()},
+        refresh=CONFIG['NOJS_REFRESH_USERS'],
         user=user,
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
         users_notwatching=users_by_presence[Presence.NOTWATCHING],
-        timeout=CONFIG['THRESHOLD_NOJS_CHAT_TIMEOUT'],
+        timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
     )
 
 @current_app.route('/chat/form.html')
@@ -89,20 +92,22 @@ async def nojs_chat_form(user):
         nonce=generate_nonce(),
         digest=get_random_captcha_digest_for(user),
         default_name=get_default_name(user),
+        max_comment_length=CONFIG['CHAT_COMMENT_MAX_LENGTH'],
+        max_name_length=CONFIG['CHAT_NAME_MAX_LENGTH'],
+        max_password_length=CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH'],
     )
 
 @current_app.post('/chat/form')
 @with_user_from(request)
 async def nojs_chat_form_redirect(user):
     comment = (await request.form).get('comment', '')
-    if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
-        comment = ''
-
     if comment:
-        state_id = add_state(user, comment=comment)
+        state_id = add_state(
+            user,
+            comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+        )
     else:
         state_id = None
-
     return redirect(url_for('nojs_chat_form', token=user['token'], state=state_id))
 
 @current_app.post('/chat/message')
@@ -117,7 +122,11 @@ async def nojs_submit_message(user):
         verification_happened = verify(user, digest, answer)
     except BadCaptcha as e:
         notice, *_ = e.args
-        state_id = add_state(user, notice=notice, comment=comment)
+        state_id = add_state(
+            user,
+            notice=notice,
+            comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+        )
     else:
         nonce = form.get('nonce', '')
         try:
@@ -131,7 +140,11 @@ async def nojs_submit_message(user):
             )
         except Rejected as e:
             notice, *_ = e.args
-            state_id = add_state(user, notice=notice, comment=comment)
+            state_id = add_state(
+                user,
+                notice=notice,
+                comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+            )
         else:
             state_id = None
             if message_was_added:

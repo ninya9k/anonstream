@@ -220,7 +220,7 @@
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" maxlength="512" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
+    <textarea id="chat-form__comment" name="comment" maxlength="{{ max_comment_length }}" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
     <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
     <div id="chat-form__exit"><label for="toggle" class="pseudolink">Settings</label></div>
     {% if digest %}
@@ -231,7 +231,7 @@
   </form>
   <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
-    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ default_name }}" maxlength="24">
+    <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ default_name }}" maxlength="{{ max_name_length }}">
     <input type="color" name="color" value="{{ user.color }}">
     <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
@@ -247,7 +247,7 @@
         <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>
       {% endif %}
     </div>
-    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="1024">
+    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="{{ max_password_length }}">
     <div id="hide-password"><label for="password-toggle" class="pseudolink x">&times;</label></div>
     <div id="appearance-form__buttons">
       <div id="appearance-form__buttons__exit"><label for="toggle" class="pseudolink">Return to chat</label></div>

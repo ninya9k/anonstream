@@ -9,8 +9,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'nonce-{{ csp }}';">
-  <meta http-equiv="refresh" content="4">
-  <meta http-equiv="refresh" content="5; url={{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
+  <meta http-equiv="refresh" content="{{ refresh }}">
+  <meta http-equiv="refresh" content="{{ refresh + 1 }}; url={{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
   <style nonce="{{ csp }}">
     html {
       height: 100%;

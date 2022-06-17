@@ -53,9 +53,11 @@ anonymous = "Anonymous"
 
 [chat]
 max_comment_length = 512
+max_comment_lines = 12
 max_name_length = 24
 min_name_contrast = 3.0
 background_color = "#232327"
+max_tripcode_password_length = 1024
 legacy_tripcode_algorithm = false
 
 [flood.messages]
@@ -72,8 +74,13 @@ cooldown = 12.0
 expire_after = 5.0
 overwrite = true
 
-[thresholds]
-user_notwatching = 8.0
-user_tentative = 20.0
-user_absent = 360.0
-nojs_chat_timeout = 30.0
+[presence]
+notwatching = 8.0
+tentative = 20.0
+absent = 360.0
+
+[nojs]
+refresh_messages = 4.0
+refresh_info = 6.0
+refresh_users = 6.0
+timeout_chat = 30.0
