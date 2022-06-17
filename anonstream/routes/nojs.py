@@ -101,14 +101,13 @@ async def nojs_chat_form(user):
 @with_user_from(request)
 async def nojs_chat_form_redirect(user):
     comment = (await request.form).get('comment', '')
-    if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
-        comment = ''
-
     if comment:
-        state_id = add_state(user, comment=comment)
+        state_id = add_state(
+            user,
+            comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+        )
     else:
         state_id = None
-
     return redirect(url_for('nojs_chat_form', token=user['token'], state=state_id))
 
 @current_app.post('/chat/message')
@@ -123,7 +122,11 @@ async def nojs_submit_message(user):
         verification_happened = verify(user, digest, answer)
     except BadCaptcha as e:
         notice, *_ = e.args
-        state_id = add_state(user, notice=notice, comment=comment)
+        state_id = add_state(
+            user,
+            notice=notice,
+            comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+        )
     else:
         nonce = form.get('nonce', '')
         try:
@@ -137,7 +140,11 @@ async def nojs_submit_message(user):
             )
         except Rejected as e:
             notice, *_ = e.args
-            state_id = add_state(user, notice=notice, comment=comment)
+            state_id = add_state(
+                user,
+                notice=notice,
+                comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
+            )
         else:
             state_id = None
             if message_was_added:
