@@ -117,9 +117,11 @@ def toml_to_flask_section_chat(config):
     cfg = config['chat']
     return {
         'CHAT_COMMENT_MAX_LENGTH': cfg['max_comment_length'],
+        'CHAT_COMMENT_MAX_LINES': cfg['max_comment_lines'],
         'CHAT_NAME_MAX_LENGTH': cfg['max_name_length'],
         'CHAT_NAME_MIN_CONTRAST': cfg['min_name_contrast'],
         'CHAT_BACKGROUND_COLOUR': color_to_colour(cfg['background_color']),
+        'CHAT_TRIPCODE_PASSWORD_MAX_LENGTH': cfg['max_tripcode_password_length'],
         'CHAT_LEGACY_TRIPCODE_ALGORITHM': cfg['legacy_tripcode_algorithm'],
     }
 

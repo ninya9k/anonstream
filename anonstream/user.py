@@ -93,8 +93,10 @@ def change_name(user, name, dry_run=False):
         if name is not None:
             if len(name) == 0:
                 raise BadAppearance('Name was empty')
-            if len(name) > 24:
-                raise BadAppearance('Name exceeded 24 chars')
+            if len(name) > CONFIG['CHAT_NAME_MAX_LENGTH']:
+                raise BadAppearance(
+                    f'Name exceeded {CONFIG["CHAT_NAME_MAX_LENGTH"]} chars'
+                )
     else:
         user['name'] = name
 
@@ -119,8 +121,11 @@ def change_color(user, color, dry_run=False):
 
 def change_tripcode(user, password, dry_run=False):
     if dry_run:
-        if len(password) > 1024:
-            raise BadAppearance('Password exceeded 1024 chars')
+        if len(password) > CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH']:
+            raise BadAppearance(
+                f'Password exceeded '
+                f'{CONFIG["CHAT_TRIPCODE_PASSWORD_MAX_LENGTH"]} chars'
+            )
     else:
         user['tripcode'] = generate_tripcode(password)
 

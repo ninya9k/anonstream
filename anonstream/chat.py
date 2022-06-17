@@ -62,14 +62,21 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         raise Rejected('Message was empty')
     if len(comment.strip()) == 0:
         raise Rejected('Message was practically empty')
-    if len(comment) > 512:
-        raise Rejected('Message exceeded 512 chars')
-    if comment.count('\n') + 1 > 12:
-        raise Rejected('Message exceeded 12 lines')
+    if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
+        raise Rejected(
+            f'Message exceeded {CONFIG["CHAT_COMMENT_MAX_LENGTH"]} chars'
+        )
 
+    if comment.count('\n') + 1 > CONFIG['CHAT_COMMENT_MAX_LINES']:
+        raise Rejected(
+            f'Message exceeded {CONFIG["CHAT_COMMENT_MAX_LINES"]} lines'
+        )
     linespan = get_approx_linespan(comment)
-    if linespan > 12:
-        raise Rejected('Message would span too many lines')
+    if linespan > CONFIG['CHAT_COMMENT_MAX_LINES']:
+        raise Rejected(
+            f'Message would span {CONFIG["CHAT_COMMENT_MAX_LINES"]} '
+            f'or more lines'
+        )
 
     # Record linespan
     linespan_tuple = (timestamp, linespan)

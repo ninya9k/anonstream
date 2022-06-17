@@ -92,6 +92,9 @@ async def nojs_chat_form(user):
         nonce=generate_nonce(),
         digest=get_random_captcha_digest_for(user),
         default_name=get_default_name(user),
+        max_comment_length=CONFIG['CHAT_COMMENT_MAX_LENGTH'],
+        max_name_length=CONFIG['CHAT_NAME_MAX_LENGTH'],
+        max_password_length=CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH'],
     )
 
 @current_app.post('/chat/form')
