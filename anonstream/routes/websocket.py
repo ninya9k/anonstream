@@ -13,10 +13,10 @@ from anonstream.routes.wrappers import with_user_from
 
 @current_app.websocket('/live')
 @with_user_from(websocket)
-async def live(user):
+async def live(timestamp, user):
     queue = asyncio.Queue()
     user['websockets'][queue] = -inf
-    reading(user)
+    reading(user, timestamp=timestamp)
 
     producer = websocket_outbound(queue, user)
     consumer = websocket_inbound(queue, user)

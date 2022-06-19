@@ -19,7 +19,7 @@ USERS_BY_TOKEN = current_app.users_by_token
 
 @current_app.route('/stream.html')
 @with_user_from(request)
-async def nojs_stream(user):
+async def nojs_stream(timestamp, user):
     return await render_template(
         'nojs_stream.html',
         csp=generate_csp(),
@@ -29,7 +29,7 @@ async def nojs_stream(user):
 
 @current_app.route('/info.html')
 @with_user_from(request)
-async def nojs_info(user):
+async def nojs_info(timestamp, user):
     update_presence(user)
     uptime, viewership = get_stream_uptime_and_viewership()
     return await render_template(
@@ -45,7 +45,7 @@ async def nojs_info(user):
 
 @current_app.route('/chat/messages.html')
 @with_user_from(request)
-async def nojs_chat_messages(user):
+async def nojs_chat_messages(timestamp, user):
     reading(user)
     return await render_template_with_etag(
         'nojs_chat_messages.html',
@@ -60,12 +60,12 @@ async def nojs_chat_messages(user):
 
 @current_app.route('/chat/messages')
 @with_user_from(request)
-async def nojs_chat_messages_redirect(user):
+async def nojs_chat_messages_redirect(timestamp, user):
     return redirect(url_for('nojs_chat_messages', token=user['token'], _anchor='end'))
 
 @current_app.route('/chat/users.html')
 @with_user_from(request)
-async def nojs_chat_users(user):
+async def nojs_chat_users(timestamp, user):
     users_by_presence = get_users_by_presence()
     return await render_template_with_etag(
         'nojs_chat_users.html',
@@ -80,7 +80,7 @@ async def nojs_chat_users(user):
 
 @current_app.route('/chat/form.html')
 @with_user_from(request)
-async def nojs_chat_form(user):
+async def nojs_chat_form(timestamp, user):
     state_id = request.args.get('state', type=int)
     state = pop_state(user, state_id)
     prefer_chat_form = request.args.get('landing') != 'appearance'
@@ -100,7 +100,7 @@ async def nojs_chat_form(user):
 
 @current_app.post('/chat/form')
 @with_user_from(request)
-async def nojs_chat_form_redirect(user):
+async def nojs_chat_form_redirect(timestamp, user):
     comment = (await request.form).get('comment', '')
     if comment:
         state_id = add_state(
@@ -113,7 +113,7 @@ async def nojs_chat_form_redirect(user):
 
 @current_app.post('/chat/message')
 @with_user_from(request)
-async def nojs_submit_message(user):
+async def nojs_submit_message(timestamp, user):
     form = await request.form
 
     comment = form.get('comment', '')
@@ -160,7 +160,7 @@ async def nojs_submit_message(user):
 
 @current_app.post('/chat/appearance')
 @with_user_from(request)
-async def nojs_submit_appearance(user):
+async def nojs_submit_appearance(timestamp, user):
     form = await request.form
 
     # Collect form data

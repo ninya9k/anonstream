@@ -104,7 +104,7 @@ def with_user_from(context):
                 USERS_UPDATE_BUFFER.add(token)
 
             # Set cookie
-            response = await f(user, *args, **kwargs)
+            response = await f(timestamp, user, *args, **kwargs)
             if context.cookies.get('token') != token:
                 response = await make_response(response)
                 response.headers['Set-Cookie'] = f'token={token}; path=/'

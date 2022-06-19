@@ -17,7 +17,7 @@ STATIC_DIRECTORY = current_app.root_path / 'static'
 
 @current_app.route('/')
 @with_user_from(request)
-async def home(user):
+async def home(timestamp, user):
     return await render_template(
         'home.html',
         csp=generate_csp(),
@@ -26,7 +26,7 @@ async def home(user):
 
 @current_app.route('/stream.mp4')
 @with_user_from(request)
-async def stream(user):
+async def stream(timestamp, user):
     if not is_online():
         return abort(404)
 
@@ -59,7 +59,7 @@ async def login():
 
 @current_app.route('/captcha.jpg')
 @with_user_from(request)
-async def captcha(user):
+async def captcha(timestamp, user):
     digest = request.args.get('digest', '')
     image = get_captcha_image(digest)
     if image is None:
@@ -70,5 +70,5 @@ async def captcha(user):
 @current_app.route('/static/<filename>')
 @with_user_from(request)
 @clean_cache_headers
-async def static(user, filename):
+async def static(timestamp, user, filename):
     return await send_from_directory(STATIC_DIRECTORY, filename)
