@@ -23,8 +23,8 @@ def create_app(toml_config):
     # Compress some responses
     compress.init_app(app)
     app.config.update({
-        "COMPRESS_MIN_SIZE": 2048,
-        "COMPRESS_LEVEL": 9,
+        'COMPRESS_MIN_SIZE': 2048,
+        'COMPRESS_LEVEL': 9,
     })
 
     # Global state: messages, users, captchas

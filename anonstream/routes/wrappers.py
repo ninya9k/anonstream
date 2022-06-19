@@ -35,9 +35,9 @@ def check_auth(context):
     auth = context.authorization
     return (
         auth is not None
-        and auth.type == "basic"
-        and auth.username == CONFIG["AUTH_USERNAME"]
-        and check_password_hash(CONFIG["AUTH_PWHASH"], auth.password)
+        and auth.type == 'basic'
+        and auth.username == CONFIG['AUTH_USERNAME']
+        and check_password_hash(CONFIG['AUTH_PWHASH'], auth.password)
     )
 
 def auth_required(f):
