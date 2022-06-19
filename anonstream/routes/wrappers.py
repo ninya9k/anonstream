@@ -127,3 +127,28 @@ async def render_template_with_etag(template, deferred_kwargs, **kwargs):
             **kwargs,
         )
         return rendered_template, {'ETag': etag}
+
+def clean_cache_headers(f):
+    @wraps(f)
+    async def wrapper(*args, **kwargs):
+        response = await f(*args, **kwargs)
+
+        # Remove Last-Modified
+        try:
+            response.headers.pop('Last-Modified')
+        except KeyError:
+            pass
+
+        # Obfuscate ETag
+        try:
+            original_etag = response.headers['ETag']
+        except KeyError:
+            pass
+        else:
+            parts = CONFIG['SECRET_KEY'] + b'etag\0' + original_etag.encode()
+            tag = hashlib.sha256(parts).hexdigest()
+            response.headers['ETag'] = f'"{tag}"'
+
+        return response
+
+    return wrapper

@@ -3,15 +3,17 @@
 
 import math
 
-from quart import current_app, request, render_template, abort, make_response, redirect, url_for, abort
+from quart import current_app, request, render_template, abort, make_response, redirect, url_for, abort, send_from_directory
 from werkzeug.exceptions import TooManyRequests
 
 from anonstream.captcha import get_captcha_image
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
 from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes
-from anonstream.routes.wrappers import with_user_from, auth_required
+from anonstream.routes.wrappers import with_user_from, auth_required, clean_cache_headers
 from anonstream.utils.security import generate_csp
+
+STATIC_DIRECTORY = current_app.root_path / 'static'
 
 @current_app.route('/')
 @with_user_from(request)
@@ -64,3 +66,9 @@ async def captcha(user):
         return abort(410)
     else:
         return image, {'Content-Type': 'image/jpeg'}
+
+@current_app.route('/static/<filename>')
+@with_user_from(request)
+@clean_cache_headers
+async def static(user, filename):
+    return await send_from_directory(STATIC_DIRECTORY, filename)

@@ -12,7 +12,7 @@ from anonstream.quart import Quart
 compress = Compress()
 
 def create_app(toml_config):
-    app = Quart('anonstream')
+    app = Quart('anonstream', static_folder=None)
     app.jinja_options['trim_blocks'] = True
     app.jinja_options['lstrip_blocks'] = True
 
