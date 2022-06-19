@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import asyncio
-
-from math import inf
-
 from quart import current_app, websocket
 
 from anonstream.user import see, reading
@@ -15,7 +12,7 @@ from anonstream.routes.wrappers import with_user_from
 @with_user_from(websocket)
 async def live(timestamp, user):
     queue = asyncio.Queue()
-    user['websockets'][queue] = -inf
+    user['websockets'][queue] = timestamp
     reading(user, timestamp=timestamp)
 
     producer = websocket_outbound(queue, user)
