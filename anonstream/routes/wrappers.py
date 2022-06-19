@@ -6,6 +6,7 @@ import hmac
 import re
 import string
 from functools import wraps
+from urllib.parse import quote, unquote
 
 from quart import current_app, request, abort, make_response, render_template, request
 from werkzeug.security import check_password_hash
@@ -30,6 +31,12 @@ TOKEN_ALPHABET = (
     + ' '
 )
 RE_TOKEN = re.compile(r'[%s]{1,256}' % re.escape(TOKEN_ALPHABET))
+
+def try_unquote(string):
+    if string is None:
+        return None
+    else:
+        return unquote(string)
 
 def check_auth(context):
     auth = context.authorization
@@ -77,7 +84,7 @@ def with_user_from(context):
             else:
                 token = (
                     context.args.get('token')
-                    or context.cookies.get('token')
+                    or try_unquote(context.cookies.get('token'))
                     or generate_token()
                 )
                 if hmac.compare_digest(token, CONFIG['AUTH_TOKEN']):
@@ -105,9 +112,9 @@ def with_user_from(context):
 
             # Set cookie
             response = await f(timestamp, user, *args, **kwargs)
-            if context.cookies.get('token') != token:
+            if try_unquote(context.cookies.get('token')) != token:
                 response = await make_response(response)
-                response.headers['Set-Cookie'] = f'token={token}; path=/'
+                response.headers['Set-Cookie'] = f'token={quote(token)}; path=/'
             return response
 
         return wrapper
