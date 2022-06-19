@@ -16,13 +16,18 @@ def with_function_call(fn, *fn_args, **fn_kwargs):
 def with_constant(x):
     return with_function_call(lambda: x)
 
-def with_timestamp(monotonic=False, precise=False):
+def get_timestamp(monotonic=False, precise=False):
     n = 1_000_000_000
     if monotonic:
-        fn = precise and time.monotonic or (lambda: time.monotonic_ns() // n)
+        timestamp = precise and time.monotonic() or time.monotonic_ns() // n
     else:
-        fn = precise and time.time or (lambda: time.time_ns() // n)
-    return with_function_call(fn)
+        timestamp = precise and time.time() or time.time_ns() // n
+    return timestamp
+
+def with_timestamp(monotonic=False, precise=False):
+    def get_timestamp_specific():
+        return get_timestamp(monotonic=monotonic, precise=precise)
+    return with_function_call(get_timestamp_specific)
 
 def try_except_log(errors, exception_class):
     def try_except_log_specific(f):

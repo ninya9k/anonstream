@@ -5,7 +5,6 @@ import hashlib
 import hmac
 import re
 import string
-import time
 from functools import wraps
 
 from quart import current_app, request, abort, make_response, render_template, request
@@ -15,6 +14,7 @@ from anonstream.broadcast import broadcast
 from anonstream.user import see
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token, Presence
+from anonstream.wrappers import get_timestamp
 
 CONFIG = current_app.config
 MESSAGES = current_app.messages
@@ -68,7 +68,7 @@ def with_user_from(context):
     def with_user_from_context(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
-            timestamp = int(time.time())
+            timestamp = get_timestamp()
 
             # Check if broadcaster
             broadcaster = check_auth(context)

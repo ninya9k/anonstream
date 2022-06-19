@@ -7,7 +7,7 @@ from math import inf
 
 from quart import current_app
 
-from anonstream.wrappers import try_except_log, with_timestamp
+from anonstream.wrappers import try_except_log, with_timestamp, get_timestamp
 from anonstream.helpers.user import get_default_name, get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
@@ -136,10 +136,17 @@ def delete_tripcode(user):
 def see(timestamp, user):
     user['last']['seen'] = timestamp
 
-@with_timestamp()
-def watched(timestamp, user):
+def watching(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
     user['last']['seen'] = timestamp
     user['last']['watching'] = timestamp
+
+def reading(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
+    user['last']['seen'] = timestamp
+    user['last']['reading'] = timestamp
 
 @with_timestamp()
 def get_all_users_for_websocket(timestamp):

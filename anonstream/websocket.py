@@ -9,7 +9,7 @@ from quart import current_app, websocket
 from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import get_all_users_for_websocket, see, verify, deverify, BadCaptcha, try_change_appearance
+from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance
 from anonstream.wrappers import with_timestamp
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
@@ -75,6 +75,7 @@ async def websocket_inbound(queue, user):
 @with_timestamp()
 def handle_inbound_pong(timestamp, queue, user):
     print(f'[pong] {user["token"]}')
+    reading(user, timestamp=timestamp)
     user['websockets'][queue] = timestamp
     return None
 

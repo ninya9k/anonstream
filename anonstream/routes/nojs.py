@@ -6,7 +6,7 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
-from anonstream.user import add_state, pop_state, try_change_appearance, update_presence, get_users_by_presence, Presence, verify, deverify, BadCaptcha
+from anonstream.user import add_state, pop_state, try_change_appearance, update_presence, get_users_by_presence, Presence, verify, deverify, BadCaptcha, reading
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
@@ -46,6 +46,7 @@ async def nojs_info(user):
 @current_app.route('/chat/messages.html')
 @with_user_from(request)
 async def nojs_chat_messages(user):
+    reading(user)
     return await render_template_with_etag(
         'nojs_chat_messages.html',
         {'csp': generate_csp()},

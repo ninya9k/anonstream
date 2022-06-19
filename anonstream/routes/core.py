@@ -9,7 +9,7 @@ from werkzeug.exceptions import TooManyRequests
 from anonstream.captcha import get_captcha_image
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
-from anonstream.user import watched, create_eyes, renew_eyes, EyesException, RatelimitedEyes
+from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes
 from anonstream.routes.wrappers import with_user_from, auth_required
 from anonstream.utils.security import generate_csp
 
@@ -42,7 +42,7 @@ async def stream(user):
         except EyesException as e:
             raise StopSendingSegments(f'eyes {eyes_id} not allowed: {e!r}') from e
         print(f'{uri}: {eyes_id}~{user["token"]}')
-        watched(user)
+        watching(user)
 
     generator = segments(segment_read_hook, token=user['token'])
     response = await make_response(generator)
