@@ -48,4 +48,4 @@ args = parser.parse_args()
 with open(args.config) as fp:
     config = toml.load(fp)
 app = create_app(config)
-uvicorn.run(app, port=args.port)
+uvicorn.run(app, port=args.port, server_header=False)
