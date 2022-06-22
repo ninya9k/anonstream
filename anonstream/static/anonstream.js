@@ -831,6 +831,11 @@ const on_websocket_message = (event) => {
       ws.send(JSON.stringify(payload));
       break;
 
+    case "kick":
+      console.log("ws kick");
+      window.location.reload();
+      break;
+
     default:
       console.log("incomprehensible websocket message", receipt);
   }
