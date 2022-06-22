@@ -19,6 +19,7 @@ def update_flask_from_toml(toml_config, flask_config):
         'AUTH_USERNAME': toml_config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
         'AUTH_TOKEN': generate_token(),
+        'ACCESS_CAPTCHA': toml_config['access']['captcha'],
      })
     for flask_section in toml_to_flask_sections(toml_config):
         flask_config.update(flask_section)

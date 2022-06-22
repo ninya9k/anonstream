@@ -71,50 +71,69 @@ def auth_required(f):
 
     return wrapper
 
-def with_user_from(context):
+def generate_and_add_user(timestamp, token=None, broadcaster=False):
+    token = token or generate_token()
+    user = generate_user(
+        timestamp=timestamp,
+        token=token,
+        broadcaster=broadcaster,
+        presence=Presence.NOTWATCHING,
+    )
+    USERS_BY_TOKEN[token] = user
+    USERS_UPDATE_BUFFER.add(token)
+    return user
+
+def with_user_from(context, fallback_to_token=False):
     def with_user_from_context(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
             timestamp = get_timestamp()
 
-            # Check if broadcaster
+            # Get token
             broadcaster = check_auth(context)
+            token_from_args = context.args.get('token')
+            token_from_cookie = try_unquote(context.cookies.get('token'))
+            token_from_context = token_from_args or token_from_cookie
             if broadcaster:
                 token = CONFIG['AUTH_TOKEN']
+            elif CONFIG['ACCESS_CAPTCHA']:
+                token = token_from_context
             else:
-                token = (
-                    context.args.get('token')
-                    or try_unquote(context.cookies.get('token'))
-                    or generate_token()
-                )
-                if hmac.compare_digest(token, CONFIG['AUTH_TOKEN']):
-                    raise abort(401)
+                token = token_from_context or generate_token()
 
             # Reject invalid tokens
-            if not RE_TOKEN.fullmatch(token):
+            if isinstance(token, str) and not RE_TOKEN.fullmatch(token):
                 raise abort(400)
 
-            # Update / create user
-            user = USERS_BY_TOKEN.get(token)
-            if user is not None:
-                see(user)
-            else:
-                user = generate_user(
-                    timestamp=timestamp,
-                    token=token,
-                    broadcaster=broadcaster,
-                    presence=Presence.NOTWATCHING,
-                )
-                USERS_BY_TOKEN[token] = user
+            # Only logged in broadcaster may have the broadcaster's token
+            if (
+                not broadcaster
+                and isinstance(token, str)
+                and hmac.compare_digest(token, CONFIG['AUTH_TOKEN'])
+            ):
+                    raise abort(401)
 
-                # Add to the users update buffer
-                USERS_UPDATE_BUFFER.add(token)
+            # Create response
+            user = USERS_BY_TOKEN.get(token)
+            if CONFIG['ACCESS_CAPTCHA'] and not broadcaster:
+                if user is not None:
+                    user['last']['seen'] = timestamp
+                    response = await f(timestamp, user, *args, **kwargs)
+                elif fallback_to_token:
+                    #assert not broadcaster
+                    response = await f(timestamp, token, *args, **kwargs)
+                else:
+                    raise abort(403)
+            else:
+                if user is None:
+                    user = generate_and_add_user(timestamp, token, broadcaster)
+                response = await f(timestamp, user, *args, **kwargs)
 
             # Set cookie
-            response = await f(timestamp, user, *args, **kwargs)
-            if try_unquote(context.cookies.get('token')) != token:
+            if token_from_cookie != token:
                 response = await make_response(response)
                 response.headers['Set-Cookie'] = f'token={quote(token)}; path=/'
+
             return response
 
         return wrapper

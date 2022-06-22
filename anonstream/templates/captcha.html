@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="content-security-policy" content="default-src 'none'; img-src 'self'; style-src 'nonce-{{ csp }}';">
+  <style nonce="{{ csp }}">
+    body {
+      background-color: #232327;
+      color: #ddd;
+      font-family: sans-serif;
+      font-size: 14pt;
+      display: grid;
+      grid-template-rows: calc(50% - 4rem) 1fr;
+      height: 100vh;
+      margin: 0;
+      padding: 1rem;
+      box-sizing: border-box;
+    }
+    img {
+      margin: auto auto 1rem;
+      border: 1px solid #222;
+    }
+    form {
+      margin: 0 auto auto;
+      display: grid;
+      grid-template-columns: auto auto;
+      grid-gap: 0.5rem;
+    }
+    input[name="answer"] {
+      background-color: #47474a;
+      border: 1px solid #777;
+      border-radius: 2px;
+      color: #ddd;
+      font-size: 14pt;
+      padding: 1px 3px;
+      width: 10ch;
+    }
+    input[name="answer"]:hover {
+      background-color: #37373a;
+      transition: 0.25s;
+	}
+	input[type="submit"] {
+      font-size: 14pt;
+	}
+	p {
+      grid-column: 1 / span 2;
+      text-align: center;
+	}
+  </style>
+</head>
+<body>
+  <img src="{{ url_for('captcha', digest=digest) }}" width="72" height="30">
+  <form action="{{ url_for('access', token=token) }}" method="post">
+    <input type="hidden" name="digest" value="{{ digest }}">
+    <input name="answer" placeholder="Captcha" required autofocus>
+    <input type="submit" value="Submit">
+    {% if failure is not none %}<p>{{ failure }}</p>{% endif %}
+  </form>
+</body>
+</html>

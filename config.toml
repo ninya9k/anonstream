@@ -24,6 +24,9 @@ stream_initial_buffer = 3
 file = "title.txt"
 file_cache_lifetime = 0.5
 
+[access]
+captcha = true
+
 [captcha]
 lifetime = 1800
 fonts = []

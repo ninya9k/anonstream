@@ -38,6 +38,8 @@ def create_app(toml_config):
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
 
+    app.failures = {}
+
     # State for tasks
     app.users_update_buffer = set()
     app.stream_title = None
@@ -76,7 +78,6 @@ def create_app(toml_config):
                         app.config['SOCKET_EVENT_ADDRESS']
                 )
             app.add_background_task(start_event_server)
-
 
         # Create routes and background tasks
         import anonstream.routes
