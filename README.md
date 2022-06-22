@@ -50,6 +50,10 @@ to know what they do:
   locations of fonts for the captcha, leaving it blank will use the
   default font
 
+* `access/captcha`:
+  if true, users must complete a captcha before accessing the site
+  proper
+
 Run it:
 ```sh
 python -m anonstream
