@@ -12,7 +12,7 @@ from anonstream.quart import Quart
 compress = Compress()
 
 def create_app(toml_config):
-    app = Quart('anonstream')
+    app = Quart('anonstream', static_folder=None)
     app.jinja_options['trim_blocks'] = True
     app.jinja_options['lstrip_blocks'] = True
 
@@ -23,8 +23,8 @@ def create_app(toml_config):
     # Compress some responses
     compress.init_app(app)
     app.config.update({
-        "COMPRESS_MIN_SIZE": 2048,
-        "COMPRESS_LEVEL": 9,
+        'COMPRESS_MIN_SIZE': 2048,
+        'COMPRESS_LEVEL': 9,
     })
 
     # Global state: messages, users, captchas
@@ -37,6 +37,8 @@ def create_app(toml_config):
     app.captchas = OrderedDict()
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
+
+    app.failures = OrderedDict()
 
     # State for tasks
     app.users_update_buffer = set()
@@ -76,7 +78,6 @@ def create_app(toml_config):
                         app.config['SOCKET_EVENT_ADDRESS']
                 )
             app.add_background_task(start_event_server)
-
 
         # Create routes and background tasks
         import anonstream.routes

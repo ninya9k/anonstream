@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: 2022 n9k [https://git.076.ne.jp/ninya9k]
+ * SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  **/
 
@@ -829,6 +829,11 @@ const on_websocket_message = (event) => {
       ping = new Date();
       const payload = {type: "pong"};
       ws.send(JSON.stringify(payload));
+      break;
+
+    case "kick":
+      console.log("ws kick");
+      window.location.reload();
       break;
 
     default:

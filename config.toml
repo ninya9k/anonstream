@@ -24,6 +24,9 @@ stream_initial_buffer = 3
 file = "title.txt"
 file_cache_lifetime = 0.5
 
+[access]
+captcha = true
+
 [captcha]
 lifetime = 1800
 fonts = []
@@ -35,6 +38,7 @@ foreground_color = "#dddddd"
 [memory]
 states = 32
 captchas = 256
+failures = 256
 chat_messages = 8192
 chat_scrollback = 256
 

@@ -108,7 +108,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     MESSAGES_BY_ID[message_id] = message
 
     while len(MESSAGES_BY_ID) > CONFIG['MAX_CHAT_MESSAGES']:
-        MESSAGES_BY_ID.pop(last=False)
+        MESSAGES_BY_ID.popitem(last=False)
 
     # Notify event sockets that a chat message was added
     notify_event_sockets({

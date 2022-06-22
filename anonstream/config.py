@@ -19,6 +19,7 @@ def update_flask_from_toml(toml_config, flask_config):
         'AUTH_USERNAME': toml_config['auth']['username'],
         'AUTH_PWHASH': auth_pwhash,
         'AUTH_TOKEN': generate_token(),
+        'ACCESS_CAPTCHA': toml_config['access']['captcha'],
      })
     for flask_section in toml_to_flask_sections(toml_config):
         flask_config.update(flask_section)
@@ -83,11 +84,14 @@ def toml_to_flask_section_names(config):
 def toml_to_flask_section_memory(config):
     cfg = config['memory']
     assert cfg['states'] >= 0
+    assert cfg['captchas'] >= 1
+    assert cfg['failures'] >= 0
     assert cfg['chat_scrollback'] >= 0
     assert cfg['chat_messages'] >= cfg['chat_scrollback']
     return {
         'MAX_STATES': cfg['states'],
         'MAX_CAPTCHAS': cfg['captchas'],
+        'MAX_FAILURES': cfg['failures'],
         'MAX_CHAT_MESSAGES': cfg['chat_messages'],
         'MAX_CHAT_SCROLLBACK': cfg['chat_scrollback'],
     }

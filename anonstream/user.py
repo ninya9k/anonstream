@@ -7,7 +7,7 @@ from math import inf
 
 from quart import current_app
 
-from anonstream.wrappers import try_except_log, with_timestamp
+from anonstream.wrappers import try_except_log, with_timestamp, get_timestamp
 from anonstream.helpers.user import get_default_name, get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.helpers.tripcode import generate_tripcode
@@ -136,10 +136,17 @@ def delete_tripcode(user):
 def see(timestamp, user):
     user['last']['seen'] = timestamp
 
-@with_timestamp()
-def watched(timestamp, user):
+def watching(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
     user['last']['seen'] = timestamp
     user['last']['watching'] = timestamp
+
+def reading(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
+    user['last']['seen'] = timestamp
+    user['last']['reading'] = timestamp
 
 @with_timestamp()
 def get_all_users_for_websocket(timestamp):
@@ -167,19 +174,16 @@ def verify(user, digest, answer):
 
 @with_timestamp()
 def deverify(timestamp, user):
-    if not user['verified']:
-        return
-
-    n_user_messages = 0
-    for message in reversed(MESSAGES):
-        message_sent_ago = timestamp - message['timestamp']
-        if message_sent_ago >= CONFIG['FLOOD_MESSAGE_DURATION']:
-            break
-        elif message['token'] == user['token']:
-            n_user_messages += 1
-
-    if n_user_messages >= CONFIG['FLOOD_MESSAGE_THRESHOLD']:
-        user['verified'] = False
+    if user['verified']:
+        n_user_messages = 0
+        for message in reversed(MESSAGES):
+            message_sent_ago = timestamp - message['timestamp']
+            if message_sent_ago >= CONFIG['FLOOD_MESSAGE_DURATION']:
+                break
+            elif message['token'] == user['token']:
+                n_user_messages += 1
+        if n_user_messages >= CONFIG['FLOOD_MESSAGE_THRESHOLD']:
+            user['verified'] = False
 
 def _update_presence(timestamp, user):
     old, user['presence'] = user['presence'], get_presence(timestamp, user)
@@ -255,7 +259,7 @@ def create_eyes(timestamp, user, headers):
         # Treat eyes as a stack, do not create new eyes if it would
         # cause the limit to be exceeded
         if not CONFIG['FLOOD_VIDEO_OVERWRITE']:
-            raise TooManyEyes
+            raise TooManyEyes(len(user['eyes']['current']))
         # Treat eyes as a queue, expire old eyes upon creating new eyes
         # if the limit would have been exceeded otherwise
         elif user['eyes']['current']:

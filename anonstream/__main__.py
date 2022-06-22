@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '--config', '-c',
     metavar='FILE',
-    default=os.environ.get('ANONSTREAM_CONFIG', 'config.toml'),
+    default=os.environ.get('ANONSTREAM_CONFIG', DEFAULT_CONFIG),
     help=(
         'location of config.toml '
         f'(default: $ANONSTREAM_CONFIG or {want_rel(DEFAULT_CONFIG)})'
@@ -48,4 +48,4 @@ args = parser.parse_args()
 with open(args.config) as fp:
     config = toml.load(fp)
 app = create_app(config)
-uvicorn.run(app, port=args.port)
+uvicorn.run(app, port=args.port, server_header=False)
