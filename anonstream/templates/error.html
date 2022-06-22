@@ -13,15 +13,30 @@
       text-align: center;
       text-shadow: 2px 0px 1px orangered;
     }
+    main {
+      margin: auto;
+      max-width: 52rem;
+    }
     h1 {
       font-size: 32pt;
     }
     a {
       color: #42a5d7;
     }
+    code {
+      background-color: #333;
+      padding: 2px;
+      border-radius: 2px;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
 <body>
-  <h1>{{ error.code }} {{ error.name }}</h1>
+  <main>
+    <h1>{{ error.code }} {{ error.name }}</h1>
+    {% if error.description != error.__class__.description %}
+      <p>{{ error.description }}</p>
+    {% endif %}
+  </main>
 </body>
 </html>

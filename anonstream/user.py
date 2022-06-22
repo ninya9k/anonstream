@@ -259,7 +259,7 @@ def create_eyes(timestamp, user, headers):
         # Treat eyes as a stack, do not create new eyes if it would
         # cause the limit to be exceeded
         if not CONFIG['FLOOD_VIDEO_OVERWRITE']:
-            raise TooManyEyes
+            raise TooManyEyes(len(user['eyes']['current']))
         # Treat eyes as a queue, expire old eyes upon creating new eyes
         # if the limit would have been exceeded otherwise
         elif user['eyes']['current']:

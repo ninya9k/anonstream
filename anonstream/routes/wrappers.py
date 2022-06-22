@@ -8,7 +8,8 @@ import string
 from functools import wraps
 from urllib.parse import quote, unquote
 
-from quart import current_app, request, abort, make_response, render_template, request
+from quart import current_app, request, make_response, render_template, request, url_for, Markup
+from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 from werkzeug.security import check_password_hash
 
 from anonstream.broadcast import broadcast
@@ -57,18 +58,18 @@ def auth_required(f):
             'their terminal.'
         )
         if request.authorization is None:
-            body = (
-                f'<!doctype html>\n'
-                f'<p>{hint}</p>\n'
-            )
+            description = hint
         else:
-            body = (
-                f'<!doctype html>\n'
-                f'<p>Wrong username or password. Refresh the page to try again.</p>\n'
-                f'<p>{hint}</p>\n'
+            description = Markup(
+                f'Wrong username or password.  Refresh the page to try again.  '
+                f'<br>'
+                f'{hint}'
             )
-        return body, 401, {'WWW-Authenticate': 'Basic'}
-
+        error = Unauthorized(description)
+        response = await current_app.handle_http_exception(error)
+        response = await make_response(response)
+        response.headers['WWW-Authenticate'] = 'Basic'
+        return response
     return wrapper
 
 def generate_and_add_user(timestamp, token=None, broadcaster=False):
@@ -103,7 +104,11 @@ def with_user_from(context, fallback_to_token=False):
 
             # Reject invalid tokens
             if isinstance(token, str) and not RE_TOKEN.fullmatch(token):
-                raise abort(400)
+                raise BadRequest(Markup(
+                    f'Your token contains disallowed characters or is too '
+                    f'long.  Tokens must match this regular expression: <br>'
+                    f'<code>{RE_TOKEN.pattern}</code>'
+                ))
 
             # Only logged in broadcaster may have the broadcaster's token
             if (
@@ -111,7 +116,13 @@ def with_user_from(context, fallback_to_token=False):
                 and isinstance(token, str)
                 and hmac.compare_digest(token, CONFIG['AUTH_TOKEN'])
             ):
-                    raise abort(401)
+                    raise Unauthorized(Markup(
+                        f"You are using the broadcaster's token but you are "
+                        f"not logged in.  The broadcaster should "
+                        f"<a href=\"{url_for('login')}\">click here</a> "
+                        f"and log in with the credentials printed in their "
+                        f"terminal when they started anonstream."
+                    ))
 
             # Create response
             user = USERS_BY_TOKEN.get(token)
@@ -123,7 +134,12 @@ def with_user_from(context, fallback_to_token=False):
                     #assert not broadcaster
                     response = await f(timestamp, token, *args, **kwargs)
                 else:
-                    raise abort(403)
+                    raise Forbidden(Markup(
+                        f"You have not solved the access captcha.  "
+                        f"<a href=\"{url_for('home', token=token)}\">"
+                        f"Click here."
+                        f"</a>"
+                    ))
             else:
                 if user is None:
                     user = generate_and_add_user(timestamp, token, broadcaster)

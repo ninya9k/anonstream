@@ -3,14 +3,14 @@
 
 import math
 
-from quart import current_app, request, render_template, abort, make_response, redirect, url_for, abort, send_from_directory
-from werkzeug.exceptions import TooManyRequests
+from quart import current_app, request, render_template, abort, make_response, redirect, url_for, send_from_directory
+from werkzeug.exceptions import NotFound, TooManyRequests
 
 from anonstream.access import add_failure, pop_failure
 from anonstream.captcha import get_captcha_image, get_random_captcha_digest
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
-from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes
+from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes, TooManyEyes
 from anonstream.routes.wrappers import with_user_from, auth_required, clean_cache_headers, generate_and_add_user
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.utils.security import generate_csp
@@ -43,28 +43,40 @@ async def home(timestamp, user_or_token):
 @with_user_from(request)
 async def stream(timestamp, user):
     if not is_online():
-        return abort(404)
-
-    try:
-        eyes_id = create_eyes(user, dict(request.headers))
-    except RatelimitedEyes as e:
-        retry_after, *_ = e.args
-        return TooManyRequests(), {'Retry-After': math.ceil(retry_after)}
-    except EyesException:
-        return abort(429)
-
-    def segment_read_hook(uri):
+        raise NotFound('The stream is offline.')
+    else:
         try:
-            renew_eyes(user, eyes_id, just_read_new_segment=True)
-        except EyesException as e:
-            raise StopSendingSegments(f'eyes {eyes_id} not allowed: {e!r}') from e
-        print(f'{uri}: {eyes_id}~{user["token"]}')
-        watching(user)
-
-    generator = segments(segment_read_hook, token=user['token'])
-    response = await make_response(generator)
-    response.headers['Content-Type'] = 'video/mp4'
-    response.timeout = None
+            eyes_id = create_eyes(user, dict(request.headers))
+        except RatelimitedEyes as e:
+            retry_after, *_ = e.args
+            error = TooManyRequests(
+                f'You have requested the stream recently.  '
+                f'Try again in {retry_after:.1f} seconds.'
+            )
+            response = await current_app.handle_http_exception(error)
+            response = await make_response(response)
+            response.headers['Retry-After'] = math.ceil(retry_after)
+            raise abort(response)
+        except TooManyEyes as e:
+            n_eyes, *_ = e.args
+            raise TooManyRequests(
+                f'You have made {n_eyes} concurrent requests for the stream. '
+                f'End one of those before making a new request.'
+            )
+        else:
+            def segment_read_hook(uri):
+                try:
+                    renew_eyes(user, eyes_id, just_read_new_segment=True)
+                except EyesException as e:
+                    raise StopSendingSegments(
+                        f'eyes {eyes_id} not allowed: {e!r}'
+                    ) from e
+                print(f'{uri}: {eyes_id}~{user["token"]}')
+                watching(user)
+            generator = segments(segment_read_hook, token=user['token'])
+            response = await make_response(generator)
+            response.headers['Content-Type'] = 'video/mp4'
+            response.timeout = None
     return response
 
 @current_app.route('/login')
