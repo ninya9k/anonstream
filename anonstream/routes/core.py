@@ -55,7 +55,7 @@ async def stream(timestamp, user):
 @current_app.route('/login')
 @auth_required
 async def login():
-    return redirect(url_for('home'))
+    return redirect(url_for('home'), 303)
 
 @current_app.route('/captcha.jpg')
 @with_user_from(request)

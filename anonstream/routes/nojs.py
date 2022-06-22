@@ -61,7 +61,8 @@ async def nojs_chat_messages(timestamp, user):
 @current_app.route('/chat/messages')
 @with_user_from(request)
 async def nojs_chat_messages_redirect(timestamp, user):
-    return redirect(url_for('nojs_chat_messages', token=user['token'], _anchor='end'))
+    url = url_for('nojs_chat_messages', token=user['token'], _anchor='end')
+    return redirect(url, 303)
 
 @current_app.route('/chat/users.html')
 @with_user_from(request)
@@ -109,7 +110,8 @@ async def nojs_chat_form_redirect(timestamp, user):
         )
     else:
         state_id = None
-    return redirect(url_for('nojs_chat_form', token=user['token'], state=state_id))
+    url = url_for('nojs_chat_form', token=user['token'], state=state_id)
+    return redirect(url, 303)
 
 @current_app.post('/chat/message')
 @with_user_from(request)
@@ -151,12 +153,13 @@ async def nojs_submit_message(timestamp, user):
             if message_was_added:
                 deverify(user)
 
-    return redirect(url_for(
+    url = url_for(
         'nojs_chat_form',
         token=user['token'],
         landing='chat',
         state=state_id,
-    ))
+    )
+    return redirect(url, 303)
 
 @current_app.post('/chat/appearance')
 @with_user_from(request)
@@ -188,9 +191,10 @@ async def nojs_submit_appearance(timestamp, user):
         notice = 'Changed appearance'
 
     state_id = add_state(user, notice=notice, verbose=len(errors) > 1)
-    return redirect(url_for(
+    url = url_for(
         'nojs_chat_form',
         token=user['token'],
         landing='appearance' if errors else 'chat',
         state=state_id,
-    ))
+    )
+    return redirect(url, 303)
