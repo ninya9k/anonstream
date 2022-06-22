@@ -84,11 +84,13 @@ def toml_to_flask_section_names(config):
 def toml_to_flask_section_memory(config):
     cfg = config['memory']
     assert cfg['states'] >= 0
+    assert cfg['failures'] >= 0
     assert cfg['chat_scrollback'] >= 0
     assert cfg['chat_messages'] >= cfg['chat_scrollback']
     return {
         'MAX_STATES': cfg['states'],
         'MAX_CAPTCHAS': cfg['captchas'],
+        'MAX_FAILURES': cfg['failures'],
         'MAX_CHAT_MESSAGES': cfg['chat_messages'],
         'MAX_CHAT_SCROLLBACK': cfg['chat_scrollback'],
     }

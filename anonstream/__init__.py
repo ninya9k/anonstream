@@ -38,7 +38,7 @@ def create_app(toml_config):
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
 
-    app.failures = {}
+    app.failures = OrderedDict()
 
     # State for tasks
     app.users_update_buffer = set()

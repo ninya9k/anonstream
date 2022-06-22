@@ -2,6 +2,7 @@ import time
 
 from quart import current_app
 
+CONFIG = current_app.config
 FAILURES = current_app.failures
 
 def add_failure(message):
@@ -9,6 +10,10 @@ def add_failure(message):
     while timestamp in FAILURES:
         timestamp += 1
     FAILURES[timestamp] = message
+
+    while len(FAILURES) > CONFIG['MAX_FAILURES']:
+        FAILURES.popitem(last=False)
+
     return timestamp
 
 def pop_failure(failure_id):
