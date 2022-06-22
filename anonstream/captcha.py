@@ -33,8 +33,6 @@ def get_random_captcha_digest():
         solution = generate_random_captcha_solution()
         digest = generate_captcha_digest(CAPTCHA_SIGNER, salt, solution)
         CAPTCHAS[digest] = {'solution': solution}
-        while len(CAPTCHAS) >= CONFIG['MAX_CAPTCHAS']:
-            CAPTCHAS.popitem(last=False)
 
     return digest
 

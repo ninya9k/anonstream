@@ -84,6 +84,7 @@ def toml_to_flask_section_names(config):
 def toml_to_flask_section_memory(config):
     cfg = config['memory']
     assert cfg['states'] >= 0
+    assert cfg['captchas'] >= 1
     assert cfg['failures'] >= 0
     assert cfg['chat_scrollback'] >= 0
     assert cfg['chat_messages'] >= cfg['chat_scrollback']
