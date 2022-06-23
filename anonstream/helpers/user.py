@@ -22,7 +22,9 @@ def generate_token_hash_and_tag(token):
 
     return token_hash, tag
 
-def generate_user(timestamp, token, broadcaster, presence):
+def generate_user(
+    timestamp, token, broadcaster, verified=False, presence=Presence.NOTWATCHING,
+):
     colour = generate_colour(
         seed='name\0' + token,
         bg=CONFIG['CHAT_BACKGROUND_COLOUR'],
@@ -34,7 +36,7 @@ def generate_user(timestamp, token, broadcaster, presence):
         'token_hash': token_hash,
         'tag': tag,
         'broadcaster': broadcaster,
-        'verified': broadcaster,
+        'verified': verified or broadcaster,
         'websockets': {},
         'name': None,
         'color': colour_to_color(colour),
