@@ -112,7 +112,7 @@ async def access(timestamp, user_or_token):
                     failure_id = add_failure('Captcha has expired')
                 case Answer.OK:
                     failure_id = None
-                    user = generate_and_add_user(timestamp, token)
+                    user = generate_and_add_user(timestamp, token, verified=True)
             if failure_id is not None:
                 url = url_for('home', token=token, failure=failure_id)
                 raise abort(redirect(url, 303))

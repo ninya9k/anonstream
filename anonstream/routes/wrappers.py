@@ -72,13 +72,15 @@ def auth_required(f):
         return response
     return wrapper
 
-def generate_and_add_user(timestamp, token=None, broadcaster=False):
+def generate_and_add_user(
+    timestamp, token=None, broadcaster=False, verified=False,
+):
     token = token or generate_token()
     user = generate_user(
         timestamp=timestamp,
         token=token,
         broadcaster=broadcaster,
-        presence=Presence.NOTWATCHING,
+        verified=verified,
     )
     USERS_BY_TOKEN[token] = user
     USERS_UPDATE_BUFFER.add(token)
