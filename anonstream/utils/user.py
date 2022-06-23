@@ -50,3 +50,13 @@ def get_user_for_websocket(user):
         **{key: user[key] for key in USER_WEBSOCKET_ATTRS},
         'watching': trilean(user['presence']),
     }
+
+def identifying_string(user, ansi=True):
+    tag = user['tag']
+    token_hash = f'{user["token_hash"][:4]}..'
+    token = user['token']
+    if ansi:
+        tag = f'\033[36m{tag}\033[0m'
+        token_hash = f'\033[32m{token_hash}\033[0m'
+        token = f'\033[35m{token}\033[0m'
+    return '/'.join((tag, token_hash, token))

@@ -91,7 +91,7 @@ async def get_segment_uris(token):
     except Offline as e:
         reason, *_ = e.args
         print(
-            f'[debug @ {time.time():.3f}: {token=}] '
+            f'[debug @ {time.time():.3f}: token={token}] '
             f'stream went offline before we could find any segments ({reason})'
         )
         return
@@ -109,7 +109,7 @@ async def get_segment_uris(token):
             except Offline as e:
                 reason, *_ = e.args
                 print(
-                    f'[debug @ {time.time():.3f}: {token=}] '
+                    f'[debug @ {time.time():.3f}: token={token}] '
                     f'stream went offline while looking for the '
                     f'segment following {segment.uri!r} ({reason})'
                 )
@@ -120,7 +120,7 @@ async def get_segment_uris(token):
                     break
                 elif time.monotonic() - t0 >= CONFIG['SEGMENT_SEARCH_TIMEOUT']:
                     print(
-                        f'[debug @ {time.time():.3f}: {token=}] '
+                        f'[debug @ {time.time():.3f}: token={token}] '
                         f'timed out looking for the segment following '
                         f'{segment.uri!r} '
                         f'(timeout={CONFIG["SEGMENT_SEARCH_TIMEOUT"]}s)'
@@ -138,15 +138,15 @@ def path_for(uri):
     return path
 
 async def segments(segment_read_hook=lambda uri: None, token=None):
-    print(f'[debug @ {time.time():.3f}: {token=}] entering segment generator')
+    print(f'[debug @ {time.time():.3f}: token={token}] entering segment generator')
     async for uri in get_segment_uris(token):
-        #print(f'[debug @ {time.time():.3f}: {token=}] {uri=}')
+        #print(f'[debug @ {time.time():.3f}: token={token}] {uri=}')
         try:
             path = path_for(uri)
         except UnsafePath as e:
             unsafe_path, *_ = e.args
             print(
-                f'[debug @ {time.time():.3f}: {token=}] '
+                f'[debug @ {time.time():.3f}: token={token}] '
                 f'segment {uri=} has {unsafe_path=}'
             )
             break
@@ -156,7 +156,7 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
         except StopSendingSegments as e:
             reason, *_ = e.args
             print(
-                f'[debug @ {time.time():.3f}: {token=}] '
+                f'[debug @ {time.time():.3f}: token={token}] '
                 f'told to stop sending segments: {reason}'
             )
             break
@@ -166,14 +166,14 @@ async def segments(segment_read_hook=lambda uri: None, token=None):
                     yield chunk
         except FileNotFoundError:
             print(
-                f'[debug @ {time.time():.3f}: {token=}] '
+                f'[debug @ {time.time():.3f}: token={token}] '
                 f'segment {uri=} at {path=} unexpectedly does not exist'
             )
             break
         except OSError as e:
             print(
-                f'[debug @ {time.time():.3f}: {token=}] '
+                f'[debug @ {time.time():.3f}: token={token}] '
                 f'segment {uri=} at {path=} cannot be read: {e}'
             )
             break
-    print(f'[debug @ {time.time():.3f}: {token=}] exiting segment generator')
+    print(f'[debug @ {time.time():.3f}: token={token}] exiting segment generator')

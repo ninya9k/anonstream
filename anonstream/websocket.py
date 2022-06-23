@@ -12,6 +12,7 @@ from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Re
 from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance
 from anonstream.wrappers import with_timestamp
 from anonstream.utils.chat import generate_nonce
+from anonstream.utils.user import identifying_string
 from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
 
 CONFIG = current_app.config
@@ -74,7 +75,7 @@ async def websocket_inbound(queue, user):
 
 @with_timestamp()
 def handle_inbound_pong(timestamp, queue, user):
-    print(f'[pong] {user["token"]}')
+    print(f'[pong] {identifying_string(user)}')
     reading(user, timestamp=timestamp)
     user['websockets'][queue] = timestamp
     return None
