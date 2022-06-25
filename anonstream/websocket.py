@@ -9,7 +9,7 @@ from quart import current_app, websocket
 from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
-from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance
+from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance, ensure_allowedness, AllowednessException
 from anonstream.wrappers import with_timestamp, get_timestamp
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.user import identifying_string
@@ -18,6 +18,9 @@ from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
 CONFIG = current_app.config
 
 async def websocket_outbound(queue, user):
+    # This function does NOT check alllowedness at first, only later.
+    # Allowedness is assumed to be checked beforehand (by the route handler).
+    # These first two websocket messages are always sent.
     await websocket.send_json({'type': 'ping'})
     await websocket.send_json({
         'type': 'init',
@@ -36,14 +39,26 @@ async def websocket_outbound(queue, user):
     })
     while True:
         payload = await queue.get()
-        if payload['type'] == 'close':
+        if payload['type'] == 'kick':
+            await websocket.send_json(payload)
+            await websocket.close(1001)
+            break
+        elif payload['type'] == 'close':
             await websocket.close(1011)
             break
         else:
-            await websocket.send_json(payload)
+            try:
+                ensure_allowedness(user)
+            except AllowednessException:
+                websocket.send_json({'type': 'kick'})
+                await websocket.close(1001)
+                break
+            else:
+                await websocket.send_json(payload)
 
 async def websocket_inbound(queue, user):
     while True:
+        # Read from websocket
         try:
             receipt = await websocket.receive_json()
         except json.JSONDecodeError:
@@ -51,26 +66,34 @@ async def websocket_inbound(queue, user):
         finally:
             timestamp = get_timestamp()
             see(user, timestamp=timestamp)
-        try:
-            receipt_type, parsed = parse_websocket_data(receipt)
-        except Malformed as e:
-            error , *_ = e.args
-            payload = {
-                'type': 'error',
-                'because': error,
-            }
-        else:
-            match receipt_type:
-                case WS.MESSAGE:
-                    handle = handle_inbound_message
-                case WS.APPEARANCE:
-                    handle = handle_inbound_appearance
-                case WS.CAPTCHA:
-                    handle = handle_inbound_captcha
-                case WS.PONG:
-                    handle = handle_inbound_pong
-            payload = handle(timestamp, queue, user, *parsed)
 
+        # Prepare response
+        try:
+            ensure_allowedness(user)
+        except AllowednessException:
+            payload = {'type': 'kick'}
+        else:
+            try:
+                receipt_type, parsed = parse_websocket_data(receipt)
+            except Malformed as e:
+                error , *_ = e.args
+                payload = {
+                    'type': 'error',
+                    'because': error,
+                }
+            else:
+                match receipt_type:
+                    case WS.MESSAGE:
+                        handle = handle_inbound_message
+                    case WS.APPEARANCE:
+                        handle = handle_inbound_appearance
+                    case WS.CAPTCHA:
+                        handle = handle_inbound_captcha
+                    case WS.PONG:
+                        handle = handle_inbound_pong
+                payload = handle(timestamp, queue, user, *parsed)
+
+        # Write to websocket
         if payload is not None:
             queue.put_nowait(payload)
 

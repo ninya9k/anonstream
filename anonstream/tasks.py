@@ -9,7 +9,7 @@ from quart import current_app, websocket
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
-from anonstream.user import get_absent_users, get_sunsettable_users, deverify
+from anonstream.user import get_absent_users, get_sunsettable_users, deverify, ensure_allowedness, AllowednessException
 from anonstream.wrappers import with_timestamp
 
 CONFIG = current_app.config
@@ -116,6 +116,12 @@ async def t_close_websockets(timestamp, iteration):
     else:
         for user in USERS:
             for queue in user['websockets']:
+                # Check allowedness
+                try:
+                    ensure_allowedness(user, timestamp=timestamp)
+                except AllowednessException:
+                    queue.put_nowait({'type': 'kick'})
+                # Check expiry
                 last_pong = user['websockets'][queue]
                 last_pong_ago = timestamp - last_pong
                 if last_pong_ago > THRESHOLD:
