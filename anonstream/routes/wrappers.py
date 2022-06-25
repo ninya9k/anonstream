@@ -13,6 +13,7 @@ from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 from werkzeug.security import check_password_hash
 
 from anonstream.broadcast import broadcast
+from anonstream.user import ensure_allowedness, Blacklisted, SecretClub
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token, Presence
 from anonstream.wrappers import get_timestamp
@@ -86,7 +87,7 @@ def generate_and_add_user(
     USERS_UPDATE_BUFFER.add(token)
     return user
 
-def with_user_from(context, fallback_to_token=False):
+def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
     def with_user_from_context(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
@@ -134,6 +135,8 @@ def with_user_from(context, fallback_to_token=False):
                 if user is not None:
                     user['last']['seen'] = timestamp
                     user['headers'] = tuple(context.headers)
+                    if not ignore_allowedness:
+                        assert_allowedness(timestamp, user)
                     response = await f(timestamp, user, *args, **kwargs)
                 elif fallback_to_token:
                     #assert not broadcaster
@@ -156,6 +159,8 @@ def with_user_from(context, fallback_to_token=False):
                         broadcaster,
                         headers=tuple(context.headers),
                     )
+                if not ignore_allowedness:
+                    assert_allowedness(timestamp, user)
                 response = await f(timestamp, user, *args, **kwargs)
 
             # Set cookie
@@ -207,3 +212,11 @@ def clean_cache_headers(f):
         return response
 
     return wrapper
+
+def assert_allowedness(timestamp, user):
+    try:
+        ensure_allowedness(user, timestamp=timestamp)
+    except Blacklisted as e:
+        raise Forbidden('You have been blacklisted.')
+    except SecretClub as e:
+        raise Forbidden('You have not been whitelisted.')
