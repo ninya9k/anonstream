@@ -10,7 +10,7 @@ from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
 from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance
-from anonstream.wrappers import with_timestamp
+from anonstream.wrappers import with_timestamp, get_timestamp
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.user import identifying_string
 from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
@@ -49,7 +49,8 @@ async def websocket_inbound(queue, user):
         except json.JSONDecodeError:
             receipt = None
         finally:
-            see(user)
+            timestamp = get_timestamp()
+            see(user, timestamp=timestamp)
         try:
             receipt_type, parsed = parse_websocket_data(receipt)
         except Malformed as e:
@@ -68,25 +69,24 @@ async def websocket_inbound(queue, user):
                     handle = handle_inbound_captcha
                 case WS.PONG:
                     handle = handle_inbound_pong
-            payload = handle(queue, user, *parsed)
+            payload = handle(timestamp, queue, user, *parsed)
 
         if payload is not None:
             queue.put_nowait(payload)
 
-@with_timestamp()
 def handle_inbound_pong(timestamp, queue, user):
     print(f'[pong] {identifying_string(user)}')
-    reading(user, timestamp=timestamp)
+    user['last']['reading'] = timestamp
     user['websockets'][queue] = timestamp
     return None
 
-def handle_inbound_captcha(queue, user):
+def handle_inbound_captcha(timestamp, queue, user):
     return {
         'type': 'captcha',
         'digest': get_random_captcha_digest_for(user),
     }
 
-def handle_inbound_appearance(queue, user, name, color, password, want_tripcode):
+def handle_inbound_appearance(timestamp, queue, user, name, color, password, want_tripcode):
     errors = try_change_appearance(user, name, color, password, want_tripcode)
     if errors:
         return {
@@ -102,7 +102,7 @@ def handle_inbound_appearance(queue, user, name, color, password, want_tripcode)
             #'tripcode': user['tripcode'],
         }
 
-def handle_inbound_message(queue, user, nonce, comment, digest, answer):
+def handle_inbound_message(timestamp, queue, user, nonce, comment, digest, answer):
     try:
         verification_happened = verify(user, digest, answer)
     except BadCaptcha as e:

@@ -132,8 +132,9 @@ def change_tripcode(user, password, dry_run=False):
 def delete_tripcode(user):
     user['tripcode'] = None
 
-@with_timestamp()
-def see(timestamp, user):
+def see(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
     user['last']['seen'] = timestamp
 
 def watching(user, timestamp=None):
