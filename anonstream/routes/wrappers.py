@@ -120,7 +120,9 @@ def with_user_from(context, fallback_to_token=False):
                     raise Unauthorized(Markup(
                         f"You are using the broadcaster's token but you are "
                         f"not logged in.  The broadcaster should "
-                        f"<a href=\"{url_for('login')}\">click here</a> "
+                        f"<a href=\"{url_for('login')}\" target=\"_top\">"
+                        f"click here"
+                        f"</a> "
                         f"and log in with the credentials printed in their "
                         f"terminal when they started anonstream."
                     ))
@@ -137,7 +139,7 @@ def with_user_from(context, fallback_to_token=False):
                 else:
                     raise Forbidden(Markup(
                         f"You have not solved the access captcha.  "
-                        f"<a href=\"{url_for('home', token=token)}\">"
+                        f"<a href=\"{url_for('home', token=token)}\" target=\"_top\">"
                         f"Click here."
                         f"</a>"
                     ))
