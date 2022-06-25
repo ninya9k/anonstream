@@ -13,7 +13,6 @@ from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 from werkzeug.security import check_password_hash
 
 from anonstream.broadcast import broadcast
-from anonstream.user import see
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token, Presence
 from anonstream.wrappers import get_timestamp
@@ -143,7 +142,9 @@ def with_user_from(context, fallback_to_token=False):
                         f"</a>"
                     ))
             else:
-                if user is None:
+                if user is not None:
+                    user['last']['seen'] = timestamp
+                else:
                     user = generate_and_add_user(timestamp, token, broadcaster)
                 response = await f(timestamp, user, *args, **kwargs)
 
