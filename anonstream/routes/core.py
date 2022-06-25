@@ -15,6 +15,7 @@ from anonstream.routes.wrappers import with_user_from, auth_required, clean_cach
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.utils.security import generate_csp
 from anonstream.utils.user import identifying_string
+from anonstream.wrappers import with_timestamp
 
 CAPTCHA_SIGNER = current_app.captcha_signer
 STATIC_DIRECTORY = current_app.root_path / 'static'
@@ -66,15 +67,18 @@ async def stream(timestamp, user):
                 f'End one of those before making a new request.'
             )
         else:
-            def segment_read_hook(uri):
+            @with_timestamp(precise=True)
+            def segment_read_hook(timestamp, uri):
+                user['last']['seen'] = timestamp
                 try:
-                    renew_eyes(user, eyes_id, just_read_new_segment=True)
+                    renew_eyes(timestamp, user, eyes_id, just_read_new_segment=True)
                 except EyesException as e:
                     raise StopSendingSegments(
                         f'eyes {eyes_id} not allowed: {e!r}'
                     ) from e
+                else:
+                    user['last']['watching'] = timestamp
                 print(f'{uri}: \033[37m{eyes_id}\033[0m~{identifying_string(user)}')
-                watching(user)
             generator = segments(segment_read_hook, token=f'\033[35m{user["token"]}\033[0m')
             response = await make_response(generator)
             response.headers['Content-Type'] = 'video/mp4'

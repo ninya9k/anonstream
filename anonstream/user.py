@@ -43,6 +43,9 @@ class DeletedEyes(EyesException):
 class ExpiredEyes(EyesException):
     pass
 
+class DisallowedEyes(EyesException):
+    pass
+
 class AllowednessException(Exception):
     pass
 
@@ -264,6 +267,9 @@ def get_users_by_presence(timestamp):
 
 @with_timestamp(precise=True)
 def create_eyes(timestamp, user, headers):
+    # Unlike in renew_eyes, allowedness is NOT checked here because it is
+    # assumed to have already been checked (by the route handler).
+
     # Enforce cooldown
     last_created_ago = timestamp - user['last']['eyes']
     cooldown_ended_ago = last_created_ago - CONFIG['FLOOD_VIDEO_COOLDOWN']
@@ -297,7 +303,6 @@ def create_eyes(timestamp, user, headers):
     }
     return eyes_id
 
-@with_timestamp(precise=True)
 def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     try:
         eyes = user['eyes']['current'][eyes_id]
@@ -309,6 +314,13 @@ def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     if renewed_ago >= CONFIG['FLOOD_VIDEO_EYES_EXPIRE_AFTER']:
         user['eyes']['current'].pop(eyes_id)
         raise ExpiredEyes
+
+    # Ensure allowedness
+    try:
+        ensure_allowedness(user, timestamp=timestamp)
+    except AllowednessException as e:
+        user['eyes']['current'].pop(eyes_id)
+        raise DisallowedEyes from e
 
     if just_read_new_segment:
         eyes['n_segments'] += 1
