@@ -48,6 +48,7 @@ def generate_user(
             'watching': -inf,
             'eyes': -inf,
             'reading': -inf,
+            'allowed': -inf,
         },
         'presence': presence,
         'linespan': deque(),

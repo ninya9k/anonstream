@@ -3,6 +3,7 @@
 
 import operator
 import time
+from functools import reduce
 from math import inf
 
 from quart import current_app
@@ -17,6 +18,7 @@ from anonstream.utils.user import get_user_for_websocket, trilean
 CONFIG = current_app.config
 MESSAGES = current_app.messages
 USERS = current_app.users
+ALLOWEDNESS = current_app.allowedness
 CAPTCHA_SIGNER = current_app.captcha_signer
 USERS_UPDATE_BUFFER = current_app.users_update_buffer
 
@@ -39,6 +41,15 @@ class DeletedEyes(EyesException):
     pass
 
 class ExpiredEyes(EyesException):
+    pass
+
+class AllowednessException(Exception):
+    pass
+
+class Blacklisted(AllowednessException):
+    pass
+
+class SecretClub(AllowednessException):
     pass
 
 def add_state(user, **state):
@@ -302,3 +313,31 @@ def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     if just_read_new_segment:
         eyes['n_segments'] += 1
     eyes['renewed'] = timestamp
+
+def ensure_allowedness(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
+
+    # Check against blacklist
+    for keytuple, values in ALLOWEDNESS['blacklist'].items():
+        try:
+            value = reduce(lambda mapping, key: mapping[key], keytuple, user)
+        except (KeyError, TypeError):
+            value = None
+        if value in values:
+            raise Blacklisted
+
+    # Check against whitelist
+    for keytuple, values in ALLOWEDNESS['whitelist'].items():
+        try:
+            value = reduce(lambda mapping, key: mapping[key], keytuple, user)
+        except (KeyError, TypeError):
+            value = None
+        if value in values:
+            break
+    else:
+        # Apply default
+        if not ALLOWEDNESS['default']:
+            raise SecretClub
+
+    user['last']['allowed'] = timestamp
