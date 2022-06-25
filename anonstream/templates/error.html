@@ -5,11 +5,11 @@
   <title>{{ error.code }} {{ error.name }}</title>
   <style>
     body {
-      background-color: #18181a;
+      background-color: #232327;
       color: #ddd;
       font-family: sans-serif;
       font-size: 14pt;
-      margin: 24pt 16pt;
+      margin: 4pt 6pt;
       text-align: center;
       text-shadow: 2px 0px 1px orangered;
     }
@@ -19,6 +19,10 @@
     }
     h1 {
       font-size: 32pt;
+      margin: 0 0 8pt;
+    }
+    p {
+      margin: 0;
     }
     a {
       color: #42a5d7;
@@ -29,11 +33,32 @@
       border-radius: 2px;
       overflow-wrap: anywhere;
     }
+    @media (min-height: 128px) {
+      body {
+        margin: 18pt 16pt;
+      }
+      h1 {
+        margin: revert;
+      }
+      p {
+        margin: revert;
+      }
+    }
+    @media (min-height: 192px) {
+      body {
+        margin: 24pt 16pt;
+      }
+    }
+    @media (min-width: 400px) and (min-height: 128px;) {
+      body {
+        background-color: #18181a;
+      }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>{{ error.code }} {{ error.name }}</h1>
+    <h1>{{ error.name }}</h1>
     {% if error.description != error.__class__.description %}
       <p>{{ error.description }}</p>
     {% endif %}

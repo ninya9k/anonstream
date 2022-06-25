@@ -46,7 +46,7 @@ async def cmd_user_help():
             ' user [show]...................show all users\' tokens\n'
             ' user attr USER................show names of a user\'s attributes\n'
             ' user get USER ATTR............show an attribute of a user\n'
-            ' user set USER ATTR............set an attribute of a user\n'
+            ' user set USER ATTR VALUE......set an attribute of a user\n'
             ' user eyes USER [show].........show a user\'s active video responses\n'
             ' user eyes USER delete EYES_ID.end a video response to a user\n'
             'Definitions:\n'
@@ -54,6 +54,7 @@ async def cmd_user_help():
             ' TOKEN.........................a token, json string\n'
             ' HASH..........................a token hash\n'
             ' ATTR..........................a user attribute, re:[a-z0-9_]+\n'
+            ' VALUE.........................json value\n'
             ' EYES_ID.......................a user\'s eyes_id, base 10 integer\n'
     )
     return normal, response

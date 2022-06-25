@@ -4,7 +4,7 @@
 import asyncio
 from quart import current_app, websocket
 
-from anonstream.user import see, reading
+from anonstream.user import see
 from anonstream.websocket import websocket_outbound, websocket_inbound
 from anonstream.routes.wrappers import with_user_from
 
@@ -18,7 +18,7 @@ async def live(timestamp, user_or_token):
         case dict() as user:
             queue = asyncio.Queue()
             user['websockets'][queue] = timestamp
-            reading(user, timestamp=timestamp)
+            user['last']['reading'] = timestamp
 
             producer = websocket_outbound(queue, user)
             consumer = websocket_inbound(queue, user)

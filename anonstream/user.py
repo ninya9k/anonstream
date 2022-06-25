@@ -132,8 +132,9 @@ def change_tripcode(user, password, dry_run=False):
 def delete_tripcode(user):
     user['tripcode'] = None
 
-@with_timestamp()
-def see(timestamp, user):
+def see(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
     user['last']['seen'] = timestamp
 
 def watching(user, timestamp=None):
@@ -284,8 +285,8 @@ def create_eyes(timestamp, user, headers):
 def renew_eyes(timestamp, user, eyes_id, just_read_new_segment=False):
     try:
         eyes = user['eyes']['current'][eyes_id]
-    except KeyError:
-        raise DeletedEyes
+    except KeyError as e:
+        raise DeletedEyes from e
 
     # Enforce expire_after (if the background task hasn't already)
     renewed_ago = timestamp - eyes['renewed']
