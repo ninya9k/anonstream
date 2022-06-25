@@ -75,7 +75,7 @@ def create_app(toml_config):
             from anonstream.events import start_event_server_at
             async def start_event_server():
                 return await start_event_server_at(
-                        app.config['SOCKET_EVENT_ADDRESS']
+                    app.config['SOCKET_EVENT_ADDRESS']
                 )
             app.add_background_task(start_event_server)
 
