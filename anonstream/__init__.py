@@ -9,19 +9,22 @@ from anonstream.config import update_flask_from_toml
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.quart import Quart
 
-compress = Compress()
+__version__ = '1.3.4'
 
 def create_app(toml_config):
     app = Quart('anonstream', static_folder=None)
-    app.jinja_options['trim_blocks'] = True
-    app.jinja_options['lstrip_blocks'] = True
+    app.version = __version__
 
     auth_password = update_flask_from_toml(toml_config, app.config)
     print('Broadcaster username:', app.config['AUTH_USERNAME'])
     print('Broadcaster password:', auth_password)
 
+    # Nicer whitespace in templates
+    app.jinja_options['trim_blocks'] = True
+    app.jinja_options['lstrip_blocks'] = True
+
     # Compress some responses
-    compress.init_app(app)
+    Compress(app)
     app.config.update({
         'COMPRESS_MIN_SIZE': 2048,
         'COMPRESS_LEVEL': 9,

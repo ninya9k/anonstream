@@ -37,6 +37,7 @@ async def home(timestamp, user_or_token):
                 'home.html',
                 csp=generate_csp(),
                 user=user_or_token,
+                version=current_app.version,
             )
     return response
 
