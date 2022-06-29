@@ -72,7 +72,7 @@ def auth_required(f):
     return wrapper
 
 def generate_and_add_user(
-    timestamp, token=None, broadcaster=False, verified=False,
+    timestamp, token=None, broadcaster=False, verified=False, headers=None,
 ):
     token = token or generate_token()
     user = generate_user(
@@ -80,6 +80,7 @@ def generate_and_add_user(
         token=token,
         broadcaster=broadcaster,
         verified=verified,
+        headers=headers,
     )
     USERS_BY_TOKEN[token] = user
     USERS_UPDATE_BUFFER.add(token)
@@ -132,6 +133,7 @@ def with_user_from(context, fallback_to_token=False):
             if CONFIG['ACCESS_CAPTCHA'] and not broadcaster:
                 if user is not None:
                     user['last']['seen'] = timestamp
+                    user['headers'] = tuple(context.headers)
                     response = await f(timestamp, user, *args, **kwargs)
                 elif fallback_to_token:
                     #assert not broadcaster
@@ -146,8 +148,14 @@ def with_user_from(context, fallback_to_token=False):
             else:
                 if user is not None:
                     user['last']['seen'] = timestamp
+                    user['headers'] = tuple(context.headers)
                 else:
-                    user = generate_and_add_user(timestamp, token, broadcaster)
+                    user = generate_and_add_user(
+                        timestamp,
+                        token,
+                        broadcaster,
+                        headers=tuple(context.headers),
+                    )
                 response = await f(timestamp, user, *args, **kwargs)
 
             # Set cookie

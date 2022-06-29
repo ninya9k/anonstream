@@ -851,6 +851,7 @@ const connect_websocket = () => {
   }
   chat_live_ball.style.borderColor = "gold";
   chat_live_status.innerHTML = "<span data-verbose='true'>Connecting to chat...</span><span data-verbose='false'>&middot;&middot;&middot;</span>";
+  ws = null;
   ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);

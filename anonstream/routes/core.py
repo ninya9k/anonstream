@@ -47,7 +47,7 @@ async def stream(timestamp, user):
         raise NotFound('The stream is offline.')
     else:
         try:
-            eyes_id = create_eyes(user, dict(request.headers))
+            eyes_id = create_eyes(user, tuple(request.headers))
         except RatelimitedEyes as e:
             retry_after, *_ = e.args
             error = TooManyRequests(
