@@ -23,7 +23,8 @@ def generate_token_hash_and_tag(token):
     return token_hash, tag
 
 def generate_user(
-    timestamp, token, broadcaster, verified=False, presence=Presence.NOTWATCHING,
+    timestamp, token, broadcaster,
+    verified=False, presence=Presence.NOTWATCHING, headers=None,
 ):
     colour = generate_colour(
         seed='name\0' + token,
@@ -54,6 +55,7 @@ def generate_user(
             'total': 0,
             'current': {},
         },
+        'headers': headers,
     }
 
 def get_default_name(user):
