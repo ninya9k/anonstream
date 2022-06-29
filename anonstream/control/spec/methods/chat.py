@@ -31,7 +31,7 @@ class ArgsSeqs(Args):
 async def cmd_chat_help():
     normal = ['chat', 'help']
     response = (
-        'Usage: chat {show [MESSAGES] | delete SEQS}\n'
+        'Usage: chat delete SEQS\n'
         'Commands:\n'
         #' chat show [MESSAGES]......show chat messages\n'
         ' chat delete SEQS..........delete chat messages\n'
