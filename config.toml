@@ -75,7 +75,7 @@ threshold = 20
 [flood.video]
 max_eyes = 3
 cooldown = 12.0
-expire_after = 5.0
+expire_after = 10.0
 overwrite = true
 
 [presence]
