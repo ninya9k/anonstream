@@ -151,7 +151,7 @@ async def nojs_submit_message(timestamp, user):
         else:
             state_id = None
             if message_was_added:
-                deverify(user)
+                deverify(user, timestamp=timestamp)
 
     url = url_for(
         'nojs_chat_form',

@@ -173,8 +173,9 @@ def verify(user, digest, answer):
 
     return verification_happened
 
-@with_timestamp()
-def deverify(timestamp, user):
+def deverify(user, timestamp=None):
+    if timestamp is None:
+        timestamp = get_timestamp()
     if user['verified'] and not user['broadcaster']:
         n_user_messages = 0
         for message in reversed(MESSAGES):

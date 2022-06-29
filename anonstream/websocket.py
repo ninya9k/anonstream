@@ -122,7 +122,7 @@ def handle_inbound_message(timestamp, queue, user, nonce, comment, digest, answe
         else:
             notice = None
             if message_was_added:
-                deverify(user)
+                deverify(user, timestamp=timestamp)
     return {
         'type': 'ack',
         'nonce': nonce,

@@ -9,7 +9,7 @@ from quart import current_app, websocket
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
-from anonstream.user import get_sunsettable_users
+from anonstream.user import get_absent_users, get_sunsettable_users, deverify
 from anonstream.wrappers import with_timestamp
 
 CONFIG = current_app.config
@@ -63,6 +63,12 @@ async def t_delete_eyes(timestamp, iteration):
 async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
+
+    # Deverify absent users
+    for user in get_absent_users(timestamp):
+        deverify(user, timestamp=timestamp)
+
+    # Remove as many absent users as possible
 
     # Broadcast a users update, in case any users being
     # removed have been mutated or are new.
