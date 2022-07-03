@@ -9,7 +9,7 @@ from anonstream.config import update_flask_from_toml
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.quart import Quart
 
-__version__ = '1.3.5'
+__version__ = '1.3.6'
 
 def create_app(toml_config):
     app = Quart('anonstream', static_folder=None)
