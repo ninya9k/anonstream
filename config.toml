@@ -63,6 +63,7 @@ min_name_contrast = 3.0
 background_color = "#232327"
 max_tripcode_password_length = 1024
 legacy_tripcode_algorithm = false
+force_captcha_every = 40
 
 [flood.messages]
 duration = 20.0

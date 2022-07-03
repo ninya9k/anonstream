@@ -174,6 +174,10 @@ def verify(user, digest, answer):
     return verification_happened
 
 def deverify(user, timestamp=None):
+    '''
+    Try to deverify a user. The user is deverified iff they have
+    exceeded the message flood threshold.
+    '''
     if timestamp is None:
         timestamp = get_timestamp()
     if user['verified'] and not user['broadcaster']:

@@ -56,6 +56,7 @@ def generate_user(
             'current': {},
         },
         'headers': headers,
+        'clock': 0,
     }
 
 def get_default_name(user):

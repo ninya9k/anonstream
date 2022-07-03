@@ -107,8 +107,15 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     }
     MESSAGES_BY_ID[message_id] = message
 
+    # Limit number of stored messages
     while len(MESSAGES_BY_ID) > CONFIG['MAX_CHAT_MESSAGES']:
         MESSAGES_BY_ID.popitem(last=False)
+
+    # Deverify user every n messages
+    if CONFIG['CHAT_DEVERIFY_CLOCK'] is not None:
+        user['clock'] = (user['clock'] + 1) % CONFIG['CHAT_DEVERIFY_CLOCK']
+        if user['clock'] == 0:
+            user['verified'] = False
 
     # Notify event sockets that a chat message was added
     notify_event_sockets({
