@@ -119,6 +119,7 @@ def toml_to_flask_section_presence(config):
 
 def toml_to_flask_section_chat(config):
     cfg = config['chat']
+    assert cfg['force_captcha_every'] >= 0
     return {
         'CHAT_COMMENT_MAX_LENGTH': cfg['max_comment_length'],
         'CHAT_COMMENT_MAX_LINES': cfg['max_comment_lines'],
@@ -127,6 +128,7 @@ def toml_to_flask_section_chat(config):
         'CHAT_BACKGROUND_COLOUR': color_to_colour(cfg['background_color']),
         'CHAT_TRIPCODE_PASSWORD_MAX_LENGTH': cfg['max_tripcode_password_length'],
         'CHAT_LEGACY_TRIPCODE_ALGORITHM': cfg['legacy_tripcode_algorithm'],
+        'CHAT_DEVERIFY_CLOCK': cfg['force_captcha_every'] or None,
     }
 
 def toml_to_flask_section_flood(config):
