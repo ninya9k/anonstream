@@ -6,8 +6,9 @@ from collections import OrderedDict
 from quart_compress import Compress
 
 from anonstream.config import update_flask_from_toml
-from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.quart import Quart
+from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
+from anonstream.utils.user import generate_blank_allowedness
 
 __version__ = '1.3.6'
 
@@ -30,7 +31,7 @@ def create_app(toml_config):
         'COMPRESS_LEVEL': 9,
     })
 
-    # Global state: messages, users, captchas
+    # Global state: messages, users, captchas, etc.
     app.messages_by_id = OrderedDict()
     app.messages = app.messages_by_id.values()
 
@@ -41,7 +42,8 @@ def create_app(toml_config):
     app.captcha_factory = create_captcha_factory(app.config['CAPTCHA_FONTS'])
     app.captcha_signer = create_captcha_signer(app.config['SECRET_KEY'])
 
-    app.failures = OrderedDict()
+    app.failures = OrderedDict() # access captcha failures
+    app.allowedness = generate_blank_allowedness()
 
     # State for tasks
     app.users_update_buffer = set()

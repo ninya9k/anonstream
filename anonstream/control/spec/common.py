@@ -7,6 +7,8 @@ from anonstream.control.spec import Spec, NoParse, Ambiguous, Parsed
 from anonstream.control.spec.utils import get_item, startswith
 
 class Str(Spec):
+    AS_ARG = False
+
     def __init__(self, directives):
         self.directives = directives
 
@@ -33,7 +35,10 @@ class Str(Spec):
                     f'bad word at position {index} {word!r}: ambiguous '
                     f'abbreviation: {set(candidates)}'
                 )
-        return self.directives[directive], 1, []
+        args = []
+        if self.AS_ARG:
+            args.append(directive)
+        return self.directives[directive], 1, args
 
 class End(Spec):
     def __init__(self, fn):
@@ -47,6 +52,9 @@ class End(Spec):
 class Args(Spec):
     def __init__(self, spec):
         self.spec = spec
+
+class ArgsStr(Str):
+    AS_ARG = True
 
 class ArgsInt(Args):
     def consume(self, words, index):
@@ -102,10 +110,39 @@ class ArgsJson(Args):
                 obj = self.transform_obj(obj)
         return self.spec, 1, [obj]
 
+class ArgsJsonBoolean(ArgsJson):
+    def assert_obj(self, index, obj_json, obj):
+        if not isinstance(obj, bool):
+            raise NoParse(
+                    f'bad argument at position {index} {obj_json!r}: '
+                    f'could not decode json boolean'
+                )
+
 class ArgsJsonString(ArgsJson):
     def assert_obj(self, index, obj_json, obj):
         if not isinstance(obj, str):
             raise NoParse(
                 f'bad argument at position {index} {obj_json!r}: '
                 f'could not decode json string'
+            )
+
+class ArgsJsonArray(ArgsJson):
+    def assert_obj(self, index, obj_json, obj):
+        if not isinstance(obj, list):
+            raise NoParse(
+                f'bad argument at position {index} {obj_json!r}: '
+                f'could not decode json array'
+            )
+
+class ArgsJsonStringArray(ArgsJson):
+    def assert_obj(self, index, obj_json, obj):
+        if not isinstance(obj, list):
+            raise NoParse(
+                f'bad argument at position {index} {obj_json!r}: '
+                f'could not decode json array'
+            )
+        if any(not isinstance(item, str) for item in obj):
+            raise NoParse(
+                f'bad argument at position {index} {obj_json!r}: '
+                f'could not decode json array of strings'
             )

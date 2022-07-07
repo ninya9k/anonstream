@@ -60,3 +60,17 @@ def identifying_string(user, ansi=True):
         token_hash = f'\033[32m{token_hash}\033[0m'
         token = f'\033[35m{token}\033[0m'
     return '/'.join((tag, token_hash, token))
+
+def generate_blank_allowedness():
+    return {
+        'blacklist': {
+            ('token',): set(),
+            ('token_hash',): set(),
+        },
+        'whitelist': {
+            ('token',): set(),
+            ('token_hash',): set(),
+            ('tripcode', 'digest'): set(),
+        },
+        'default': True,
+    }

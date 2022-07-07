@@ -16,11 +16,14 @@ async def cmd_help():
         ' user attr USER.................set an attribute of a user\n'
         ' user get USER ATTR.............set an attribute of a user\n'
         ' user set USER ATTR VALUE.......set an attribute of a user\n'
-        #' user kick USERS [FAREWELL].....kick users\n'
         ' user eyes USER [show]..........show a list of active video responses\n'
         ' user eyes USER delete EYES_ID..end a video response\n'
         #' chat show MESSAGES.............show a list of messages\n'
         ' chat delete SEQS...............delete a set of messages\n'
+        ' allowedness [show].............show the current allowedness\n'
+        ' allowedness setdefault BOOLEAN.set the default allowedness\n'
+        ' allowedness add SET STRING.....add to the blacklist/whitelist\n'
+        ' allowedness remove SET STRING..remove from the blacklist/whitelist\n'
     )
     return normal, response
 
