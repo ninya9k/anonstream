@@ -140,4 +140,7 @@ async def access(timestamp, user_or_token):
 @etag_conditional
 @clean_cache_headers
 async def static(timestamp, user, filename):
-    return await send_from_directory(STATIC_DIRECTORY, filename)
+    response = await send_from_directory(STATIC_DIRECTORY, filename)
+    if filename in {'style.css', 'anonstream.js'}:
+        response.headers['Cache-Control'] = 'no-cache'
+    return response
