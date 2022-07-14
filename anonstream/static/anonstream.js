@@ -689,7 +689,7 @@ const on_websocket_message = async (event) => {
       // chat form submit button
       chat_form_submit.disabled = false;
 
-      // remove messages the server isn't acknowledging the existance of
+      // remove messages the server isn't acknowledging the existence of
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
       for (const chat_message of chat_messages.children) {
