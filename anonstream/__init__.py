@@ -12,7 +12,7 @@ from anonstream.utils.captcha import create_captcha_factory, create_captcha_sign
 from anonstream.utils.chat import schema_to_emotes
 from anonstream.utils.user import generate_blank_allowedness
 
-__version__ = '1.4.0'
+__version__ = '1.5.0'
 
 def create_app(toml_config):
     app = Quart('anonstream', static_folder=None)
