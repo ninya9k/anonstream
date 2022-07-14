@@ -213,6 +213,21 @@ def clean_cache_headers(f):
 
     return wrapper
 
+def etag_conditional(f):
+    @wraps(f)
+    async def wrapper(*args, **kwargs):
+        response = await f(*args, **kwargs)
+        etag = response.headers.get('ETag')
+        if etag is not None:
+            if match := re.fullmatch(r'"(?P<tag>.+)"', etag):
+                tag = match.group('tag')
+                if tag in request.if_none_match:
+                    return '', 304, {'ETag': etag}
+
+        return response
+
+    return wrapper
+
 def assert_allowedness(timestamp, user):
     try:
         ensure_allowedness(user, timestamp=timestamp)

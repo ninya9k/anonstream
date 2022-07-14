@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import math
+import re
 
 from quart import current_app, request, render_template, abort, make_response, redirect, url_for, send_from_directory
 from werkzeug.exceptions import Forbidden, NotFound, TooManyRequests
@@ -11,7 +12,7 @@ from anonstream.captcha import get_captcha_image, get_random_captcha_digest
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
 from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes, TooManyEyes, ensure_allowedness, Blacklisted, SecretClub
-from anonstream.routes.wrappers import with_user_from, auth_required, clean_cache_headers, generate_and_add_user
+from anonstream.routes.wrappers import with_user_from, auth_required, generate_and_add_user, clean_cache_headers, etag_conditional
 from anonstream.helpers.captcha import check_captcha_digest, Answer
 from anonstream.utils.security import generate_csp
 from anonstream.utils.user import identifying_string
@@ -136,6 +137,7 @@ async def access(timestamp, user_or_token):
 
 @current_app.route('/static/<filename>')
 @with_user_from(request)
+@etag_conditional
 @clean_cache_headers
 async def static(timestamp, user, filename):
     return await send_from_directory(STATIC_DIRECTORY, filename)

@@ -8,7 +8,7 @@ from quart import current_app, escape
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.events import notify_event_sockets
-from anonstream.helpers.chat import generate_nonce_hash, get_scrollback
+from anonstream.helpers.chat import generate_nonce_hash, get_scrollback, insert_emotes
 from anonstream.utils.chat import get_message_for_websocket, get_approx_linespan
 
 CONFIG = current_app.config
@@ -93,7 +93,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         else:
             seq = last_message['seq'] + 1
     dt = datetime.utcfromtimestamp(timestamp)
-    markup = escape(comment)
+    markup = insert_emotes(escape(comment))
     message = {
         'id': message_id,
         'seq': seq,
