@@ -8,9 +8,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'nonce-{{ csp }}';">
-  <meta http-equiv="refresh" content="{{ refresh }}">
-  <meta http-equiv="refresh" content="{{ refresh + 1 }}; url={{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
+  <meta http-equiv="content-security-policy" content="default-src 'none'; style-src 'nonce-{{ csp }}'; img-src 'self';">
+  <!--<meta http-equiv="refresh" content="{{ refresh }}">-->
+  <meta http-equiv="refresh" content="{{ refresh }}; url={{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
   <style nonce="{{ csp }}">
     html {
       height: 100%;
@@ -133,6 +133,13 @@
       overflow-wrap: anywhere;
       line-height: 1.3125;
     }
+    .emote {
+      background-image: url("{{ escape_css_string(url_for('static', filename='emotes.png', coords=emotehash)) | safe }}");
+      display: inline-block;
+      font-size: 0;
+      vertical-align: middle;
+      cursor: default;
+    }
     .tripcode {
       padding: 0 5px;
       border-radius: 7px;
@@ -153,6 +160,14 @@
           }
         {% endif %}
       {% endwith %}
+    {% endfor %}
+
+    {% for name, _regex, (x, y), (width, height) in emotes %}
+      [data-emote="{{ escape_css_string(name) | safe }}"] {
+        background-position: {{ -x }}px {{ -y }}px;
+        width: {{ width }}px;
+        height: {{ height }}px;
+      }
     {% endfor %}
   </style>
 </head>

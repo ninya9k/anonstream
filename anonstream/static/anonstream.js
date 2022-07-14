@@ -84,6 +84,12 @@ const insert_jsmarkup = () => {
     style_tripcode_colors.nonce = CSP;
     document.head.insertAdjacentElement("beforeend", style_tripcode_colors);
   }
+  if (document.getElementById("style-emote") === null) {
+    const style_emote = document.createElement("style");
+    style_emote.id = "style-emote";
+    style_emote.nonce = CSP;
+    document.head.insertAdjacentElement("beforeend", style_emote);
+  }
   if (document.getElementById("stream__video") === null) {
     const parent = document.getElementById("stream");
     parent.insertAdjacentHTML("beforeend", jsmarkup_stream_video);
@@ -134,6 +140,7 @@ insert_jsmarkup();
 const stylesheet_color = document.styleSheets[1];
 const stylesheet_tripcode_display = document.styleSheets[2];
 const stylesheet_tripcode_colors = document.styleSheets[3];
+const stylesheet_emote = document.styleSheets[4];
 
 /* override chat form notice button */
 const chat_form = document.getElementById("chat-form_js");
@@ -272,6 +279,57 @@ const delete_chat_messages = (seqs) => {
   }
   for (const chat_message of to_delete) {
     chat_message.remove();
+  }
+}
+
+const hexdigest = async (string, bytelength) => {
+  uint8array = new TextEncoder().encode(string);
+  arraybuffer = await crypto.subtle.digest('sha-256', uint8array);
+  array = Array.from(new Uint8Array(arraybuffer).slice(0, bytelength));
+  hex = array.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hex
+}
+const escape_css_string = (string) => {
+  /* https://drafts.csswg.org/cssom/#common-serializing-idioms */
+  const result = [];
+  for (const char of string) {
+    if (char === '\0') {
+      result.push('\ufffd');
+    } else if (char < '\u0020' || char == '\u007f') {
+      result.push(`\\${char.charCodeAt().toString(16)}`);
+    } else if (char == '"' || char == '\\') {
+      result.push(`\\${char}`);
+    } else {
+      result.push(char);
+    }
+  }
+  return result.join('');
+}
+const update_emotes = async (emotes) => {
+  const rules = [];
+  for (const key of Object.keys(emotes)) {
+    const emote = emotes[key];
+    rules.push(
+      `[data-emote="${escape_css_string(key)}"] { background-position: ${-emote.x}px ${-emote.y}px; width: ${emote.width}px; height: ${emote.height}px; }`
+    );
+  }
+  rules.sort();
+  const emotehash = await hexdigest(rules.toString(), 6);
+  const emotehash_rule = `.emote { background-image: url("/static/emotes.png?coords=${escape_css_string(encodeURIComponent(emotehash))}"); }`;
+
+  const rules_set = new Set([emotehash_rule, ...rules]);
+  const to_delete = [];
+  for (let index = 0; index < stylesheet_emote.cssRules.length; index++) {
+    const css_rule = stylesheet_emote.cssRules[index];
+    if (!rules_set.delete(css_rule.cssText)) {
+      to_delete.push(index);
+    }
+  }
+  for (const rule of rules_set) {
+    stylesheet_emote.insertRule(rule);
+  }
+  for (const index of to_delete.reverse()) {
+    stylesheet_emote.deleteRule(index + rules_set.size);
   }
 }
 
@@ -594,7 +652,7 @@ const show_offline_screen = () => {
   stream.dataset.offline = "";
 }
 
-const on_websocket_message = (event) => {
+const on_websocket_message = async (event) => {
   //console.log("websocket message", event);
   const receipt = JSON.parse(event.data);
   switch (receipt.type) {
@@ -631,7 +689,7 @@ const on_websocket_message = (event) => {
       // chat form submit button
       chat_form_submit.disabled = false;
 
-      // remove messages the server isn't acknowledging the existance of
+      // remove messages the server isn't acknowledging the existence of
       const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
       const to_delete = [];
       for (const chat_message of chat_messages.children) {
@@ -675,6 +733,9 @@ const on_websocket_message = (event) => {
       }
       chat_appearance_form_name.setAttribute("placeholder", default_name[user.broadcaster]);
       chat_appearance_form_color.setAttribute("value", user.color);
+
+      // emote coordinates
+      await update_emotes(receipt.emotes);
 
       // insert new messages
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];

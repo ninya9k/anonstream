@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import json
 from collections import OrderedDict
 
 from quart_compress import Compress
@@ -8,6 +9,7 @@ from quart_compress import Compress
 from anonstream.config import update_flask_from_toml
 from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
+from anonstream.utils.chat import schema_to_emotes
 from anonstream.utils.user import generate_blank_allowedness
 
 __version__ = '1.4.0'
@@ -44,6 +46,10 @@ def create_app(toml_config):
 
     app.failures = OrderedDict() # access captcha failures
     app.allowedness = generate_blank_allowedness()
+
+    with open(app.config['EMOTE_SCHEMA']) as fp:
+      schema = json.load(fp)
+      app.emotes = schema_to_emotes(schema)
 
     # State for tasks
     app.users_update_buffer = set()

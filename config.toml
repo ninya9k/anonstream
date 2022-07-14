@@ -62,7 +62,7 @@ max_name_length = 24
 min_name_contrast = 3.0
 background_color = "#232327"
 max_tripcode_password_length = 1024
-legacy_tripcode_algorithm = false
+legacy_tripcode_algorithm = true
 force_captcha_every = 40
 
 [flood.messages]
@@ -89,3 +89,6 @@ refresh_messages = 4.0
 refresh_info = 6.0
 refresh_users = 6.0
 timeout_chat = 30.0
+
+[emote]
+schema = "emotes.json"

@@ -263,6 +263,12 @@ noscript {
   overflow-wrap: anywhere;
   line-height: 1.3125;
 }
+.emote {
+  display: inline-block;
+  font-size: 0;
+  vertical-align: middle;
+  cursor: default;
+}
 .tripcode {
   padding: 0 5px;
   border-radius: 7px;
