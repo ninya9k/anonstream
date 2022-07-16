@@ -66,7 +66,7 @@ async def t_sunset_users(timestamp, iteration):
 
     # Deverify absent users
     for user in get_absent_users(timestamp):
-        deverify(user, timestamp=timestamp)
+        user['verified'] = False
 
     # Remove as many absent users as possible
 
