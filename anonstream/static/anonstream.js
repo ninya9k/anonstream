@@ -284,26 +284,26 @@ const delete_chat_messages = (seqs) => {
 
 const hexdigest = async (string, bytelength) => {
   uint8array = new TextEncoder().encode(string);
-  arraybuffer = await crypto.subtle.digest('sha-256', uint8array);
+  arraybuffer = await crypto.subtle.digest("sha-256", uint8array);
   array = Array.from(new Uint8Array(arraybuffer).slice(0, bytelength));
-  hex = array.map(b => b.toString(16).padStart(2, '0')).join('');
+  hex = array.map(b => b.toString(16).padStart(2, "0")).join("");
   return hex
 }
 const escape_css_string = (string) => {
   /* https://drafts.csswg.org/cssom/#common-serializing-idioms */
   const result = [];
   for (const char of string) {
-    if (char === '\0') {
-      result.push('\ufffd');
-    } else if (char < '\u0020' || char == '\u007f') {
+    if (char === "\0") {
+      result.push("\ufffd");
+    } else if (char < "\u0020" || char == "\u007f") {
       result.push(`\\${char.charCodeAt().toString(16)}`);
-    } else if (char == '"' || char == '\\') {
+    } else if (char == '"' || char == "\\") {
       result.push(`\\${char}`);
     } else {
       result.push(char);
     }
   }
-  return result.join('');
+  return result.join("");
 }
 const update_emotes = async (emotes) => {
   const rules = [];
