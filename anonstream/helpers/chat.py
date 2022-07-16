@@ -3,6 +3,7 @@
 
 import hashlib
 
+import markupsafe
 from quart import current_app, escape, Markup
 
 CONFIG = current_app.config
@@ -19,7 +20,7 @@ def get_scrollback(messages):
     return list(messages)[-n:]
 
 def insert_emotes(markup):
-    assert isinstance(markup, Markup)
+    assert isinstance(markup, markupsafe.Markup)
     for name, regex, _position, _size in EMOTES:
         emote_markup = (
             f'<span class="emote" data-emote="{escape(name)}" '
