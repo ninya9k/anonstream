@@ -37,9 +37,15 @@ def schema_to_emotes(schema):
         assert not re.search(r'\s', name), \
             'whitespace is not allowed in emote names'
         name_markup = escape(name)
-        regex = re.compile(
-            r'(?:^|(?<=\s|\W))%s(?:$|(?=\s|\W))' % re.escape(name_markup)
-        )
+        # If the emote name begins with a word character [a-zA-Z0-9_],
+        # match only if preceded by a non-word character or the empty
+        # string. Similarly for the end of the emote name.
+        # Examples:
+        #  * ":joy:" matches "abc :joy:~xyz"   and   "abc:joy:xyz"
+        #  * "JoySi" matches "abc JoySi~xyz" but NOT "abcJoySiabc"
+        onset = r'(?:^|(?<=\W))' if re.fullmatch(r'\w', name[0]) else r''
+        finish = r'(?:$|(?=\W))' if re.fullmatch(r'\w', name[-1]) else r''
+        regex = re.compile(''.join((onset, re.escape(name_markup), finish)))
         position, size = tuple(coords['position']), tuple(coords['size'])
         emotes.append((name, regex, position, size))
     return emotes
