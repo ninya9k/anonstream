@@ -55,6 +55,7 @@ async def nojs_chat_messages(timestamp, user):
         user=user,
         users_by_token=USERS_BY_TOKEN,
         emotes=EMOTES,
+        emotesheet=CONFIG['EMOTE_SHEET'],
         emotehash=get_emotehash(tuple(EMOTES)),
         messages=get_scrollback(current_app.messages),
         timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
