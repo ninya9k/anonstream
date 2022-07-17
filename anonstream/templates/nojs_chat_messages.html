@@ -134,7 +134,7 @@
       line-height: 1.3125;
     }
     .emote {
-      background-image: url("{{ escape_css_string(url_for('static', filename='emotes.png', coords=emotehash)) | safe }}");
+      background-image: url("{{ escape_css_string(url_for('static', filename=emotesheet, coords=emotehash)) | safe }}");
       display: inline-block;
       font-size: 0;
       vertical-align: middle;

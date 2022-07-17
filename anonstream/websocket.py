@@ -38,6 +38,7 @@ async def websocket_outbound(queue, user):
         'digest': get_random_captcha_digest_for(user),
         'pingpong': CONFIG['TASK_BROADCAST_PING'],
         'emotes': get_emotes_for_websocket(),
+        'emotesheet': CONFIG['EMOTE_SHEET'],
     })
     while True:
         payload = await queue.get()

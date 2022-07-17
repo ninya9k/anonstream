@@ -114,7 +114,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
     # Deverify user every n messages
     if CONFIG['CHAT_DEVERIFY_CLOCK'] is not None:
         user['clock'] = (user['clock'] + 1) % CONFIG['CHAT_DEVERIFY_CLOCK']
-        if user['clock'] == 0:
+        if user['clock'] == 0 and not user['broadcaster']:
             user['verified'] = False
 
     # Notify event sockets that a chat message was added

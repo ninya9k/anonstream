@@ -284,26 +284,26 @@ const delete_chat_messages = (seqs) => {
 
 const hexdigest = async (string, bytelength) => {
   uint8array = new TextEncoder().encode(string);
-  arraybuffer = await crypto.subtle.digest('sha-256', uint8array);
+  arraybuffer = await crypto.subtle.digest("sha-256", uint8array);
   array = Array.from(new Uint8Array(arraybuffer).slice(0, bytelength));
-  hex = array.map(b => b.toString(16).padStart(2, '0')).join('');
+  hex = array.map(b => b.toString(16).padStart(2, "0")).join("");
   return hex
 }
 const escape_css_string = (string) => {
   /* https://drafts.csswg.org/cssom/#common-serializing-idioms */
   const result = [];
   for (const char of string) {
-    if (char === '\0') {
-      result.push('\ufffd');
-    } else if (char < '\u0020' || char == '\u007f') {
+    if (char === "\0") {
+      result.push("\ufffd");
+    } else if (char < "\u0020" || char == "\u007f") {
       result.push(`\\${char.charCodeAt().toString(16)}`);
-    } else if (char == '"' || char == '\\') {
+    } else if (char == '"' || char == "\\") {
       result.push(`\\${char}`);
     } else {
       result.push(char);
     }
   }
-  return result.join('');
+  return result.join("");
 }
 const update_emotes = async (emotes) => {
   const rules = [];
@@ -315,7 +315,7 @@ const update_emotes = async (emotes) => {
   }
   rules.sort();
   const emotehash = await hexdigest(rules.toString(), 6);
-  const emotehash_rule = `.emote { background-image: url("/static/emotes.png?coords=${escape_css_string(encodeURIComponent(emotehash))}"); }`;
+  const emotehash_rule = `.emote { background-image: url("/static/${escape_css_string(escape(emotesheet))}?coords=${escape_css_string(encodeURIComponent(emotehash))}"); }`;
 
   const rules_set = new Set([emotehash_rule, ...rules]);
   const to_delete = [];
@@ -337,6 +337,7 @@ let users = {};
 let stats = null;
 let stats_received = null;
 let default_name = {true: "Broadcaster", false: "Anonymous"};
+let emotesheet = "emotes.png";
 let max_chat_scrollback = 256;
 let pingpong_period = 8.0;
 let ping = null;
@@ -734,7 +735,8 @@ const on_websocket_message = async (event) => {
       chat_appearance_form_name.setAttribute("placeholder", default_name[user.broadcaster]);
       chat_appearance_form_color.setAttribute("value", user.color);
 
-      // emote coordinates
+      // emotes
+      emotesheet = receipt.emotesheet;
       await update_emotes(receipt.emotes);
 
       // insert new messages

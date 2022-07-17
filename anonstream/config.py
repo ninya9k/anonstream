@@ -169,5 +169,6 @@ def toml_to_flask_section_nojs(config):
 def toml_to_flask_section_emote(config):
   cfg = config['emote']
   return {
+    'EMOTE_SHEET': cfg['sheet'],
     'EMOTE_SCHEMA': cfg['schema'],
   }
