@@ -11,7 +11,6 @@ from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
 from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance, ensure_allowedness, AllowednessException
 from anonstream.wrappers import with_timestamp, get_timestamp
-from anonstream.helpers.chat import get_emotes_for_websocket
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.user import identifying_string
 from anonstream.utils.websocket import parse_websocket_data, Malformed, WS
@@ -37,8 +36,6 @@ async def websocket_outbound(queue, user):
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
         'digest': get_random_captcha_digest_for(user),
         'pingpong': CONFIG['TASK_BROADCAST_PING'],
-        'emotes': get_emotes_for_websocket(),
-        'emotesheet': CONFIG['EMOTE_SHEET'],
     })
     while True:
         payload = await queue.get()

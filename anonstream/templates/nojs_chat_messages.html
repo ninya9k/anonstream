@@ -134,11 +134,7 @@
       line-height: 1.3125;
     }
     .emote {
-      background-image: url("{{ escape_css_string(url_for('static', filename=emotesheet, coords=emotehash)) | safe }}");
-      display: inline-block;
-      font-size: 0;
       vertical-align: middle;
-      cursor: default;
     }
     .tripcode {
       padding: 0 5px;
@@ -160,14 +156,6 @@
           }
         {% endif %}
       {% endwith %}
-    {% endfor %}
-
-    {% for name, _regex, (x, y), (width, height) in emotes %}
-      [data-emote="{{ escape_css_string(name) | safe }}"] {
-        background-position: {{ -x }}px {{ -y }}px;
-        width: {{ width }}px;
-        height: {{ height }}px;
-      }
     {% endfor %}
   </style>
 </head>

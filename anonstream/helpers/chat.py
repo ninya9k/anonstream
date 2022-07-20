@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import hashlib
+from functools import lru_cache
 
 import markupsafe
-from quart import current_app, escape, Markup
+from quart import current_app, escape, url_for, Markup
 
 CONFIG = current_app.config
 EMOTES = current_app.emotes
@@ -19,24 +20,21 @@ def get_scrollback(messages):
         return messages
     return list(messages)[-n:]
 
+@lru_cache
+def get_emote_markup(emote_name, emote_file, emote_width, emote_height):
+    emote_name_markup = escape(emote_name)
+    return Markup(
+        f'''<img class="emote" '''
+        f'''src="{url_for('static', filename=emote_file)}" '''
+        f'''width="{escape(emote_width)}" height="{escape(emote_height)}" '''
+        f'''alt="{emote_name_markup}" title="{emote_name_markup}">'''
+    )
+
 def insert_emotes(markup):
     assert isinstance(markup, markupsafe.Markup)
-    for name, regex, _position, _size in EMOTES:
-        emote_markup = (
-            f'<span class="emote" data-emote="{escape(name)}" '
-            f'title="{escape(name)}">{escape(name)}</span>'
+    for emote in EMOTES:
+        emote_markup = get_emote_markup(
+            emote['name'], emote['file'], emote['width'], emote['height'],
         )
-        markup = regex.sub(emote_markup, markup)
+        markup = emote['regex'].sub(emote_markup, markup)
     return Markup(markup)
-
-def get_emotes_for_websocket():
-    return {
-        name: {
-            'x': position[0],
-            'y': position[1],
-            'width': size[0],
-            'height': size[1],
-        }
-        for name, _regex, position, size in EMOTES
-    }
-    return tuple(EMOTES.values())

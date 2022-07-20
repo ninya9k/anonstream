@@ -31,52 +31,19 @@ def get_approx_linespan(text):
     linespan = linespan if linespan > 0 else 1
     return linespan
 
-def schema_to_emotes(schema):
-    emotes = []
-    for name, coords in schema.items():
+def precompute_emote_regex(schema):
+    for emote in schema:
         assert emote['name'], 'emote names cannot be empty'
-        assert not re.search(r'\s', name), \
+        assert not re.search(r'\s', emote['name']), \
             'whitespace is not allowed in emote names'
-        name_markup = escape(name)
         # If the emote name begins with a word character [a-zA-Z0-9_],
         # match only if preceded by a non-word character or the empty
         # string. Similarly for the end of the emote name.
         # Examples:
         #  * ":joy:" matches "abc :joy:~xyz"   and   "abc:joy:xyz"
         #  * "JoySi" matches "abc JoySi~xyz" but NOT "abcJoySiabc"
-        onset = r'(?:^|(?<=\W))' if re.fullmatch(r'\w', name[0]) else r''
-        finish = r'(?:$|(?=\W))' if re.fullmatch(r'\w', name[-1]) else r''
-        regex = re.compile(''.join((onset, re.escape(name_markup), finish)))
-        position, size = tuple(coords['position']), tuple(coords['size'])
-        emotes.append((name, regex, position, size))
-    return emotes
-
-def escape_css_string(string):
-    '''
-    https://drafts.csswg.org/cssom/#common-serializing-idioms
-    '''
-    result = []
-    for char in string:
-        if char == '\0':
-            result.append('\ufffd')
-        elif char < '\u0020' or char == '\u007f':
-            result.append(f'\\{ord(char):x}')
-        elif char == '"' or char == '\\':
-            result.append(f'\\{char}')
-        else:
-            result.append(char)
-    return ''.join(result)
-
-@lru_cache(maxsize=1)
-def get_emotehash(emotes):
-    rules = []
-    for name, _regex, (x, y), (width, height) in sorted(emotes):
-        rule = (
-            f'[data-emote="{escape_css_string(name)}"] '
-            f'{{ background-position: {-x}px {-y}px; '
-            f'width: {width}px; height: {height}px; }}'
-        )
-        rules.append(rule.encode())
-    plaintext = b','.join(rules)
-    digest = hashlib.sha256(plaintext).digest()
-    return digest[:6].hex()
+        onset = r'(?:^|(?<=\W))' if re.fullmatch(r'\w', emote['name'][0]) else r''
+        finish = r'(?:$|(?=\W))' if re.fullmatch(r'\w', emote['name'][-1]) else r''
+        emote['regex'] = re.compile(''.join(
+            (onset, re.escape(escape(emote['name'])), finish)
+        ))
