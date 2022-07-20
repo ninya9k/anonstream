@@ -84,12 +84,6 @@ const insert_jsmarkup = () => {
     style_tripcode_colors.nonce = CSP;
     document.head.insertAdjacentElement("beforeend", style_tripcode_colors);
   }
-  if (document.getElementById("style-emote") === null) {
-    const style_emote = document.createElement("style");
-    style_emote.id = "style-emote";
-    style_emote.nonce = CSP;
-    document.head.insertAdjacentElement("beforeend", style_emote);
-  }
   if (document.getElementById("stream__video") === null) {
     const parent = document.getElementById("stream");
     parent.insertAdjacentHTML("beforeend", jsmarkup_stream_video);
@@ -140,7 +134,6 @@ insert_jsmarkup();
 const stylesheet_color = document.styleSheets[1];
 const stylesheet_tripcode_display = document.styleSheets[2];
 const stylesheet_tripcode_colors = document.styleSheets[3];
-const stylesheet_emote = document.styleSheets[4];
 
 /* override chat form notice button */
 const chat_form = document.getElementById("chat-form_js");
@@ -305,39 +298,11 @@ const escape_css_string = (string) => {
   }
   return result.join("");
 }
-const update_emotes = async (emotes) => {
-  const rules = [];
-  for (const key of Object.keys(emotes)) {
-    const emote = emotes[key];
-    rules.push(
-      `[data-emote="${escape_css_string(key)}"] { background-position: ${-emote.x}px ${-emote.y}px; width: ${emote.width}px; height: ${emote.height}px; }`
-    );
-  }
-  rules.sort();
-  const emotehash = await hexdigest(rules.toString(), 6);
-  const emotehash_rule = `.emote { background-image: url("/static/${escape_css_string(escape(emotesheet))}?coords=${escape_css_string(encodeURIComponent(emotehash))}"); }`;
-
-  const rules_set = new Set([emotehash_rule, ...rules]);
-  const to_delete = [];
-  for (let index = 0; index < stylesheet_emote.cssRules.length; index++) {
-    const css_rule = stylesheet_emote.cssRules[index];
-    if (!rules_set.delete(css_rule.cssText)) {
-      to_delete.push(index);
-    }
-  }
-  for (const rule of rules_set) {
-    stylesheet_emote.insertRule(rule);
-  }
-  for (const index of to_delete.reverse()) {
-    stylesheet_emote.deleteRule(index + rules_set.size);
-  }
-}
 
 let users = {};
 let stats = null;
 let stats_received = null;
 let default_name = {true: "Broadcaster", false: "Anonymous"};
-let emotesheet = "emotes.png";
 let max_chat_scrollback = 256;
 let pingpong_period = 8.0;
 let ping = null;
@@ -724,7 +689,7 @@ const on_websocket_message = async (event) => {
           left: 0,
           top: chat_messages.scrollTopMax,
           behavior: "instant",
-	});
+		});
       }
 
       // appearance form default values
@@ -734,10 +699,6 @@ const on_websocket_message = async (event) => {
       }
       chat_appearance_form_name.setAttribute("placeholder", default_name[user.broadcaster]);
       chat_appearance_form_color.setAttribute("value", user.color);
-
-      // emotes
-      emotesheet = receipt.emotesheet;
-      await update_emotes(receipt.emotes);
 
       // insert new messages
       const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];

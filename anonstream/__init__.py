@@ -9,7 +9,7 @@ from quart_compress import Compress
 from anonstream.config import update_flask_from_toml
 from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
-from anonstream.utils.chat import schema_to_emotes
+from anonstream.utils.chat import precompute_emote_regex
 from anonstream.utils.user import generate_blank_allowedness
 
 __version__ = '1.5.5'
@@ -47,9 +47,11 @@ def create_app(toml_config):
     app.failures = OrderedDict() # access captcha failures
     app.allowedness = generate_blank_allowedness()
 
+    # Read emote schema
     with open(app.config['EMOTE_SCHEMA']) as fp:
-      schema = json.load(fp)
-      app.emotes = schema_to_emotes(schema)
+        emotes = json.load(fp)
+        precompute_emote_regex(emotes)
+        app.emotes = emotes
 
     # State for tasks
     app.users_update_buffer = set()

@@ -91,5 +91,4 @@ refresh_users = 6.0
 timeout_chat = 30.0
 
 [emote]
-sheet = "emotes.png"
 schema = "emotes.json"

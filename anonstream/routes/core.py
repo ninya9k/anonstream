@@ -135,7 +135,7 @@ async def access(timestamp, user_or_token):
     url = url_for('home', token=user['token'])
     return redirect(url, 303)
 
-@current_app.route('/static/<filename>')
+@current_app.route('/static/<path:filename>')
 @with_user_from(request)
 @etag_conditional
 @clean_cache_headers

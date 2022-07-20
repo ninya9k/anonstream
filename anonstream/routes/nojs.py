@@ -10,13 +10,12 @@ from anonstream.user import add_state, pop_state, try_change_appearance, update_
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
-from anonstream.utils.chat import generate_nonce, escape_css_string, get_emotehash
+from anonstream.utils.chat import generate_nonce
 from anonstream.utils.security import generate_csp
 from anonstream.utils.user import concatenate_for_notice
 
 CONFIG = current_app.config
 USERS_BY_TOKEN = current_app.users_by_token
-EMOTES = current_app.emotes
 
 @current_app.route('/stream.html')
 @with_user_from(request)
@@ -54,12 +53,8 @@ async def nojs_chat_messages(timestamp, user):
         refresh=CONFIG['NOJS_REFRESH_MESSAGES'],
         user=user,
         users_by_token=USERS_BY_TOKEN,
-        emotes=EMOTES,
-        emotesheet=CONFIG['EMOTE_SHEET'],
-        emotehash=get_emotehash(tuple(EMOTES)),
         messages=get_scrollback(current_app.messages),
         timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
-        escape_css_string=escape_css_string,
         get_default_name=get_default_name,
     )
 
