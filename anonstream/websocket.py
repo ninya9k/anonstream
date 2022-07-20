@@ -54,7 +54,11 @@ async def websocket_outbound(queue, user):
                 await websocket.close(1001)
                 break
             else:
-                await websocket.send_json(payload)
+                if user['verified'] is None:
+                    await websocket.send_json({'type': 'kick'})
+                    await websocket.close(1001)
+                else:
+                    await websocket.send_json(payload)
 
 async def websocket_inbound(queue, user):
     while True:
@@ -73,25 +77,28 @@ async def websocket_inbound(queue, user):
         except AllowednessException:
             payload = {'type': 'kick'}
         else:
-            try:
-                receipt_type, parsed = parse_websocket_data(receipt)
-            except Malformed as e:
-                error , *_ = e.args
-                payload = {
-                    'type': 'error',
-                    'because': error,
-                }
+            if user['verified'] is None:
+                payload = {'type': 'kick'}
             else:
-                match receipt_type:
-                    case WS.MESSAGE:
-                        handle = handle_inbound_message
-                    case WS.APPEARANCE:
-                        handle = handle_inbound_appearance
-                    case WS.CAPTCHA:
-                        handle = handle_inbound_captcha
-                    case WS.PONG:
-                        handle = handle_inbound_pong
-                payload = handle(timestamp, queue, user, *parsed)
+                try:
+                    receipt_type, parsed = parse_websocket_data(receipt)
+                except Malformed as e:
+                    error , *_ = e.args
+                    payload = {
+                        'type': 'error',
+                        'because': error,
+                    }
+                else:
+                    match receipt_type:
+                        case WS.MESSAGE:
+                            handle = handle_inbound_message
+                        case WS.APPEARANCE:
+                            handle = handle_inbound_appearance
+                        case WS.CAPTCHA:
+                            handle = handle_inbound_captcha
+                        case WS.PONG:
+                            handle = handle_inbound_pong
+                    payload = handle(timestamp, queue, user, *parsed)
 
         # Write to websocket
         if payload is not None:
