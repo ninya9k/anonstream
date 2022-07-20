@@ -137,6 +137,7 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
                     user['headers'] = tuple(context.headers)
                     if not ignore_allowedness:
                         assert_allowedness(timestamp, user)
+                if user is not None and user['verified'] is not None:
                     response = await f(timestamp, user, *args, **kwargs)
                 elif fallback_to_token:
                     #assert not broadcaster

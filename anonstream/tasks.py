@@ -64,9 +64,13 @@ async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
 
-    # Deverify absent users
-    for user in get_absent_users(timestamp):
-        user['verified'] = False
+    # De-access absent users
+    absent_users = tuple(get_absent_users(timestamp))
+    for user in absent_users:
+        user['verified'] = None
+    # Absent users should have no connected websockets,
+    # so in normal operation this should always be a no-op
+    broadcast(users=absent_users, payload={'type': 'kick'})
 
     # Remove as many absent users as possible
 
