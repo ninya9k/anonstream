@@ -34,6 +34,7 @@ def get_approx_linespan(text):
 def schema_to_emotes(schema):
     emotes = []
     for name, coords in schema.items():
+        assert emote['name'], 'emote names cannot be empty'
         assert not re.search(r'\s', name), \
             'whitespace is not allowed in emote names'
         name_markup = escape(name)
