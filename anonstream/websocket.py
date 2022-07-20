@@ -50,7 +50,7 @@ async def websocket_outbound(queue, user):
             try:
                 ensure_allowedness(user)
             except AllowednessException:
-                websocket.send_json({'type': 'kick'})
+                await websocket.send_json({'type': 'kick'})
                 await websocket.close(1001)
                 break
             else:
