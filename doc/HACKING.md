@@ -1,25 +1,25 @@
 ## Hacking
 
-By default anonstream has two APIs it exposes through two UNIX sockets:
-the control socket `control.sock` and the event socket `event.sock`.  If
-the platform you are using does not support UNIX sockets, they can be
-disabled in the config.
+By default anonstream has two private APIs it exposes through two UNIX
+sockets: the control socket `control.sock` and the event socket
+`event.sock`.  If the platform you are on does not support UNIX sockets,
+they can be disabled in the config.
 
 ### Control socket
 
 The control socket allows reading and modifying internal state, e.g.
 setting the title or changing a user's name.  Currently the control
-socket has checks to see if what you're doing is sane, but they're not
+socket has checks to see if what you're doing is sane, but they're non-
 comprehensive; you could craft commands that lead to undefined
 behaviour.  If you have `socat`, you can use the control socket
 interactively like this:
 ```sh
-rlwrap socat STDIN UNIX-CONNECT:control.sock
-```
-`rlwrap` only adds line editing and is optional. If you don't have it
-you can still get (inferior) line editing by doing:
-```sh
 socat READLINE UNIX-CONNECT:control.sock
+```
+If you have it, you can use `rlwrap` to get line editing that's a bit
+nicer:
+```sh
+rlwrap socat STDIN UNIX-CONNECT:control.sock
 ```
 Once connected, type "help" and press enter to get a list of commands.
 
@@ -28,7 +28,7 @@ Once connected, type "help" and press enter to get a list of commands.
 The event socket is a read-only socket that sends out internal events as
 they happen.  Currently the only supported event is a chat message being
 added.  The intended use is to hook into other applications that depend
-on chat, e.g.  text-to-speech or Twitch Plays Pokémon.
+on chat, e.g. text-to-speech or Twitch Plays Pokémon.
 
 View events like this:
 ```sh
