@@ -64,8 +64,11 @@ async def t_sunset_users(timestamp, iteration):
     if iteration == 0:
         return
 
-    # De-access absent users
-    absent_users = tuple(get_absent_users(timestamp))
+    # Revoke access for absent users (except the broadcaster)
+    absent_users = tuple(filter(
+        lambda user: not user['broadcaster'],
+        get_absent_users(timestamp)
+    ))
     for user in absent_users:
         user['verified'] = None
     # Absent users should have no connected websockets,

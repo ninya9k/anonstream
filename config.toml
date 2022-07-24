@@ -57,7 +57,7 @@ anonymous = "Anonymous"
 
 [chat]
 max_comment_length = 512
-max_comment_lines = 12
+max_comment_lines = 20
 max_name_length = 24
 min_name_contrast = 3.0
 background_color = "#232327"
