@@ -25,7 +25,7 @@ def get_emote_markup(emote_name, emote_file, emote_width, emote_height):
     emote_name_markup = escape(emote_name)
     return Markup(
         f'''<img class="emote" '''
-        f'''src="{url_for('static', filename=emote_file)}" '''
+        f'''src="{escape(url_for('static', filename=emote_file))}" '''
         f'''width="{escape(emote_width)}" height="{escape(emote_height)}" '''
         f'''alt="{emote_name_markup}" title="{emote_name_markup}">'''
     )
