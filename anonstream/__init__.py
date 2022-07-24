@@ -60,16 +60,18 @@ def create_app(toml_config):
     app.stream_viewership = None
     app.last_info_task = None
 
-    # Background tasks' asyncio.sleep tasks, cancelled on shutdown
-    app.background_sleep = set()
+    # asyncio tasks to be cancelled on shutdown
+    app.tasks = set()
 
     # Queues for event socket clients
     app.event_queues = set()
 
     @app.after_serving
     async def shutdown():
-        # Force all background tasks to finish
-        for task in app.background_sleep:
+        # Cancel started asyncio tasks that would otherwise block shutdown
+        # The asyncio tasks we create are:
+        #   * quart background tasks awaiting asyncio.sleep()
+        for task in app.tasks:
             task.cancel()
 
     @app.before_serving
