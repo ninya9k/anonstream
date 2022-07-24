@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import asyncio
 import json
 from collections import OrderedDict
 
@@ -76,6 +77,10 @@ def create_app(toml_config):
 
     @app.before_serving
     async def startup():
+        # Create routes and background tasks
+        import anonstream.routes
+        import anonstream.tasks
+
         # Start control server
         if app.config['SOCKET_CONTROL_ENABLED']:
             from anonstream.control.server import start_control_server_at
@@ -93,9 +98,5 @@ def create_app(toml_config):
                     app.config['SOCKET_EVENT_ADDRESS']
                 )
             app.add_background_task(start_event_server)
-
-        # Create routes and background tasks
-        import anonstream.routes
-        import anonstream.tasks
 
     return app
