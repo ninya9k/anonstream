@@ -11,7 +11,8 @@ async def cmd_exit_help():
     normal = ['exit', 'help']
     response = (
         'Usage: exit\n'
-        'close the connection\n'
+        'Commands:\n'
+        ' exit......close the connection\n'
     )
     return normal, response
 

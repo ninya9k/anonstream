@@ -19,14 +19,13 @@ USERS = current_app.users
 CAPTCHAS = current_app.captchas
 CAPTCHA_SIGNER = current_app.captcha_signer
 
-async def sleep_and_collect_task(delay):
-    coro = asyncio.sleep(delay)
+async def cancel_on_shutdown(coro):
     task = asyncio.create_task(coro)
-    current_app.background_sleep.add(task)
+    current_app.tasks.add(task)
     try:
         await task
     finally:
-        current_app.background_sleep.remove(task)
+        current_app.tasks.remove(task)
 
 def with_period(period):
     def periodically(f):
@@ -35,7 +34,7 @@ def with_period(period):
             for iteration in itertools.count():
                 await f(iteration, *args, **kwargs)
                 try:
-                    await sleep_and_collect_task(period)
+                    await cancel_on_shutdown(asyncio.sleep(period))
                 except asyncio.CancelledError:
                     break
 

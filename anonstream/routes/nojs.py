@@ -32,9 +32,9 @@ async def nojs_stream(timestamp, user):
 async def nojs_info(timestamp, user):
     update_presence(user)
     uptime, viewership = get_stream_uptime_and_viewership()
-    return await render_template(
+    return await render_template_with_etag(
         'nojs_info.html',
-        csp=generate_csp(),
+        {'csp': generate_csp()},
         refresh=CONFIG['NOJS_REFRESH_INFO'],
         user=user,
         viewership=viewership,

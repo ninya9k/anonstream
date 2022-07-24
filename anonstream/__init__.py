@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 n9k <https://git.076.ne.jp/ninya9k>
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import asyncio
 import json
 from collections import OrderedDict
 
@@ -60,20 +61,26 @@ def create_app(toml_config):
     app.stream_viewership = None
     app.last_info_task = None
 
-    # Background tasks' asyncio.sleep tasks, cancelled on shutdown
-    app.background_sleep = set()
+    # asyncio tasks to be cancelled on shutdown
+    app.tasks = set()
 
     # Queues for event socket clients
     app.event_queues = set()
 
     @app.after_serving
     async def shutdown():
-        # Force all background tasks to finish
-        for task in app.background_sleep:
+        # Cancel started asyncio tasks that would otherwise block shutdown
+        # The asyncio tasks we create are:
+        #   * quart background tasks awaiting asyncio.sleep()
+        for task in app.tasks:
             task.cancel()
 
     @app.before_serving
     async def startup():
+        # Create routes and background tasks
+        import anonstream.routes
+        import anonstream.tasks
+
         # Start control server
         if app.config['SOCKET_CONTROL_ENABLED']:
             from anonstream.control.server import start_control_server_at
@@ -91,9 +98,5 @@ def create_app(toml_config):
                     app.config['SOCKET_EVENT_ADDRESS']
                 )
             app.add_background_task(start_event_server)
-
-        # Create routes and background tasks
-        import anonstream.routes
-        import anonstream.tasks
 
     return app

@@ -6,8 +6,8 @@ import json
 
 from quart import current_app
 
-async def start_event_server_at(address):
-    return await asyncio.start_unix_server(serve_event_client, address)
+def start_event_server_at(address):
+    return asyncio.start_unix_server(serve_event_client, address)
 
 async def serve_event_client(reader, writer):
     reader.feed_eof()
