@@ -144,13 +144,13 @@
       {% if user.presence != Presence.WATCHING %}
         <form id="float__form" action="{{ url_for('nojs_stream') }}" target="stream_nojs">
           <input type="hidden" name="token" value="{{ user.token }}">
-          <input type="submit" value="Reload stream" accesskey="r">
+          <input type="submit" value="{{ locale.reload_stream }}" accesskey="r">
         </form>
       {% endif %}
-      <div id="float__viewership">{{ viewership }} viewers</div>
+      <div id="float__viewership">{{ locale.viewers | format(viewership) }}</div>
       <div id="float__uptime">
         <div id="uptime-static"{% if uptime < 360000 %} data-hidden=""{% endif %}>
-          <span id="uptime-static__label">Uptime:</span>
+          <span id="uptime-static__label">{{ locale.uptime }}</span>
           <span>
             {%- if uptime >= 3600 -%}
               {{- uptime | int // 3600 -}}

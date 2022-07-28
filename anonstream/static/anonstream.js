@@ -12,16 +12,16 @@ const CSP = document.body.dataset.csp;
 
 /* insert js-only markup */
 const jsmarkup_stream_video = '<video id="stream__video" autoplay controls></video>'
-const jsmarkup_stream_offline = '<header id="stream__offline"><h1>[offline]</h1></header>'
+const jsmarkup_stream_offline = '<header id="stream__offline"><h1 data-string="offline">[offline]</h1></header>'
 const jsmarkup_info = '<div id="info_js" data-js="true"></div>';
 const jsmarkup_info_float = '<aside id="info_js__float"></aside>';
-const jsmarkup_info_float_button = '<button id="info_js__float__button" accesskey="r">Reload stream</button>';
+const jsmarkup_info_float_button = '<button id="info_js__float__button" accesskey="r" data-string="reload_stream">Reload stream</button>';
 const jsmarkup_info_float_viewership = '<div id="info_js__float__viewership"></div>';
 const jsmarkup_info_float_uptime = '<div id="info_js__float__uptime"></div>';
 const jsmarkup_info_title = '<header id="info_js__title"></header>';
 const jsmarkup_chat_messages = `\
 <ol id="chat-messages_js" data-js="true"></ol>
-<button id="chat-messages-unlock">Chat scroll paused. Click to resume.</button>`;
+<button id="chat-messages-unlock" data-string="chat_scroll_paused">Chat scroll paused. Click to resume.</button>`;
 const jsmarkup_chat_users = `\
 <article id="chat-users_js">
   <h5 id="chat-users_js__watching-header"></h5>
@@ -37,31 +37,31 @@ const jsmarkup_chat_form = `\
   <div id="chat-live">
     <span id="chat-live__ball"></span>
     <span id="chat-live__status">
-      <span data-verbose="true">Not connected to chat</span>
+      <span data-verbose="true" data-string="not_connected_to_chat">Not connected to chat</span>
       <span data-verbose="false">&times;</span>
     </span>
   </div>
-  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled>
+  <input id="chat-form_js__submit" type="submit" value="Chat" accesskey="p" disabled data-string="chat" data-string-attr="value">
   <input id="chat-form_js__captcha-digest" type="hidden" name="captcha-digest" disabled>
   <input id="chat-form_js__captcha-image" type="image" width="72" height="30">
-  <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled>
-  <input id="chat-form_js__settings" type="image" src="/static/settings.svg" width="28" height="28" alt="Settings">
+  <input id="chat-form_js__captcha-answer" name="captcha-answer" placeholder="Captcha" disabled data-string="captcha" data-string-attr="placeholder">
+  <input id="chat-form_js__settings" type="image" src="/static/settings.svg" width="28" height="28" alt="Settings" data-string="settings" data-string-attr="alt">
   <article id="chat-form_js__notice">
     <button id="chat-form_js__notice__button" type="button">
       <header id="chat-form_js__notice__button__header"></header>
-      <small>Click to dismiss</small>
+      <small data-string="click_to_dismiss">Click to dismiss</small>
     </button>
   </article>
 </form>
 <form id="appearance-form_js" data-hidden="">
-  <span id="appearance-form_js__label-name">Name:</span>
+  <span id="appearance-form_js__label-name" data-string="name">Name:</span>
   <input id="appearance-form_js__name" name="name">
   <input id="appearance-form_js__color" type="color" name="color">
-  <span id="appearance-form_js__label-tripcode">Tripcode:</span>
-  <input id="appearance-form_js__password" type="password" name="password" placeholder="(tripcode password)">
+  <span id="appearance-form_js__label-tripcode" data-string="tripcode">Tripcode:</span>
+  <input id="appearance-form_js__password" type="password" name="password" placeholder="(tripcode password)" data-string="tripcode_password" data-string-attr="placeholder">
   <div id="appearance-form_js__row">
     <article id="appearance-form_js__row__result"></article>
-    <input id="appearance-form_js__row__submit" type="submit" value="Update">
+    <input id="appearance-form_js__row__submit" type="submit" value="Update" data-string="update" data-string-attr="value">
   </div>
 </form>`;
 
@@ -247,7 +247,7 @@ const create_chat_user_components = (user) => {
   } else {
     const chat_user_insignia = document.createElement("b");
     chat_user_insignia.classList.add("chat-insignia")
-    chat_user_insignia.title = "Broadcaster";
+    chat_user_insignia.title = locale.broadcaster || "Broadcaster";
     chat_user_insignia.innerText = "##";
     const chat_user_insignia_nbsp = document.createElement("span");
     chat_user_insignia_nbsp.innerHTML = "&nbsp;"
@@ -275,6 +275,7 @@ const delete_chat_messages = (seqs) => {
   }
 }
 
+let locale = {};
 let users = {};
 let stats = null;
 let stats_received = null;
@@ -438,23 +439,23 @@ const chat_form_captcha_answer = document.getElementById("chat-form_js__captcha-
 chat_form_captcha_image.addEventListener("loadstart", (event) => {
   chat_form_captcha_image.removeAttribute("title");
   chat_form_captcha_image.removeAttribute("data-reloadable");
-  chat_form_captcha_image.alt = "Loading...";
+  chat_form_captcha_image.alt = locale.loading || "Loading...";
 });
 chat_form_captcha_image.addEventListener("load", (event) => {
   chat_form_captcha_image.removeAttribute("alt");
   chat_form_captcha_image.dataset.reloadable = "";
-  chat_form_captcha_image.title = "Click for a new captcha";
+  chat_form_captcha_image.title = locale.click_for_a_new_captcha || "Click for a new captcha";
 });
 chat_form_captcha_image.addEventListener("error", (event) => {
-  chat_form_captcha_image.alt = "Captcha failed to load";
+  chat_form_captcha_image.alt = locale.captcha_failed_to_load || "Captcha failed to load";
   chat_form_captcha_image.dataset.reloadable = "";
-  chat_form_captcha_image.title = "Click for a new captcha";
+  chat_form_captcha_image.title = locale.click_for_a_new_captcha || "Click for a new captcha";
 });
 chat_form_captcha_image.addEventListener("click", (event) => {
   event.preventDefault();
   if (chat_form_captcha_image.dataset.reloadable !== undefined) {
     chat_form_submit.disabled = true;
-    chat_form_captcha_image.alt = "Waiting...";
+    chat_form_captcha_image.alt = locale.waiting || "Waiting...";
     chat_form_captcha_image.removeAttribute("title");
     chat_form_captcha_image.removeAttribute("data-reloadable");
     chat_form_captcha_image.removeAttribute("src");
@@ -518,7 +519,7 @@ const update_uptime = () => {
 setInterval(update_uptime, 1000); // always update uptime
 
 const update_viewership = () => {
-  info_viewership.innerText = stats === null ? "" : `${stats.viewership} viewers`;
+  info_viewership.innerText = stats === null ? "" : (locale.viewers || "{0} viewers").replace('{0}', stats.viewership);
 }
 
 const update_stats = () => {
@@ -564,7 +565,7 @@ const update_users_list = () => {
     }
     if (is_you) {
       const you = document.createElement("span");
-      you.innerText = " (You)";
+      you.innerText = locale.you || " (You)";
       chat_user.insertAdjacentElement("beforeend", you);
     }
     chat_users_sublist.insertAdjacentElement("beforeend", chat_user);
@@ -584,8 +585,8 @@ const update_users_list = () => {
   }
 
   // show correct numbers
-  chat_users_watching_header.innerText = `Watching (${watching})`;
-  chat_users_notwatching_header.innerText = `Not watching (${notwatching})`;
+  chat_users_watching_header.innerText = (locale.watching || "Watching ({0})").replace("{0}", watching);
+  chat_users_notwatching_header.innerText = (locale.not_watching || "Not watching ({0})").replace("{0}", notwatching);
 }
 
 const show_offline_screen = () => {
@@ -608,6 +609,21 @@ const on_websocket_message = async (event) => {
       console.log("ws init", receipt);
 
       pingpong_period = receipt.pingpong;
+
+      // update locale & put localized strings in js-inserted elements
+      locale = receipt.locale;
+      for (element of document.querySelectorAll('[data-string]')) {
+        const string = element.dataset.string;
+        if (locale[string] !== undefined) {
+          const attr = element.dataset.stringAttr;
+          if (attr === undefined)
+            element.innerText = locale[string];
+          else
+            element[attr] = locale[string];
+        }
+      }
+
+      // stream title
       set_title(receipt.title);
 
       // update stats (uptime/viewership)
@@ -813,7 +829,7 @@ const on_websocket_message = async (event) => {
           ul.insertAdjacentElement("beforeend", li);
         }
         const result = document.createElement("div");
-        result.innerText = "Errors:";
+        result.innerText = locale.errors || "Errors:";
         result.insertAdjacentElement("beforeend", ul);
         chat_appearance_form_result.innerHTML = result.innerHTML;
       }
@@ -850,14 +866,14 @@ const connect_websocket = () => {
     return;
   }
   chat_live_ball.style.borderColor = "gold";
-  chat_live_status.innerHTML = "<span data-verbose='true'>Connecting to chat...</span><span data-verbose='false'>&middot;&middot;&middot;</span>";
+  chat_live_status.innerHTML = `<span data-verbose='true'>${locale.connecting_to_chat || "Connecting to chat..."}</span><span data-verbose='false'>&middot;&middot;&middot;</span>`;
   ws = null;
   ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);
     chat_form_submit.disabled = false;
     chat_live_ball.style.borderColor = "green";
-    chat_live_status.innerHTML = "<span><span data-verbose='true'>Connected to chat</span><span data-verbose='false'>&check;</span></span>";
+    chat_live_status.innerHTML = `<span><span data-verbose='true'>${locale.connected_to_chat || "Connected to chat"}</span><span data-verbose='false'>&check;</span></span>`;
     // When the server is offline, a newly opened websocket can take a second
     // to close. This timeout tries to ensure the backoff doesn't instantly
     // (erroneously) reset to 2 seconds in that case.
@@ -873,7 +889,7 @@ const connect_websocket = () => {
     console.log("websocket close", event);
     chat_form_submit.disabled = true;
     chat_live_ball.style.borderColor = "maroon";
-    chat_live_status.innerHTML = "<span data-verbose='true'>Disconnected from chat</span><span data-verbose='false'>&times;</span>";
+    chat_live_status.innerHTML = `<span data-verbose='true'>${locale.disconnected_from_chat || "Disconnected from chat"}</span><span data-verbose='false'>&times;</span>`;
     if (!ws.successor) {
       ws.successor = true;
       setTimeout(connect_websocket, websocket_backoff);
@@ -884,7 +900,7 @@ const connect_websocket = () => {
     console.log("websocket error", event);
     chat_form_submit.disabled = true;
     chat_live_ball.style.borderColor = "maroon";
-    chat_live_status.innerHTML = "<span>Error<span data-verbose='true'> connecting to chat</span></span>";
+    chat_live_status.innerHTML = `<span><span data-verbose='true'>${locale.error_connecting_to_chat || "Error connecting to chat"}</span><span data-verbose='false'>${locale.error_connecting_to_chat_terse || "Error"}</span></span>`;
   });
   ws.addEventListener("message", on_websocket_message);
 }

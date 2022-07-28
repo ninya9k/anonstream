@@ -165,8 +165,8 @@
   <div id="notimeout"></div>
   <aside id="timeout">
     <a class="button" href="{{ url_for('nojs_chat_messages_redirect', token=user.token) }}">
-      <header>Timed out</header>
-      <small>Click to refresh</small>
+      <header>{{ locale.timed_out }}</header>
+      <small>{{ locale.click_to_refresh }}</small>
     </a>
   </aside>
   <ol id="chat-messages">
@@ -183,10 +183,10 @@
     {% endfor %}
   </ol>
   <aside id="timeout-dismiss">
-    <a class="button" href="#notimeout">Hide timeout notice</a>
+    <a class="button" href="#notimeout">{{ locale.hide_timeout_notice }}</a>
   </aside>
   <aside id="timeout-alt">
-    <a class="button" href="{{ url_for('nojs_chat_messages_redirect', token=user.token) }}">Click to refresh</a>
+    <a class="button" href="{{ url_for('nojs_chat_messages_redirect', token=user.token) }}">{{ locale.click_to_refresh }}</a>
   </aside>
 </body>
 </html>

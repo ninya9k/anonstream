@@ -1,5 +1,10 @@
 secret_key = "place secret key here"
 
+[locale]
+default = "en"
+offered = ["en"]
+directory = "l10n/"
+
 [socket.control]
 enabled = true
 address = "control.sock"

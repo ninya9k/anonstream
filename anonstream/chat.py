@@ -50,34 +50,24 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         user['linespan'],
     ))
     if total_recent_linespan > CONFIG['FLOOD_LINE_THRESHOLD']:
-        raise Rejected(
-            f'Chat overuse in the last '
-            f'{CONFIG["FLOOD_LINE_DURATION"]:.0f} seconds'
-        )
+        raise Rejected('message_ratelimited', CONFIG['FLOOD_LINE_THRESHOLD'])
 
     # Check message
     message_id = generate_nonce_hash(nonce)
     if message_id in MESSAGES_BY_ID:
-        raise Rejected('Discarded suspected duplicate message')
+        raise Rejected('message_suspected_duplicate')
     if len(comment) == 0:
-        raise Rejected('Message was empty')
+        raise Rejected('message_empty')
     if len(comment.strip()) == 0:
-        raise Rejected('Message was practically empty')
+        raise Rejected('message_practically_empty')
     if len(comment) > CONFIG['CHAT_COMMENT_MAX_LENGTH']:
-        raise Rejected(
-            f'Message exceeded {CONFIG["CHAT_COMMENT_MAX_LENGTH"]} chars'
-        )
+        raise Rejected('message_too_long', CONFIG['CHAT_COMMENT_MAX_LENGTH'])
 
     if comment.count('\n') + 1 > CONFIG['CHAT_COMMENT_MAX_LINES']:
-        raise Rejected(
-            f'Message exceeded {CONFIG["CHAT_COMMENT_MAX_LINES"]} lines'
-        )
+        raise Rejected('message_too_many_lines', CONFIG['CHAT_COMMENT_MAX_LINES'])
     linespan = get_approx_linespan(comment)
     if linespan > CONFIG['CHAT_COMMENT_MAX_LINES']:
-        raise Rejected(
-            f'Message would span {CONFIG["CHAT_COMMENT_MAX_LINES"]} '
-            f'or more lines'
-        )
+        raise Rejected('message_too_many_apparent_lines', CONFIG['CHAT_COMMENT_MAX_LINES'])
 
     # Record linespan
     linespan_tuple = (timestamp, linespan)

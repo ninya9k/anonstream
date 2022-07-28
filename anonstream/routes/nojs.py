@@ -5,6 +5,7 @@ from quart import current_app, request, render_template, redirect, url_for, esca
 
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import add_chat_message, Rejected
+from anonstream.locale import get_locale_from
 from anonstream.stream import is_online, get_stream_title, get_stream_uptime_and_viewership
 from anonstream.user import add_state, pop_state, try_change_appearance, update_presence, get_users_by_presence, Presence, verify, deverify, BadCaptcha, reading
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
@@ -12,7 +13,6 @@ from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
 from anonstream.utils.chat import generate_nonce
 from anonstream.utils.security import generate_csp
-from anonstream.utils.user import concatenate_for_notice
 
 CONFIG = current_app.config
 USERS_BY_TOKEN = current_app.users_by_token
@@ -25,6 +25,7 @@ async def nojs_stream(timestamp, user):
         csp=generate_csp(),
         user=user,
         online=is_online(),
+        locale=get_locale_from(request)['anonstream']['stream'],
     )
 
 @current_app.route('/info.html')
@@ -37,6 +38,7 @@ async def nojs_info(timestamp, user):
         {'csp': generate_csp()},
         refresh=CONFIG['NOJS_REFRESH_INFO'],
         user=user,
+        locale=get_locale_from(request)['anonstream']['info'],
         viewership=viewership,
         uptime=uptime,
         title=await get_stream_title(),
@@ -53,6 +55,7 @@ async def nojs_chat_messages(timestamp, user):
         refresh=CONFIG['NOJS_REFRESH_MESSAGES'],
         user=user,
         users_by_token=USERS_BY_TOKEN,
+        locale=get_locale_from(request)['anonstream']['chat'],
         messages=get_scrollback(current_app.messages),
         timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
         get_default_name=get_default_name,
@@ -73,6 +76,7 @@ async def nojs_chat_users(timestamp, user):
         {'csp': generate_csp()},
         refresh=CONFIG['NOJS_REFRESH_USERS'],
         user=user,
+        locale=get_locale_from(request)['anonstream']['chat'],
         get_default_name=get_default_name,
         users_watching=users_by_presence[Presence.WATCHING],
         users_notwatching=users_by_presence[Presence.NOTWATCHING],
@@ -85,12 +89,14 @@ async def nojs_chat_form(timestamp, user):
     state_id = request.args.get('state', type=int)
     state = pop_state(user, state_id)
     prefer_chat_form = request.args.get('landing') != 'appearance'
+    print(state)
     return await render_template(
         'nojs_chat_form.html',
         csp=generate_csp(),
         user=user,
-        state=state,
         prefer_chat_form=prefer_chat_form,
+        state=state,
+        locale=get_locale_from(request)['anonstream'],
         nonce=generate_nonce(),
         digest=get_random_captcha_digest_for(user),
         default_name=get_default_name(user),
@@ -124,10 +130,10 @@ async def nojs_submit_message(timestamp, user):
     try:
         verification_happened = verify(user, digest, answer)
     except BadCaptcha as e:
-        notice, *_ = e.args
+        string, *args = e.args
         state_id = add_state(
             user,
-            notice=notice,
+            notice=[(string, args)],
             comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
         )
     else:
@@ -143,10 +149,10 @@ async def nojs_submit_message(timestamp, user):
             )
             message_was_added = seq is not None
         except Rejected as e:
-            notice, *_ = e.args
+            string, *args = e.args
             state_id = add_state(
                 user,
-                notice=notice,
+                notice=[(string, args)],
                 comment=comment[:CONFIG['CHAT_COMMENT_MAX_LENGTH']],
             )
         else:
@@ -185,13 +191,13 @@ async def nojs_submit_appearance(timestamp, user):
     # Change appearance (iff form data was good)
     errors = try_change_appearance(user, name, color, password, want_tripcode)
     if errors:
-        notice = Markup('<br>').join(
-            concatenate_for_notice(*error.args) for error in errors
-        )
+        notice = []
+        for string, *args in (error.args for error in errors):
+            notice.append((string, args))
     else:
-        notice = 'Changed appearance'
+        notice = [('appearance_changed', ())]
 
-    state_id = add_state(user, notice=notice, verbose=len(errors) > 1)
+    state_id = add_state(user, notice=notice)
     url = url_for(
         'nojs_chat_form',
         token=user['token'],

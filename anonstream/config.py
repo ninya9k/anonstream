@@ -40,6 +40,7 @@ def toml_to_flask_sections(config):
         toml_to_flask_section_captcha,
         toml_to_flask_section_nojs,
         toml_to_flask_section_emote,
+        toml_to_flask_section_locale,
     )
     for toml_to_flask_section in TOML_TO_FLASK_SECTIONS:
         yield toml_to_flask_section(config)
@@ -170,4 +171,13 @@ def toml_to_flask_section_emote(config):
   cfg = config['emote']
   return {
     'EMOTE_SCHEMA': cfg['schema'],
+  }
+
+def toml_to_flask_section_locale(config):
+  cfg = config['locale']
+  assert cfg['default'] in cfg['offered']
+  return {
+    'LOCALE_DEFAULT': cfg['default'],
+    'LOCALE_OFFERED': cfg['offered'],
+    'LOCALE_DIRECTORY': cfg['directory'],
   }

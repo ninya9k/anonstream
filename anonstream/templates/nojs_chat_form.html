@@ -214,45 +214,50 @@
   <input id="toggle" type="checkbox" {% if not prefer_chat_form %}checked {% endif %}accesskey="x">
   {% if state.notice %}
     <input id="notice-radio" type="radio" accesskey="z">
-    <label id="notice" for="notice-radio"{% if state.verbose %} class="verbose"{% endif %}>
-      <header><h2>{{ state.notice }}</h2></header>
-      <small>Click to dismiss</small>
+    <label id="notice" for="notice-radio"{% if (state.notice | length) > 1 %} class="verbose"{% endif %}>
+      <header><h2>
+        {%- for string, args in state.notice %}
+          {{ locale.internal[string] | escape | format(*args) -}}
+          {% if not loop.last %}<br>{% endif %}
+        {% endfor -%}
+      </h2></header>
+      <small>{{ locale.form.click_to_dismiss }}</small>
     </label>
   {% endif %}
   <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
-    <textarea id="chat-form__comment" name="comment" maxlength="{{ max_comment_length }}" {% if digest is none %}required {% endif %} placeholder="Send a message..." rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
-    <input id="chat-form__submit" type="submit" value="Chat" tabindex="4" accesskey="p">
-    <div id="chat-form__exit"><label for="toggle" class="pseudolink">Settings</label></div>
+    <textarea id="chat-form__comment" name="comment" maxlength="{{ max_comment_length }}" {% if digest is none %}required {% endif %} placeholder="{{ locale.form.send_a_message }}" rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
+    <input id="chat-form__submit" type="submit" value="{{ locale.form.chat }}" tabindex="4" accesskey="p">
+    <div id="chat-form__exit"><label for="toggle" class="pseudolink">{{ locale.form.settings }}</label></div>
     {% if digest %}
       <input type="hidden" name="captcha-digest" value="{{ digest }}">
-      <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_chat_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="Captcha failed to load" title="Click for a new captcha" tabindex="2">
+      <input id="chat-form__captcha-image" type="image" formaction="{{ url_for('nojs_chat_form_redirect', token=user.token) }}" formnovalidate src="{{ url_for('captcha', token=user.token, digest=digest) }}" width="72" height="30" alt="{{ locale.form.captcha_failed_to_load }}" title="{{ locale.form.click_for_a_new_captcha }}" tabindex="2">
       <input id="chat-form__captcha-answer" name="captcha-answer" required placeholder="Captcha" tabindex="3">
     {% endif %}
   </form>
   <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
-    <label id="appearance-form__label-name" for="appearance-form__name">Name:</label>
+    <label id="appearance-form__label-name" for="appearance-form__name">{{ locale.form.name }}</label>
     <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ default_name }}" maxlength="{{ max_name_length }}">
     <input type="color" name="color" value="{{ user.color }}">
-    <label id="appearance-form__label-password" for="appearance-form__password">Tripcode:</label>
+    <label id="appearance-form__label-password" for="appearance-form__password">{{ locale.form.tripcode }}</label>
     <input id="password-toggle" name="set-tripcode" type="checkbox" accesskey="s">
     <input id="cleared-toggle" name="clear-tripcode" type="checkbox"{% if user.tripcode != none %} accesskey="c"{% endif %}>
     <div id="password-column">
       {% if user.tripcode is none %}
-        <span class="tripcode">(no tripcode)</span>
-        <label for="password-toggle" class="show-password pseudolink">set</label>
+        <span class="tripcode">{{ locale.form.no_tripcode }}</span>
+        <label for="password-toggle" class="show-password pseudolink">{{ locale.form.set }}</label>
       {% else %}
         <label id="tripcode" for="password-toggle" class="show-password tripcode">{{ user.tripcode.digest }}</label>
         <label id="show-cleared" for="cleared-toggle" class="pseudolink x">&times;</label>
-        <div id="cleared" class="tripcode">(cleared)</div>
-        <label id="hide-cleared" for="cleared-toggle" class="pseudolink">undo</label>
+        <div id="cleared" class="tripcode">{{ locale.form.cleared }}</div>
+        <label id="hide-cleared" for="cleared-toggle" class="pseudolink">{{ locale.form.undo }}</label>
       {% endif %}
     </div>
-    <input id="appearance-form__password" name="password" type="password" placeholder="(tripcode password)" maxlength="{{ max_password_length }}">
+    <input id="appearance-form__password" name="password" type="password" placeholder="{{ locale.form.tripcode_password }}" maxlength="{{ max_password_length }}">
     <div id="hide-password"><label for="password-toggle" class="pseudolink x">&times;</label></div>
     <div id="appearance-form__buttons">
-      <div id="appearance-form__buttons__exit"><label for="toggle" class="pseudolink">Return to chat</label></div>
-      <input type="submit" value="Update">
+      <div id="appearance-form__buttons__exit"><label for="toggle" class="pseudolink">{{ locale.form.return_to_chat }}</label></div>
+      <input type="submit" value="{{ locale.form['update'] }}">
     </div>
   </form>
 </body>

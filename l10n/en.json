@@ -1,0 +1,102 @@
+{
+  "anonstream": {
+    "error": {
+      "blacklisted": "You have been blacklisted.",
+      "not_whitelisted": "You have not been whitelisted.",
+      "offline": "The stream is offline.",
+      "ratelimit": "You have requested the stream recently. Try again in %.1f seconds.",
+      "limit": "You have made %d concurrent requests or the stream. End one of those before making a new request."
+    },
+    "internal": {
+      "captcha_required": "Captcha required",
+      "captcha_incorrect": "Captcha incorrect",
+      "captcha_expired": "Captcha expired",
+      "message_ratelimited": "Chat overuse in the last %.0f seconds",
+      "message_suspected_duplicate": "Discarded suspected duplicate message",
+      "message_empty": "Message was empty",
+      "message_practically_empty": "Message was practically empty",
+      "message_too_long": "Message exceeded %d chars",
+      "message_too_many_lines": "Message exceeded %d lines",
+      "message_too_many_apparent_lines": "Message would span %d or more lines",
+      "appearance_changed": "Changed appearance",
+      "name_empty": "Name was empty",
+      "name_too_long": "Name exceeded %d chars",
+      "colour_invalid_css": "Invalid CSS color",
+      "colour_insufficient_contrast": "Colour had insufficient contrast: %s",
+      "password_too_long": "Password exceeded %d chars"
+    },
+    "captcha": {
+      "captcha_failed_to_load": "Captcha failed to load",
+      "click_for_a_new_captcha": "Click for a new captcha"
+    },
+    "home": {
+      "users": "Users",
+      "stream_chat": "Stream chat",
+      "users_in_chat": "Users in chat",
+      "source": "source"
+    },
+    "stream": {
+      "offline": "[offline]"
+    },
+    "info": {
+      "viewers": "%d viewers",
+      "uptime": "Uptime:",
+      "reload_stream": "Reload stream"
+    },
+    "chat": {
+      "users": "Users",
+      "click_to_refresh": "Click to refresh",
+      "hide_timeout_notice": "Hide timeout notice",
+      "watching": "Watching (%d)",
+      "not_watching": "Not watching (%d)",
+      "you": " (You)",
+      "timed_out": "Timed out"
+    },
+    "form": {
+      "click_to_dismiss": "Click to dismiss",
+      "send_a_message": "Send a message...",
+      "captcha": "Captcha",
+      "settings": "Settings",
+      "captcha_failed_to_load": "Captcha failed to load",
+      "click_for_a_new_captcha": "Click for a new captcha",
+      "chat": "Chat",
+      "name": "Name:",
+      "tripcode": "Tripcode:",
+      "no_tripcode": "(no tripcode)",
+      "set": "set",
+      "cleared": "(cleared)",
+      "undo": "undo",
+      "tripcode_password": "(tripcode password)",
+      "return_to_chat": "Return to chat",
+      "update": "Update"
+    },
+    "js": {
+      "offline": "[offline]",
+      "reload_stream": "Reload stream",
+      "chat_scroll_paused": "Chat scroll paused. Click to resume.",
+      "not_connected": "Not connected to chat",
+      "broadcaster": "Broadcaster",
+      "loading": "Loading...",
+      "click_for_a_new_captcha": "Click for a new captcha",
+      "viewers": "{0} viewers",
+      "you": " (You)",
+      "watching": "Watching ({0})",
+      "not_watching": "Not watching ({0})",
+      "errors": "Errors:",
+      "connecting_to_chat": "Connecting to chat...",
+      "connected_to_chat": "Connected to chat",
+      "disconnected_from_chat": "Disconnected from chat",
+      "error_connecting_to_chat": "Error connecting to chat",
+      "error_connecting_to_chat_terse": "Error"
+    }
+  },
+  "http": {
+    "400": null,
+    "401": null,
+    "403": null,
+    "404": null,
+    "405": null,
+    "410": null,
+    "500": null
+  }
+}

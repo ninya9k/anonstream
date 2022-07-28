@@ -9,6 +9,7 @@ from quart import current_app, websocket
 from anonstream.stream import get_stream_title, get_stream_uptime_and_viewership
 from anonstream.captcha import get_random_captcha_digest_for
 from anonstream.chat import get_all_messages_for_websocket, add_chat_message, Rejected
+from anonstream.locale import get_locale_from
 from anonstream.user import get_all_users_for_websocket, see, reading, verify, deverify, BadCaptcha, try_change_appearance, ensure_allowedness, AllowednessException
 from anonstream.wrappers import with_timestamp, get_timestamp
 from anonstream.utils.chat import generate_nonce
@@ -36,6 +37,7 @@ async def websocket_outbound(queue, user):
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
         'digest': get_random_captcha_digest_for(user),
         'pingpong': CONFIG['TASK_BROADCAST_PING'],
+        'locale': get_locale_from(websocket)['anonstream']['js'],
     })
     while True:
         payload = await queue.get()
@@ -126,7 +128,7 @@ def handle_inbound_appearance(timestamp, queue, user, name, color, password, wan
     else:
         return {
             'type': 'appearance',
-            'result': 'Changed appearance',
+            'result': 'Changed appearance' " [THIS STRING STILL HARDCODED]",
             'name': user['name'],
             'color': user['color'],
             #'tripcode': user['tripcode'],

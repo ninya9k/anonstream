@@ -25,17 +25,6 @@ Presence = Enum(
 def generate_token():
     return secrets.token_hex(16)
 
-def concatenate_for_notice(string, *tuples):
-    if not tuples:
-        return string
-    markup = Markup(
-        ''.join(
-            f' <mark>{escape(x)}</mark>{escape(y)}'
-            for x, y in tuples
-        )
-    )
-    return string + markup
-
 def trilean(presence):
     match presence:
         case Presence.WATCHING:

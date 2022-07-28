@@ -6,7 +6,7 @@ import time
 from functools import reduce
 from math import inf
 
-from quart import current_app
+from quart import current_app, Markup
 
 from anonstream.wrappers import try_except_log, with_timestamp, get_timestamp
 from anonstream.helpers.user import get_default_name, get_presence, Presence
@@ -106,10 +106,11 @@ def change_name(user, name, dry_run=False):
             name = None
         if name is not None:
             if len(name) == 0:
-                raise BadAppearance('Name was empty')
+                raise BadAppearance('name_empty')
             if len(name) > CONFIG['CHAT_NAME_MAX_LENGTH']:
                 raise BadAppearance(
-                    f'Name exceeded {CONFIG["CHAT_NAME_MAX_LENGTH"]} chars'
+                    'name_too_long',
+                    CONFIG['CHAT_NAME_MAX_LENGTH'],
                 )
     else:
         user['name'] = name
@@ -119,16 +120,13 @@ def change_color(user, color, dry_run=False):
         try:
             colour = color_to_colour(color)
         except NotAColor:
-            raise BadAppearance('Invalid CSS color')
-        contrast = get_contrast(
-            CONFIG['CHAT_BACKGROUND_COLOUR'],
-            colour,
-        )
+            raise BadAppearance('colour_invalid_css')
+        contrast = get_contrast(CONFIG['CHAT_BACKGROUND_COLOUR'], colour)
         min_contrast = CONFIG['CHAT_NAME_MIN_CONTRAST']
         if contrast < min_contrast:
             raise BadAppearance(
-                'Colour had insufficient contrast:',
-                (f'{contrast:.2f}', f'/{min_contrast:.2f}'),
+                'colour_insufficient_contrast',
+                Markup(f'<mark>{contrast:.2f}</mark>/{min_contrast:.2f}'),
             )
     else:
         user['color'] = color
@@ -137,8 +135,8 @@ def change_tripcode(user, password, dry_run=False):
     if dry_run:
         if len(password) > CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH']:
             raise BadAppearance(
-                f'Password exceeded '
-                f'{CONFIG["CHAT_TRIPCODE_PASSWORD_MAX_LENGTH"]} chars'
+                'password_too_long',
+                CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH'],
             )
     else:
         user['tripcode'] = generate_tripcode(password)
@@ -176,11 +174,11 @@ def verify(user, digest, answer):
     else:
         match check_captcha_digest(CAPTCHA_SIGNER, digest, answer):
             case Answer.MISSING:
-                raise BadCaptcha('Captcha is required')
+                raise BadCaptcha('captcha_required')
             case Answer.BAD:
-                raise BadCaptcha('Captcha was incorrect')
+                raise BadCaptcha('captcha_incorrect')
             case Answer.EXPIRED:
-                raise BadCaptcha('Captcha has expired')
+                raise BadCaptcha('captcha_expired')
             case Answer.OK:
                 user['verified'] = True
                 verification_happened = True

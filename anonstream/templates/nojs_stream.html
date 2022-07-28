@@ -45,7 +45,7 @@
   {% if online %}
     <video id="video" src="{{ url_for('stream', token=user.token) }}" autoplay controls></video>
   {% else %}
-    <header id="offline"><h1>[offline]</h1></header>
+    <header id="offline"><h1>{{ locale.offline }}</h1></header>
   {% endif %}
 </body>
 </html>

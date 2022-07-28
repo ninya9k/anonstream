@@ -109,27 +109,27 @@
 <body>
   <aside id="timeout">
     <a href="">
-      <header>Timed out</header>
-      <small>Click to refresh</small>
+      <header>{{ locale.timed_out}} </header>
+      <small>{{ locale.click_to_refresh }}</small>
     </a>
   </aside>
   <main id="main">
-    <h5>Watching ({{ users_watching | length }})</h5>
+    <h5>{{ locale.watching | format(users_watching | length) }}</h5>
     <ul>
       {% for user_listed in users_watching %}
         <li class="user" data-token-hash="{{ user_listed.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
-          {%- if user.token == user_listed.token %} (You){% endif -%}
+          {%- if user.token == user_listed.token %}{{ locale.you }}{% endif -%}
         </li>
       {% endfor %}
     </ul>
     <br>
-    <h5>Not watching ({{ users_notwatching | length }})</h5>
+    <h5>{{ locale.not_watching | format(users_notwatching | length) }}</h5>
     <ul>
       {% for user_listed in users_notwatching %}
         <li class="user" data-token-hash="{{ user_listed.token_hash }}">
           {{- appearance(user_listed, insignia_class='user__insignia', name_class='user__name', tag_class='user__name__tag') -}}
-          {%- if user.token == user_listed.token %} (You){% endif -%}
+          {%- if user.token == user_listed.token %}{{ locale.you }}{% endif -%}
         </li>
       {% endfor %}
     </ul>

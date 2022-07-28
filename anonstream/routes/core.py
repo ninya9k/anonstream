@@ -9,6 +9,7 @@ from werkzeug.exceptions import Forbidden, NotFound, TooManyRequests
 
 from anonstream.access import add_failure, pop_failure
 from anonstream.captcha import get_captcha_image, get_random_captcha_digest
+from anonstream.locale import get_lang_and_locale_from, get_lang_from, get_locale_from
 from anonstream.segments import segments, StopSendingSegments
 from anonstream.stream import is_online, get_stream_uptime
 from anonstream.user import watching, create_eyes, renew_eyes, EyesException, RatelimitedEyes, TooManyEyes, ensure_allowedness, Blacklisted, SecretClub
@@ -20,33 +21,39 @@ from anonstream.wrappers import with_timestamp
 
 CAPTCHA_SIGNER = current_app.captcha_signer
 STATIC_DIRECTORY = current_app.root_path / 'static'
+LANG = current_app.lang
 
 @current_app.route('/')
 @with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
 async def home(timestamp, user_or_token):
+    lang, locale = get_lang_and_locale_from(request)
     match user_or_token:
         case str() | None as token:
             failure_id = request.args.get('failure', type=int)
+            failure = pop_failure(failure_id)
             response = await render_template(
                 'captcha.html',
                 csp=generate_csp(),
                 token=token,
+                locale=locale['anonstream']['captcha'],
                 digest=get_random_captcha_digest(),
-                failure=pop_failure(failure_id),
+                failure=locale['anonstream']['internal'].get(failure),
             )
         case dict() as user:
             try:
                 ensure_allowedness(user, timestamp=timestamp)
             except Blacklisted:
-                raise Forbidden('You have been blacklisted.')
+                raise Forbidden(locale['anonstream']['error']['blacklisted'])
             except SecretClub:
                 # TODO allow changing tripcode
-                raise Forbidden('You have not been whitelisted.')
+                raise Forbidden(locale['anonstream']['error']['not_whitelisted'])
             else:
                 response = await render_template(
                     'home.html',
                     csp=generate_csp(),
                     user=user,
+                    lang=lang or LANG,
+                    locale=locale['anonstream']['home'],
                     version=current_app.version,
                 )
     return response
@@ -54,27 +61,22 @@ async def home(timestamp, user_or_token):
 @current_app.route('/stream.mp4')
 @with_user_from(request)
 async def stream(timestamp, user):
+    locale = get_locale_from(request)['anonstream']['error']
     if not is_online():
-        raise NotFound('The stream is offline.')
+        raise NotFound(locale['offline'])
     else:
         try:
             eyes_id = create_eyes(user, tuple(request.headers))
         except RatelimitedEyes as e:
             retry_after, *_ = e.args
-            error = TooManyRequests(
-                f'You have requested the stream recently.  '
-                f'Try again in {retry_after:.1f} seconds.'
-            )
+            error = TooManyRequests(locale['ratelimit'] % retry_after)
             response = await current_app.handle_http_exception(error)
             response = await make_response(response)
             response.headers['Retry-After'] = math.ceil(retry_after)
             raise abort(response)
         except TooManyEyes as e:
             n_eyes, *_ = e.args
-            raise TooManyRequests(
-                f'You have made {n_eyes} concurrent requests for the stream. '
-                f'End one of those before making a new request.'
-            )
+            raise TooManyRequests(locale['limit'] % n_eyes)
         else:
             @with_timestamp(precise=True)
             def segment_read_hook(timestamp, uri):
@@ -112,6 +114,7 @@ async def captcha(timestamp, user_or_token):
 @current_app.post('/access')
 @with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
 async def access(timestamp, user_or_token):
+    lang = get_lang_from(request)
     match user_or_token:
         case str() | None as token:
             form = await request.form
@@ -119,16 +122,16 @@ async def access(timestamp, user_or_token):
             answer = form.get('answer', '')
             match check_captcha_digest(CAPTCHA_SIGNER, digest, answer):
                 case Answer.MISSING:
-                    failure_id = add_failure('Captcha is required')
+                    failure_id = add_failure('captcha_required')
                 case Answer.BAD:
-                    failure_id = add_failure('Captcha was incorrect')
+                    failure_id = add_failure('captcha_incorrect')
                 case Answer.EXPIRED:
-                    failure_id = add_failure('Captcha has expired')
+                    failure_id = add_failure('captcha_expired')
                 case Answer.OK:
                     failure_id = None
                     user = generate_and_add_user(timestamp, token, verified=True)
             if failure_id is not None:
-                url = url_for('home', token=token, failure=failure_id)
+                url = url_for('home', token=token, lang=lang, failure=failure_id)
                 raise abort(redirect(url, 303))
         case dict() as user:
             pass

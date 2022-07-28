@@ -7,7 +7,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ error.code }} {{ error.name }}</title>
+  <title>{{ error.code }} {{ locale[error.code | string] or error.name }}</title>
   <style>
     body {
       background-color: #232327;
@@ -63,8 +63,8 @@
 </head>
 <body>
   <main>
-    <h1>{{ error.name }}</h1>
-    {% if error.description != error.__class__.description %}
+    <h1>{{ locale[error.code | string] or error.name }}</h1>
+    {% if error.description is not none %}
       <p>{{ error.description }}</p>
     {% endif %}
   </main>

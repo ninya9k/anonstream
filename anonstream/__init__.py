@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import os
 from collections import OrderedDict
 
 from quart_compress import Compress
@@ -11,6 +12,7 @@ from anonstream.config import update_flask_from_toml
 from anonstream.emote import load_emote_schema
 from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
+from anonstream.utils.locale import validate_locale, Nonconforming
 from anonstream.utils.user import generate_blank_allowedness
 
 __version__ = '1.6.6'
@@ -53,6 +55,22 @@ def create_app(toml_config):
         app.emotes = load_emote_schema(app.config['EMOTE_SCHEMA'])
     except (OSError, json.JSONDecodeError) as e:
         raise AssertionError(f'couldn\'t load emote schema: {e!r}') from e
+
+    # Read locales
+    app.locales = {}
+    for lang in app.config['LOCALE_OFFERED']:
+        filepath = os.path.join(app.config['LOCALE_DIRECTORY'], f'{lang}.json')
+        with open(filepath) as fp:
+            locale = json.load(fp)
+            try:
+                validate_locale(locale)
+            except Nonconforming as e:
+                error, *_ = e.args
+                assert False, f'error in locale {lang!r}: {error}'
+            else:
+                app.locales[lang] = locale
+    app.lang = app.config['LOCALE_DEFAULT']
+    app.locales[None] = app.locales[app.lang]
 
     # State for tasks
     app.users_update_buffer = set()
