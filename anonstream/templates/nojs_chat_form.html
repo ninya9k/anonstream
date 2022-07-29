@@ -136,7 +136,7 @@
     #appearance-form__buttons {
       grid-column: 1 / span 3;
       display: grid;
-      grid-template-columns: auto 5rem;
+      grid-template-columns: auto 6rem;
     }
     #password-column {
       display: grid;
@@ -224,7 +224,7 @@
       <small>{{ locale.form.click_to_dismiss }}</small>
     </label>
   {% endif %}
-  <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token) }}" method="post">
+  <form id="chat-form" action="{{ url_for('nojs_submit_message', token=user.token, lang=lang) }}" method="post">
     <input type="hidden" name="nonce" value="{{ nonce }}">
     <textarea id="chat-form__comment" name="comment" maxlength="{{ max_comment_length }}" {% if digest is none %}required {% endif %} placeholder="{{ locale.form.send_a_message }}" rows="1" tabindex="1" autofocus accesskey="m">{{ state.comment }}</textarea>
     <input id="chat-form__submit" type="submit" value="{{ locale.form.chat }}" tabindex="4" accesskey="p">
@@ -235,7 +235,7 @@
       <input id="chat-form__captcha-answer" name="captcha-answer" required placeholder="Captcha" tabindex="3">
     {% endif %}
   </form>
-  <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token) }}" method="post">
+  <form id="appearance-form" action="{{ url_for('nojs_submit_appearance', token=user.token, lang=lang) }}" method="post">
     <label id="appearance-form__label-name" for="appearance-form__name">{{ locale.form.name }}</label>
     <input id="appearance-form__name" name="name" value="{{ user.name or '' }}" placeholder="{{ default_name }}" maxlength="{{ max_name_length }}">
     <input type="color" name="color" value="{{ user.color }}">

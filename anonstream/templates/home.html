@@ -3,7 +3,7 @@
  # SPDX-License-Identifier: AGPL-3.0-or-later
  ##}
 <!doctype html>
-<html id="nochat" lang="{{ lang }}">
+<html id="nochat" lang="{{ lang or default_lang }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,7 @@
     <noscript><iframe id="stream_nojs" name="stream_nojs" src="{{ url_for('nojs_stream', token=user.token) }}"></iframe></noscript>
   </article>
   <article id="info">
-    <noscript><iframe id="info_nojs" src="{{ url_for('nojs_info', token=user.token) }}" data-js="false"></iframe></noscript>
+    <noscript><iframe id="info_nojs" src="{{ url_for('nojs_info', token=user.token, lang=lang) }}" data-js="false"></iframe></noscript>
   </article>
   <aside id="chat">
     <input id="chat__toggle" type="checkbox">
@@ -25,21 +25,21 @@
     </header>
     <article id="chat__body">
       <section id="chat__body__messages">
-        <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat_messages', token=user.token, _anchor='end') }}" data-js="false"></iframe></noscript>
+        <noscript><iframe id="chat-messages_nojs" src="{{ url_for('nojs_chat_messages', token=user.token, lang=lang, _anchor='end') }}" data-js="false"></iframe></noscript>
       </section>
       <section id="chat__body__users">
         <header id="chat-users-header"><h4>{{ locale.users_in_chat }}</h4></header>
-        <noscript><iframe id="chat-users_nojs" src="{{ url_for('nojs_chat_users', token=user.token) }}" data-js="false"></iframe></noscript>
+        <noscript><iframe id="chat-users_nojs" src="{{ url_for('nojs_chat_users', token=user.token, lang=lang) }}" data-js="false"></iframe></noscript>
       </section>
     </article>
     <section id="chat__form">
-      <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_chat_form', token=user.token) }}" data-js="false"></iframe></noscript>
+      <noscript><iframe id="chat-form_nojs" src="{{ url_for('nojs_chat_form', token=user.token, lang=lang) }}" data-js="false"></iframe></noscript>
     </section>
   </aside>
   <nav id="nav">
-    <a href="#info">info</a>
-    <a href="#chat">chat</a>
-    <a href="#both">both</a>
+    <a href="#info">{{ locale.info }}</a>
+    <a href="#chat">{{ locale.chat }}</a>
+    <a href="#both">{{ locale.both }}</a>
   </nav>
   <footer>anonstream {{ version }} &mdash; <a href="https://git.076.ne.jp/ninya9k/anonstream" target="_blank">{{ locale.source }}</a></footer>
   <script src="{{ url_for('static', filename='anonstream.js', token=user.token) }}" type="text/javascript"></script>

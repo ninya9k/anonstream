@@ -3,6 +3,12 @@ import types
 SPEC = {
     'anonstream': {
         'error': {
+            'invalid_token': str,
+            'captcha': str,
+            'captcha_again': str,
+            'impostor': str,
+            'broadcaster_should_log_in': str,
+            'wrong_username_or_password': str,
             'blacklisted': str,
             'not_whitelisted': str,
             'offline': str,
@@ -32,6 +38,9 @@ SPEC = {
             'click_for_a_new_captcha': str,
         },
         'home': {
+            'info': str,
+            'chat': str,
+            'both': str,
             'source': str,
             'users': str,
             'users_in_chat': str,

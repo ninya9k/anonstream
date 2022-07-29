@@ -1,0 +1,111 @@
+{
+  "anonstream": {
+    "error": {
+      "invalid_token": "invalid_token%s",
+      "captcha": "captcha%s%s",
+      "captcha_again": "captcha_again%s%s",
+      "impostor": "impostor%s%s",
+      "broadcaster_should_log_in": "broadcaster_should_log_in",
+      "wrong_username_or_password": "wrong_username_or_password%s",
+      "blacklisted": "Du wurdest ge-blacklist-et.",
+      "not_whitelisted": "Du wurdest nicht ge-whitelist-et.",
+      "offline": "Der Stream ist offline.",
+      "ratelimit": "Du hast den Stream bereits vor kurzem angefragt. Versuche es erneut in %.1f Sekunden.",
+      "limit": "Du hast eine Stream-Verbindung %d mal gleichzeitig angefragt. Beende eine Verbindung bevor du eine neue Anfrage versuchst."
+    },
+    "internal": {
+      "captcha_required": "Captcha benötigt",
+      "captcha_incorrect": "Falsches Captcha",
+      "captcha_expired": "Captcha abgelaufen",
+      "message_ratelimited": "Chat-Überlastung in den letzten %.0f Sekunden",
+      "message_suspected_duplicate": "Verworfen, Duplikat vermutet",
+      "message_empty": "Die Nachricht war leer",
+      "message_practically_empty": "Die Nachricht war praktisch leer",
+      "message_too_long": "Nachricht hat %d Zeichen überschritten",
+      "message_too_many_lines": "Nachricht hat %d Zeilen überschritten",
+      "message_too_many_apparent_lines": "Nachricht würde %d oder mehr Zeilen umfassen",
+      "appearance_changed": "Aussehen geändert",
+      "name_empty": "Namensfeld war leer",
+      "name_too_long": "Name überschreitet %d Zeichen",
+      "colour_invalid_css": "Ungültige CSS-Farbe",
+      "colour_insufficient_contrast": "Farbe hat nicht ausreichend Kontrast: %s",
+      "password_too_long": "Passwort überschreitet %d Zeichen"
+    },
+    "captcha": {
+      "captcha_failed_to_load": "Captcha konnte nicht geladen werden",
+      "click_for_a_new_captcha": "Klick für ein neues Captcha"
+    },
+    "home": {
+      "info": "Info",
+      "chat": "Chat",
+      "both": "Beide",
+      "users": "Benutzer",
+      "stream_chat": "Stream-Chat",
+      "users_in_chat": "Benutzer im Chat",
+      "source": "Quelltext"
+    },
+    "stream": {
+      "offline": "[offline]"
+    },
+    "info": {
+      "viewers": "%d Zuschauer",
+      "uptime": "Zeit:",
+      "reload_stream": "Stream neu laden"
+    },
+    "chat": {
+      "users": "Benutzer",
+      "click_to_refresh": "Klicken zum aktualisieren",
+      "hide_timeout_notice": "Auszeitnachricht ausblenden",
+      "watching": "Zuschauer (%d)",
+      "not_watching": "Inaktive Zuschauer (%d)",
+      "you": " (Du)",
+      "timed_out": "Zeitüberschreitung"
+    },
+    "form": {
+      "click_to_dismiss": "Klicken zum Ausblenden",
+      "send_a_message": "Schreib eine Nachricht...",
+      "captcha": "Captcha",
+      "settings": "Einstellungen",
+      "captcha_failed_to_load": "Captcha konnte nicht geladen werden",
+      "click_for_a_new_captcha": "Klick für ein neues Captcha",
+      "chat": "Chat",
+      "name": "Name:",
+      "tripcode": "Tripcode:",
+      "no_tripcode": "(kein Tripcode)",
+      "set": "setzen",
+      "cleared": "(geleert)",
+      "undo": "zurück",
+      "tripcode_password": "(Tripcode-Passwort)",
+      "return_to_chat": "Zurück zum Chat",
+      "update": "Aktualisieren"
+    },
+    "js": {
+      "offline": "[offline]",
+      "reload_stream": "Stream neuladen",
+      "chat_scroll_paused": "Chat-Rollen pausiert. Klick zum Wiederaufnehmen.",
+      "not_connected": "Nicht mit dem Chat verbunden",
+      "broadcaster": "Sender",
+      "loading": "Läd...",
+      "click_for_a_new_captcha": "Klick für ein neues Captcha",
+      "viewers": "{0} Zuschauer",
+      "you": " (Du)",
+      "watching": "Zuschauer ({0})",
+      "not_watching": "Inaktive Zuschauer ({0})",
+      "errors": "Fehler:",
+      "connecting_to_chat": "Baue Verbindung zum Chat auf...",
+      "connected_to_chat": "Verbunden mit dem Chat",
+      "disconnected_from_chat": "Verbindung zum Chat getrennt",
+      "error_connecting_to_chat": "Fehler bei der Verbindung zum Chat",
+      "error_connecting_to_chat_terse": "Fehler"
+    }
+  },
+  "http": {
+    "400": null,
+    "401": null,
+    "403": null,
+    "404": null,
+    "405": null,
+    "410": null,
+    "500": null
+  }
+}

@@ -8,11 +8,12 @@ import string
 from functools import wraps
 from urllib.parse import quote, unquote
 
-from quart import current_app, request, make_response, render_template, request, url_for, Markup
+from quart import current_app, request, make_response, render_template, request, url_for, escape, Markup
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 from werkzeug.security import check_password_hash
 
 from anonstream.broadcast import broadcast
+from anonstream.locale import get_lang_and_locale_from, get_locale_from
 from anonstream.user import ensure_allowedness, Blacklisted, SecretClub
 from anonstream.helpers.user import generate_user
 from anonstream.utils.user import generate_token, Presence
@@ -53,18 +54,11 @@ def auth_required(f):
     async def wrapper(*args, **kwargs):
         if check_auth(request):
             return await f(*args, **kwargs)
-        hint = (
-            'The broadcaster should log in with the credentials printed in '
-            'their terminal.'
-        )
+        locale = get_locale_from(request)['anonstream']['error']
         if request.authorization is None:
-            description = hint
+            description = locale['broadcaster_should_log_in']
         else:
-            description = Markup(
-                f'Wrong username or password.  Refresh the page to try again.  '
-                f'<br>'
-                f'{hint}'
-            )
+            description = locale['wrong_username_or_password']
         error = Unauthorized(description)
         response = await current_app.handle_http_exception(error)
         response = await make_response(response)
@@ -107,11 +101,11 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
 
             # Reject invalid tokens
             if isinstance(token, str) and not RE_TOKEN.fullmatch(token):
-                raise BadRequest(Markup(
-                    f'Your token contains disallowed characters or is too '
-                    f'long.  Tokens must match this regular expression: <br>'
-                    f'<code>{RE_TOKEN.pattern}</code>'
-                ))
+                locale = get_locale_from(context)
+                args = (
+                    Markup(f'<br><code>{RE_TOKEN.pattern}</code>'),
+                )
+                raise BadRequest(escape(locale['invalid_token']) % args)
 
             # Only logged in broadcaster may have the broadcaster's token
             if (
@@ -119,15 +113,16 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
                 and isinstance(token, str)
                 and hmac.compare_digest(token, CONFIG['AUTH_TOKEN'])
             ):
-                    raise Unauthorized(Markup(
-                        f"You are using the broadcaster's token but you are "
-                        f"not logged in.  The broadcaster should "
-                        f"<a href=\"{url_for('login')}\" target=\"_top\">"
-                        f"click here"
-                        f"</a> "
-                        f"and log in with the credentials printed in their "
-                        f"terminal when they started anonstream."
-                    ))
+                    lang, locale = get_lang_and_locale_from(
+                        context, burrow=('anonstream', 'error'),
+                    )
+                    args = (
+                        Markup(f'''<a href="{url_for('login', lang=lang)}" target="_top">'''),
+                        Markup(f'''</a>'''),
+                    )
+                    raise Unauthorized(
+                        escape(locale['impostor']) % args
+                    )
 
             # Create response
             user = USERS_BY_TOKEN.get(token)
@@ -136,19 +131,25 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
                     user['last']['seen'] = timestamp
                     user['headers'] = tuple(context.headers)
                     if not ignore_allowedness:
-                        assert_allowedness(timestamp, user)
+                        assert_allowedness(context, timestamp, user)
                 if user is not None and user['verified'] is not None:
                     response = await f(timestamp, user, *args, **kwargs)
                 elif fallback_to_token:
                     #assert not broadcaster
                     response = await f(timestamp, token, *args, **kwargs)
                 else:
-                    raise Forbidden(Markup(
-                        f"You have not solved the access captcha.  "
-                        f"<a href=\"{url_for('home', token=token)}\" target=\"_top\">"
-                        f"Click here."
-                        f"</a>"
-                    ))
+                    lang, locale = get_lang_and_locale_from(
+                        context, burrow=('anonstream', 'error'),
+                    )
+                    args = (
+                        Markup(f'''<a href="{url_for('home', token=token, lang=lang)}" target="_top">'''),
+                        Markup(f'''</a>'''),
+                    )
+                    if user is None:
+                        string = locale['captcha']
+                    else:
+                        string = locale['captcha_again']
+                    raise Forbidden(escape(string) % args)
             else:
                 if user is not None:
                     user['last']['seen'] = timestamp
@@ -161,7 +162,7 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
                         headers=tuple(context.headers),
                     )
                 if not ignore_allowedness:
-                    assert_allowedness(timestamp, user)
+                    assert_allowedness(context, timestamp, user)
                 response = await f(timestamp, user, *args, **kwargs)
 
             # Set cookie
@@ -229,10 +230,12 @@ def etag_conditional(f):
 
     return wrapper
 
-def assert_allowedness(timestamp, user):
+def assert_allowedness(context, timestamp, user):
     try:
         ensure_allowedness(user, timestamp=timestamp)
     except Blacklisted as e:
-        raise Forbidden('You have been blacklisted.')
+        locale = get_locale_from(context)['anonstream']['error']
+        raise Forbidden(locale['blacklisted'])
     except SecretClub as e:
-        raise Forbidden('You have not been whitelisted.')
+        locale = get_locale_from(context)['anonstream']['error']
+        raise Forbidden(locale['whitelisted'])

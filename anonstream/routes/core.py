@@ -26,7 +26,7 @@ LANG = current_app.lang
 @current_app.route('/')
 @with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
 async def home(timestamp, user_or_token):
-    lang, locale = get_lang_and_locale_from(request)
+    lang, locale = get_lang_and_locale_from(request, burrow=('anonstream',))
     match user_or_token:
         case str() | None as token:
             failure_id = request.args.get('failure', type=int)
@@ -35,25 +35,27 @@ async def home(timestamp, user_or_token):
                 'captcha.html',
                 csp=generate_csp(),
                 token=token,
-                locale=locale['anonstream']['captcha'],
+                request_lang=get_lang_from(request, validate=False),
+                locale=locale['captcha'],
                 digest=get_random_captcha_digest(),
-                failure=locale['anonstream']['internal'].get(failure),
+                failure=locale['internal'].get(failure),
             )
         case dict() as user:
             try:
                 ensure_allowedness(user, timestamp=timestamp)
             except Blacklisted:
-                raise Forbidden(locale['anonstream']['error']['blacklisted'])
+                raise Forbidden(locale['error']['blacklisted'])
             except SecretClub:
                 # TODO allow changing tripcode
-                raise Forbidden(locale['anonstream']['error']['not_whitelisted'])
+                raise Forbidden(locale['error']['not_whitelisted'])
             else:
                 response = await render_template(
                     'home.html',
                     csp=generate_csp(),
                     user=user,
-                    lang=lang or LANG,
-                    locale=locale['anonstream']['home'],
+                    lang=lang,
+                    default_lang=LANG,
+                    locale=locale['home'],
                     version=current_app.version,
                 )
     return response
@@ -99,7 +101,7 @@ async def stream(timestamp, user):
 @current_app.route('/login')
 @auth_required
 async def login():
-    return redirect(url_for('home'), 303)
+    return redirect(url_for('home', lang=get_lang_from(request)), 303)
 
 @current_app.route('/captcha.jpg')
 @with_user_from(request, fallback_to_token=True)
@@ -114,7 +116,6 @@ async def captcha(timestamp, user_or_token):
 @current_app.post('/access')
 @with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
 async def access(timestamp, user_or_token):
-    lang = get_lang_from(request)
     match user_or_token:
         case str() | None as token:
             form = await request.form
@@ -130,12 +131,11 @@ async def access(timestamp, user_or_token):
                 case Answer.OK:
                     failure_id = None
                     user = generate_and_add_user(timestamp, token, verified=True)
-            if failure_id is not None:
-                url = url_for('home', token=token, lang=lang, failure=failure_id)
-                raise abort(redirect(url, 303))
         case dict() as user:
-            pass
-    url = url_for('home', token=user['token'])
+            token = user['token']
+            failure_id = None
+    lang = get_lang_from(request, validate=failure_id is None)
+    url = url_for('home', token=token, lang=lang, failure=failure_id)
     return redirect(url, 303)
 
 @current_app.route('/static/<path:filename>')

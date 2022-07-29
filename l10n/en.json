@@ -1,11 +1,17 @@
 {
   "anonstream": {
     "error": {
+      "invalid_token": "Your token contains disallowed characters or is too long.  Tokens must match this regular expression: %s",
+      "captcha": "You have not solved the access captcha.  %sClick here.%s",
+      "captcha_again": "You must solve the access captcha again because you have been away.  %sClick here.%s",
+      "impostor": "You are using the broadcaster's token but you are not logged in.  The broadcaster should %sclick here%s and log in with the credentials printed in their terminal when they started anonstream.",
+      "broadcaster_should_log_in": "The broadcaster should log in with the credentials printed in their terminal.",
+      "wrong_username_or_password": "Wrong username or password.  Refresh the page to try again.  %sThe broadcaster should log in with the credentials printed in their terminal.",
       "blacklisted": "You have been blacklisted.",
       "not_whitelisted": "You have not been whitelisted.",
       "offline": "The stream is offline.",
-      "ratelimit": "You have requested the stream recently. Try again in %.1f seconds.",
-      "limit": "You have made %d concurrent requests or the stream. End one of those before making a new request."
+      "ratelimit": "You have requested the stream recently.  Try again in %.1f seconds.",
+      "limit": "You have made %d concurrent requests for the stream.  End one of those before making a new request."
     },
     "internal": {
       "captcha_required": "Captcha required",
@@ -30,6 +36,9 @@
       "click_for_a_new_captcha": "Click for a new captcha"
     },
     "home": {
+      "info": "info",
+      "chat": "chat",
+      "both": "both",
       "users": "Users",
       "stream_chat": "Stream chat",
       "users_in_chat": "Users in chat",
@@ -91,12 +100,12 @@
     }
   },
   "http": {
-    "400": null,
-    "401": null,
-    "403": null,
-    "404": null,
-    "405": null,
-    "410": null,
-    "500": null
+    "400": "Bad Request",
+    "401": "Unauthorized",
+    "403": "Forbidden",
+    "404": "Not Found",
+    "405": "Method Not Allowed",
+    "410": "Gone",
+    "500": "Internal Server Error"
   }
 }

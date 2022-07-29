@@ -2,7 +2,7 @@ secret_key = "place secret key here"
 
 [locale]
 default = "en"
-offered = ["en"]
+offered = ["en", "de"]
 directory = "l10n/"
 
 [socket.control]
@@ -31,6 +31,7 @@ file_cache_lifetime = 0.5
 
 [access]
 captcha = true
+hide_offered_locales = 0 #"don't" "from-new" "from-everyone"
 
 [captcha]
 lifetime = 1800

@@ -7,6 +7,9 @@
 const TOKEN = document.body.dataset.token;
 const TOKEN_HASH = document.body.dataset.tokenHash;
 
+/* language */
+const LANG = document.firstElementChild.lang;
+
 /* Content Security Policy nonce */
 const CSP = document.body.dataset.csp;
 
@@ -868,7 +871,7 @@ const connect_websocket = () => {
   chat_live_ball.style.borderColor = "gold";
   chat_live_status.innerHTML = `<span data-verbose='true'>${locale.connecting_to_chat || "Connecting to chat..."}</span><span data-verbose='false'>&middot;&middot;&middot;</span>`;
   ws = null;
-  ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}`);
+  ws = new WebSocket(`ws://${document.domain}:${location.port}/live?token=${encodeURIComponent(TOKEN)}&lang=${encodeURIComponent(LANG)}`);
   ws.addEventListener("open", (event) => {
     console.log("websocket open", event);
     chat_form_submit.disabled = false;

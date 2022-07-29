@@ -55,7 +55,7 @@
 </head>
 <body>
   <img src="{{ url_for('captcha', digest=digest) }}" width="72" height="30">
-  <form action="{{ url_for('access', token=token) }}" method="post">
+  <form action="{{ url_for('access', token=token, lang=request_lang) }}" method="post">
     <input type="hidden" name="digest" value="{{ digest }}">
     <input name="answer" placeholder="{{ locale.captcha }}" required autofocus>
     <input type="submit" value="Submit">
