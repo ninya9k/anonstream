@@ -96,7 +96,7 @@ using the `ANONSTREAM_CONFIG` environment variable.
 
 anonstream has APIs for accessing internal state and hooking into
 internal events. They can be used by humans and other programs.  See
-[HACKING.md][/doc/HACKING.md].
+[HACKING.md](/doc/HACKING.md).
 
 ## Copying
 
