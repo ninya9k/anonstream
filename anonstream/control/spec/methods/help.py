@@ -9,7 +9,7 @@ async def cmd_help():
         'Usage: METHOD [COMMAND | help]\n'
         'Examples:\n'
         ' help...........................show this help message\n'
-        ' exit...........................close the control connection\n'
+        ' quit...........................close the control connection\n'
         ' title [show]...................show the stream title\n'
         ' title set TITLE................set the stream title\n'
         ' user [show]....................show a list of users\n'
