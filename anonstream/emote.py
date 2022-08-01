@@ -3,12 +3,19 @@ import re
 
 from quart import escape
 
-class BadEmoteName(Exception):
+class BadEmote(Exception):
+    pass
+
+class BadEmoteName(BadEmote):
     pass
 
 def load_emote_schema(filepath):
     with open(filepath) as fp:
         emotes = json.load(fp)
+        for key in ('name', 'file', 'width', 'height'):
+            for emote in emotes:
+                if key not in emote:
+                    raise BadEmote(f'emotes must have a `{key}`: {emote}')
         precompute_emote_regex(emotes)
     return emotes
 
