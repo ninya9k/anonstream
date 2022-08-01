@@ -16,10 +16,19 @@ EMOTES = current_app.emotes
 async def cmd_emote_help():
     normal = ['emote', 'help']
     response = (
-        'Usage: emote reload\n'
+        'Usage: emote [show | reload]\n'
         'Commands:\n'
+        ' emote show........show all current emotes\n'
         ' emote reload......try to reload the emote schema (existing messages are not modified)\n'
     )
+    return normal, response
+
+async def cmd_emote_show():
+    emotes_for_json = [emote.copy() for emote in EMOTES]
+    for emote in emotes_for_json:
+        emote['regex'] = emote['regex'].pattern
+    normal = ['emote', 'show']
+    response = json.dumps(emotes_for_json) + '\n'
     return normal, response
 
 async def cmd_emote_reload():
@@ -46,6 +55,7 @@ async def cmd_emote_reload():
 SPEC = Str({
     None: End(cmd_emote_help),
     'help': End(cmd_emote_help),
+    'show': End(cmd_emote_show),
     'reload': End(cmd_emote_reload),
 })
 

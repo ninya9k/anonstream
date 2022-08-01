@@ -24,6 +24,7 @@ async def cmd_help():
         ' allowedness setdefault BOOLEAN.set the default allowedness\n'
         ' allowedness add SET STRING.....add to the blacklist/whitelist\n'
         ' allowedness remove SET STRING..remove from the blacklist/whitelist\n'
+        ' emote show.....................show all current emotes\n'
         ' emote reload...................try reloading the emote schema\n'
     )
     return normal, response
