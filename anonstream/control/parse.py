@@ -5,6 +5,7 @@ from anonstream.control.spec import ParseException, Parsed
 from anonstream.control.spec.common import Str
 from anonstream.control.spec.methods.allowedness import SPEC as SPEC_ALLOWEDNESS
 from anonstream.control.spec.methods.chat import SPEC as SPEC_CHAT
+from anonstream.control.spec.methods.emote import SPEC as SPEC_EMOTE
 from anonstream.control.spec.methods.help import SPEC as SPEC_HELP
 from anonstream.control.spec.methods.quit import SPEC as SPEC_QUIT
 from anonstream.control.spec.methods.title import SPEC as SPEC_TITLE
@@ -17,6 +18,7 @@ SPEC = Str({
     'chat': SPEC_CHAT,
     'user': SPEC_USER,
     'allowednesss': SPEC_ALLOWEDNESS,
+    'emote': SPEC_EMOTE,
 })
 
 async def parse(request):

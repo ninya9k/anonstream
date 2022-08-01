@@ -1,6 +1,7 @@
 import json
 import re
 
+import aiofiles
 from quart import escape
 
 class BadEmote(Exception):
@@ -9,15 +10,23 @@ class BadEmote(Exception):
 class BadEmoteName(BadEmote):
     pass
 
+def _load_emote_schema(emotes):
+    for key in ('name', 'file', 'width', 'height'):
+        for emote in emotes:
+            if key not in emote:
+                raise BadEmote(f'emotes must have a `{key}`: {emote}')
+    precompute_emote_regex(emotes)
+    return emotes
+
 def load_emote_schema(filepath):
     with open(filepath) as fp:
         emotes = json.load(fp)
-        for key in ('name', 'file', 'width', 'height'):
-            for emote in emotes:
-                if key not in emote:
-                    raise BadEmote(f'emotes must have a `{key}`: {emote}')
-        precompute_emote_regex(emotes)
-    return emotes
+    return _load_emote_schema(emotes)
+
+async def load_emote_schema_async(filepath):
+    async with aiofiles.open(filepath) as fp:
+        data = await fp.read(8192)
+    return _load_emote_schema(json.loads(data))
 
 def precompute_emote_regex(schema):
     for emote in schema:
