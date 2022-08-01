@@ -8,7 +8,8 @@ from quart import current_app, escape
 
 from anonstream.broadcast import broadcast, broadcast_users_update
 from anonstream.events import notify_event_sockets
-from anonstream.helpers.chat import generate_nonce_hash, get_scrollback, insert_emotes
+from anonstream.helpers.chat import generate_nonce_hash, get_scrollback
+from anonstream.helpers.emote import insert_emotes
 from anonstream.utils.chat import get_message_for_websocket, get_approx_linespan
 
 CONFIG = current_app.config

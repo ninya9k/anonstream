@@ -4,19 +4,19 @@
 from anonstream.control.spec.common import Str, End
 from anonstream.control.exceptions import ControlSocketExit
 
-async def cmd_exit():
+async def cmd_quit():
     raise ControlSocketExit
 
-async def cmd_exit_help():
-    normal = ['exit', 'help']
+async def cmd_quit_help():
+    normal = ['quit', 'help']
     response = (
-        'Usage: exit\n'
+        'Usage: quit\n'
         'Commands:\n'
-        ' exit......close the connection\n'
+        ' quit......close the connection\n'
     )
     return normal, response
 
 SPEC = Str({
-    None: End(cmd_exit),
-    'help': End(cmd_exit_help),
+    None: End(cmd_quit),
+    'help': End(cmd_quit_help),
 })

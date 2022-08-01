@@ -30,23 +30,3 @@ def get_approx_linespan(text):
     linespan = sum(map(height, text.splitlines()))
     linespan = linespan if linespan > 0 else 1
     return linespan
-
-def precompute_emote_regex(schema):
-    for emote in schema:
-        assert emote['name'], 'emote names cannot be empty'
-        assert not re.search(r'\s', emote['name']), \
-            f'whitespace is not allowed in emote names: {emote["name"]!r}'
-        for length in (emote['width'], emote['height']):
-            assert length is None or isinstance(length, int) and length >= 0, \
-                f'emote dimensions must be null or non-negative integers: {emote["name"]!r}'
-        # If the emote name begins with a word character [a-zA-Z0-9_],
-        # match only if preceded by a non-word character or the empty
-        # string.  Similarly for the end of the emote name.
-        # Examples:
-        #  * ":joy:" matches "abc :joy:~xyz"   and   "abc:joy:xyz"
-        #  * "JoySi" matches "abc JoySi~xyz" but NOT "abcJoySiabc"
-        onset = r'(?:^|(?<=\W))' if re.fullmatch(r'\w', emote['name'][0]) else r''
-        finish = r'(?:$|(?=\W))' if re.fullmatch(r'\w', emote['name'][-1]) else r''
-        emote['regex'] = re.compile(''.join(
-            (onset, re.escape(escape(emote['name'])), finish)
-        ))

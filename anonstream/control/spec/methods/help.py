@@ -9,7 +9,7 @@ async def cmd_help():
         'Usage: METHOD [COMMAND | help]\n'
         'Examples:\n'
         ' help...........................show this help message\n'
-        ' exit...........................close the control connection\n'
+        ' quit...........................close the control connection\n'
         ' title [show]...................show the stream title\n'
         ' title set TITLE................set the stream title\n'
         ' user [show]....................show a list of users\n'
@@ -24,6 +24,8 @@ async def cmd_help():
         ' allowedness setdefault BOOLEAN.set the default allowedness\n'
         ' allowedness add SET STRING.....add to the blacklist/whitelist\n'
         ' allowedness remove SET STRING..remove from the blacklist/whitelist\n'
+        ' emote show.....................show all current emotes\n'
+        ' emote reload...................try reloading the emote schema\n'
     )
     return normal, response
 

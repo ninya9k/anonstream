@@ -8,9 +8,9 @@ from collections import OrderedDict
 from quart_compress import Compress
 
 from anonstream.config import update_flask_from_toml
+from anonstream.emote import load_emote_schema
 from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
-from anonstream.utils.chat import precompute_emote_regex
 from anonstream.utils.user import generate_blank_allowedness
 
 __version__ = '1.6.4'
@@ -49,10 +49,10 @@ def create_app(toml_config):
     app.allowedness = generate_blank_allowedness()
 
     # Read emote schema
-    with open(app.config['EMOTE_SCHEMA']) as fp:
-        emotes = json.load(fp)
-        precompute_emote_regex(emotes)
-        app.emotes = emotes
+    try:
+        app.emotes = load_emote_schema(app.config['EMOTE_SCHEMA'])
+    except (OSError, json.JSONDecodeError) as e:
+        raise AssertionError(f'couldn\'t load emote schema: {e!r}') from e
 
     # State for tasks
     app.users_update_buffer = set()
