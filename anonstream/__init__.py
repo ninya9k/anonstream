@@ -13,7 +13,7 @@ from anonstream.quart import Quart
 from anonstream.utils.captcha import create_captcha_factory, create_captcha_signer
 from anonstream.utils.user import generate_blank_allowedness
 
-__version__ = '1.6.4'
+__version__ = '1.6.5'
 
 def create_app(toml_config):
     app = Quart('anonstream', static_folder=None)
