@@ -6,39 +6,14 @@ import json
 from quart import current_app
 
 from anonstream.control.exceptions import CommandFailed
-from anonstream.control.spec import BadArgument
-from anonstream.control.spec.common import Str, End, ArgsInt, ArgsString, ArgsJson, ArgsJsonBoolean, ArgsJsonString
-from anonstream.control.spec.utils import get_item, json_dumps_contiguous
+from anonstream.control.spec.common import Str, End, ArgsInt, ArgsString, ArgsJson, ArgsJsonBoolean, ArgsJsonString, ArgsUser
+from anonstream.control.spec.utils import json_dumps_contiguous
 from anonstream.utils.user import USER_WEBSOCKET_ATTRS
 from anonstream.routes.wrappers import generate_and_add_user
 from anonstream.wrappers import get_timestamp
 
 USERS_BY_TOKEN = current_app.users_by_token
-USERS = current_app.users
 USERS_UPDATE_BUFFER = current_app.users_update_buffer
-
-class ArgsJsonTokenUser(ArgsJsonString):
-    def transform_obj(self, token):
-        try:
-            user = USERS_BY_TOKEN[token]
-        except KeyError:
-            raise BadArgument(f'no user with token {token!r}')
-        return user
-
-class ArgsJsonHashUser(ArgsString):
-    def transform_string(self, token_hash):
-        for user in USERS:
-            if user['token_hash'] == token_hash:
-                break
-        else:
-            raise BadArgument(f'no user with token_hash {token_hash!r}')
-        return user
-
-def ArgsUser(spec):
-    return Str({
-        'token': ArgsJsonTokenUser(spec),
-        'hash': ArgsJsonHashUser(spec),
-    })
 
 async def cmd_user_help():
     normal = ['user', 'help']

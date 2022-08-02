@@ -3,8 +3,13 @@
 
 import json
 
-from anonstream.control.spec import Spec, NoParse, Ambiguous, Parsed
+from quart import current_app
+
+from anonstream.control.spec import Spec, NoParse, Ambiguous, BadArgument, Parsed
 from anonstream.control.spec.utils import get_item, startswith
+
+USERS_BY_TOKEN = current_app.users_by_token
+USERS = current_app.users
 
 class Str(Spec):
     AS_ARG = False
@@ -146,3 +151,26 @@ class ArgsJsonStringArray(ArgsJson):
                 f'bad argument at position {index} {obj_json!r}: '
                 f'could not decode json array of strings'
             )
+
+class ArgsJsonTokenUser(ArgsJsonString):
+    def transform_obj(self, token):
+        try:
+            user = USERS_BY_TOKEN[token]
+        except KeyError:
+            raise BadArgument(f'no user with token {token!r}')
+        return user
+
+class ArgsJsonHashUser(ArgsString):
+    def transform_string(self, token_hash):
+        for user in USERS:
+            if user['token_hash'] == token_hash:
+                break
+        else:
+            raise BadArgument(f'no user with token_hash {token_hash!r}')
+        return user
+
+def ArgsUser(spec):
+    return Str({
+        'token': ArgsJsonTokenUser(spec),
+        'hash': ArgsJsonHashUser(spec),
+    })
