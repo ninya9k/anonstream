@@ -18,6 +18,7 @@ async def cmd_help():
         ' user set USER ATTR VALUE.......set an attribute of a user\n'
         ' user eyes USER [show]..........show a list of active video responses\n'
         ' user eyes USER delete EYES_ID..end a video response\n'
+        ' user add VERIFIED TOKEN........add new user\n'
         #' chat show MESSAGES.............show a list of messages\n'
         ' chat delete SEQS...............delete a set of messages\n'
         ' allowedness [show].............show the current allowedness\n'

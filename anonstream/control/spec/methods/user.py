@@ -7,9 +7,11 @@ from quart import current_app
 
 from anonstream.control.exceptions import CommandFailed
 from anonstream.control.spec import BadArgument
-from anonstream.control.spec.common import Str, End, ArgsInt, ArgsString, ArgsJson, ArgsJsonString
+from anonstream.control.spec.common import Str, End, ArgsInt, ArgsString, ArgsJson, ArgsJsonBoolean, ArgsJsonString
 from anonstream.control.spec.utils import get_item, json_dumps_contiguous
 from anonstream.utils.user import USER_WEBSOCKET_ATTRS
+from anonstream.routes.wrappers import generate_and_add_user
+from anonstream.wrappers import get_timestamp
 
 USERS_BY_TOKEN = current_app.users_by_token
 USERS = current_app.users
@@ -49,6 +51,7 @@ async def cmd_user_help():
             ' user set USER ATTR VALUE......set an attribute of a user\n'
             ' user eyes USER [show].........show a user\'s active video responses\n'
             ' user eyes USER delete EYES_ID.end a video response to a user\n'
+            ' user add VERIFIED TOKEN.......add new user\n'
             'Definitions:\n'
             ' USER..........................={token TOKEN | hash HASH}\n'
             ' TOKEN.........................a token, json string\n'
@@ -56,6 +59,7 @@ async def cmd_user_help():
             ' ATTR..........................a user attribute, re:[a-z0-9_]+\n'
             ' VALUE.........................json value\n'
             ' EYES_ID.......................a user\'s eyes_id, base 10 integer\n'
+            ' VERIFIED......................user\'s verified state: true = normal, false = can\'t chat, null = will be kicked to access captcha\n'
     )
     return normal, response
 
@@ -132,6 +136,21 @@ async def cmd_user_eyes_delete(user, eyes_id):
     response = ''
     return normal, response
 
+async def cmd_user_add(verified, token):
+    if token in USERS_BY_TOKEN:
+        raise CommandFailed(f'user with token {token!r} already exists')
+    _user = generate_and_add_user(
+        timestamp=get_timestamp(),
+        token=token,
+        verified=verified,
+    )
+    normal = [
+        'user', 'add',
+        json_dumps_contiguous(verified), json_dumps_contiguous(token),
+    ]
+    response = ''
+    return normal, response
+
 SPEC = Str({
     None: End(cmd_user_show),
     'help': End(cmd_user_help),
@@ -144,4 +163,5 @@ SPEC = Str({
         'show': End(cmd_user_eyes_show),
         'delete': ArgsInt(End(cmd_user_eyes_delete)),
     })),
+    'add': ArgsJsonBoolean(ArgsJsonString(End(cmd_user_add))),
 })
