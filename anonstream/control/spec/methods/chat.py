@@ -4,9 +4,11 @@
 import itertools
 
 from anonstream.chat import delete_chat_messages
+from anonstream.control.exceptions import CommandFailed
 from anonstream.control.spec import NoParse
-from anonstream.control.spec.common import Str, End, Args
+from anonstream.control.spec.common import Str, End, Args, ArgsJsonString, ArgsUser
 from anonstream.control.spec.utils import get_item, json_dumps_contiguous
+from anonstream.chat import add_chat_message, Rejected
 
 class ArgsSeqs(Args):
     def consume(self, words, index):
@@ -33,12 +35,18 @@ async def cmd_chat_help():
     response = (
         'Usage: chat delete SEQS\n'
         'Commands:\n'
-        #' chat show [MESSAGES]......show chat messages\n'
-        ' chat delete SEQS..........delete chat messages\n'
+        #' chat show [MESSAGES]...........show chat messages\n'
+        ' chat delete SEQS...............delete chat messages\n'
+        ' chat add USER NONCE COMMENT....add chat message\n'
         'Definitions:\n'
-        #' MESSAGES..................undefined\n'
-        ' SEQS......................=SEQ [SEQ...]\n'
-        ' SEQ.......................a chat message\'s seq, base-10 integer\n'
+        #' MESSAGES...................undefined\n'
+        ' SEQS.......................=SEQ [SEQ...]\n'
+        ' SEQ........................a chat message\'s seq, base-10 integer\n'
+        ' USER.......................={token TOKEN | hash HASH}\n'
+        ' TOKEN......................a user\'s token, json string\n'
+        ' HASH.......................a user\'s token hash\n'
+        ' NONCE......................a chat message\'s nonce, json string\n'
+        ' COMMENT....................json string\n'
     )
     return normal, response
 
@@ -48,8 +56,24 @@ async def cmd_chat_delete(*seqs):
     response = ''
     return normal, response
 
+async def cmd_chat_add(user, nonce, comment):
+    try:
+        seq = add_chat_message(user, nonce, comment)
+    except Rejected as e:
+        raise CommandFailed(f'rejected: {e}') from e
+    else:
+        assert seq is not None
+    normal = [
+        'chat', 'add',
+        'token', json_dumps_contiguous(user['token']),
+        json_dumps_contiguous(nonce), json_dumps_contiguous(comment),
+    ]
+    response = str(seq) + '\n'
+    return normal, response
+
 SPEC = Str({
     None: End(cmd_chat_help),
     'help': End(cmd_chat_help),
     'delete': ArgsSeqs(End(cmd_chat_delete)),
+    'add': ArgsUser(ArgsJsonString(ArgsJsonString(End(cmd_chat_add)))),
 })
