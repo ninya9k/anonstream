@@ -21,6 +21,7 @@ async def cmd_help():
         ' user add VERIFIED TOKEN........add new user\n'
         #' chat show MESSAGES.............show a list of messages\n'
         ' chat delete SEQS...............delete a set of messages\n'
+        ' chat add USER NONCE COMMENT....add chat message\n'
         ' allowedness [show].............show the current allowedness\n'
         ' allowedness setdefault BOOLEAN.set the default allowedness\n'
         ' allowedness add SET STRING.....add to the blacklist/whitelist\n'
