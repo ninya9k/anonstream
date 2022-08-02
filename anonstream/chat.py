@@ -31,9 +31,9 @@ def get_all_messages_for_websocket():
     ))
 
 def add_chat_message(user, nonce, comment, ignore_empty=False):
-    # Special case: if the comment is empty, do nothing and return
+    # Special case: if the comment is empty, do nothing and return None
     if ignore_empty and len(comment) == 0:
-        return False
+        return None
 
     timestamp_ms = time.time_ns() // 1_000_000
     timestamp = timestamp_ms // 1000
@@ -137,7 +137,7 @@ def add_chat_message(user, nonce, comment, ignore_empty=False):
         },
     )
 
-    return True
+    return seq
 
 def delete_chat_messages(seqs):
     seq_set = set(seqs)

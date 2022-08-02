@@ -140,12 +140,13 @@ def handle_inbound_message(timestamp, queue, user, nonce, comment, digest, answe
         message_was_added = False
     else:
         try:
-            message_was_added = add_chat_message(
+            seq = add_chat_message(
                 user,
                 nonce,
                 comment,
                 ignore_empty=verification_happened,
             )
+            message_was_added = seq is not None
         except Rejected as e:
             notice, *_ = e.args
             message_was_added = False
