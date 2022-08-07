@@ -383,7 +383,7 @@ const get_user_name = ({user=null, token_hash}) => {
 }
 const update_user_names = (token_hash=null) => {
   const token_hashes = token_hash === null ? Object.keys(users) : [token_hash];
-  for (const chat_message of chat_messages.children) {
+  for (const chat_message of chat_messages.querySelectorAll(".chat-message")) {
     const this_token_hash = chat_message.dataset.tokenHash;
     if (token_hashes.includes(this_token_hash)) {
       const user = users[this_token_hash];
@@ -465,7 +465,7 @@ const update_user_tripcodes = (token_hash=null) => {
   }
 
   // update inner texts
-  for (const chat_message of chat_messages.children) {
+  for (const chat_message of chat_messages.querySelectorAll(".chat-message")) {
     const this_token_hash = chat_message.dataset.tokenHash;
     const tripcode = users[this_token_hash].tripcode;
     if (token_hashes.includes(this_token_hash)) {
@@ -711,7 +711,8 @@ const on_websocket_message = async (event) => {
       chat_appearance_form_color.setAttribute("value", user.color);
 
       // insert new messages
-      const last = chat_messages.children.length == 0 ? null : chat_messages.children[chat_messages.children.length - 1];
+      const chat_messages_messages = chat_messages.querySelectorAll(".chat-message");
+      const last = chat_messages_messages.length == 0 ? null : chat_messages_messages[chat_messages_messages.length - 1];
       const last_seq = last === null ? null : parseInt(last.dataset.seq);
       for (const message of receipt.messages) {
         if (message.seq > last_seq) {
