@@ -10,11 +10,12 @@ from anonstream.user import add_state, pop_state, try_change_appearance, update_
 from anonstream.routes.wrappers import with_user_from, render_template_with_etag
 from anonstream.helpers.chat import get_scrollback
 from anonstream.helpers.user import get_default_name
-from anonstream.utils.chat import generate_nonce
+from anonstream.utils.chat import generate_nonce, should_show_initial_date
 from anonstream.utils.security import generate_csp
 from anonstream.utils.user import concatenate_for_notice
 
 CONFIG = current_app.config
+MESSAGES = current_app.messages
 USERS_BY_TOKEN = current_app.users_by_token
 
 @current_app.route('/stream.html')
@@ -47,15 +48,17 @@ async def nojs_info(timestamp, user):
 @with_user_from(request)
 async def nojs_chat_messages(timestamp, user):
     reading(user)
+    messages = get_scrollback(MESSAGES)
     return await render_template_with_etag(
         'nojs_chat_messages.html',
         {'csp': generate_csp()},
         refresh=CONFIG['NOJS_REFRESH_MESSAGES'],
         user=user,
         users_by_token=USERS_BY_TOKEN,
-        messages=get_scrollback(current_app.messages),
+        messages=messages,
         timeout=CONFIG['NOJS_TIMEOUT_CHAT'],
         get_default_name=get_default_name,
+        show_initial_date=should_show_initial_date(timestamp, messages),
     )
 
 @current_app.route('/chat/messages')

@@ -144,6 +144,27 @@
       font-size: 9pt;
       cursor: default;
     }
+    .chat-date {
+      transform: rotate(-180deg);
+      text-align: center;
+      position: relative;
+      display: grid;
+      align-items: center;
+      margin: 8px 0;
+      color: #b2b2b3;
+      cursor: default;
+    }
+    .chat-date > hr {
+      margin: 0;
+      position: absolute;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .chat-date > :not(hr) > time {
+      padding: 0 1ch;
+      background-color: #232327;
+      position: relative;
+    }
 
     {% for token in messages | map(attribute='token') | list | unique %}
       {% with this_user = users_by_token[token] %}
@@ -172,7 +193,7 @@
   <ol id="chat-messages">
     {% for message in messages | reverse %}
       {% with this_user = users_by_token[message.token] %}
-        <li class="chat-message" data-seq="{{ message.seq }}" data-token-hash="{{ this_user.token_hash }}">
+        <li class="chat-message" data-seq="{{ message.seq }}" data-token-hash="{{ this_user.token_hash }}" data-date="{{ message.date }}">
           <time class="chat-message__time" datetime="{{ message.date }}T{{ message.time_seconds }}Z" title="{{ message.date }} {{ message.time_seconds }}">{{ message.time_minutes }}</time>
           {{- '&nbsp;' | safe -}}
           {{ appearance(this_user, insignia_class='chat-message__insignia', name_class='chat-message__name', tag_class='chat-message__name__tag') }}
@@ -180,6 +201,15 @@
           <span class="chat-message__markup">{{ message.markup }}</span>
         </li>
       {% endwith %}
+      {%
+        if loop.nextitem is defined and loop.nextitem.date != message.date
+        or loop.nextitem is not defined and show_initial_date
+      %}
+        <li class="chat-date" data-date="{{ message.date }}">
+          <hr>
+          <div><time datetime="{{ message.date }}">{{ message.date }}</time></div>
+        </li>
+      {% endif %}
     {% endfor %}
   </ol>
   <aside id="timeout-dismiss">

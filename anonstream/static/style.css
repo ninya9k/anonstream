@@ -273,6 +273,29 @@ noscript {
   font-size: 9pt;
   cursor: default;
 }
+.chat-date {
+  text-align: center;
+  position: relative;
+  display: grid;
+  align-items: center;
+  margin: 8px 0;
+  color: #b2b2b3;
+  cursor: default;
+}
+.chat-date[data-hidden] {
+  display: none;
+}
+.chat-date > hr {
+  margin: 0;
+  position: absolute;
+  width: 100%;
+  box-sizing: border-box;
+}
+.chat-date > :not(hr) > time {
+  padding: 0 1ch;
+  background-color: #232327;
+  position: relative;
+}
 #chat__body__users {
   background-color: #121214;
   mask-image: linear-gradient(black calc(100% - 0.625rem), transparent calc(100% - 0.125rem));
