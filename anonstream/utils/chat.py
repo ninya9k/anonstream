@@ -6,6 +6,7 @@ import hashlib
 import math
 import re
 import secrets
+from datetime import datetime
 from functools import lru_cache
 
 from quart import escape
@@ -30,3 +31,15 @@ def get_approx_linespan(text):
     linespan = sum(map(height, text.splitlines()))
     linespan = linespan if linespan > 0 else 1
     return linespan
+
+def should_show_initial_date(timestamp, messages):
+    try:
+        first_message = next(iter(messages))
+    except StopIteration:
+        return False
+    if any(message['date'] != first_message['date'] for message in messages):
+        return True
+    else:
+        latest_date = max(map(lambda message: message['date'], messages))
+        date = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d')
+        return date != latest_date
