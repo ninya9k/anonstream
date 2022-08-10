@@ -699,7 +699,7 @@ const on_websocket_message = async (event) => {
           left: 0,
           top: chat_messages.scrollTopMax,
           behavior: "instant",
-		});
+		    });
       }
 
       // appearance form default values
