@@ -189,6 +189,7 @@ const create_chat_message = (object) => {
   chat_message.classList.add("chat-message");
   chat_message.dataset.seq = object.seq;
   chat_message.dataset.tokenHash = object.token_hash;
+  chat_message.dataset.date = object.date;
 
   const chat_message_time = document.createElement("time");
   chat_message_time.classList.add("chat-message__time");
@@ -256,23 +257,65 @@ const create_chat_user_components = (user) => {
   result.push(...[chat_user_name, chat_user_tripcode_nbsp, chat_user_tripcode]);
   return result;
 }
+const zeropad = (n) => ("0" + n).slice(-2);
+const datestamp = () => {
+  const date = new Date();
+  return `${date.getUTCFullYear()}-${zeropad(date.getUTCMonth() + 1)}-${zeropad(date.getUTCDate())}`;
+}
 const create_and_add_chat_message = (object) => {
+  // date
+  last_chat_message = chat_messages.querySelector(".chat-message:last-of-type");
+  if (last_chat_message === null || last_chat_message.dataset.date !== object.date) {
+    const chat_date = document.createElement("li");
+    chat_date.classList.add("chat-date");
+    chat_date.dataset.date = object.date;
+
+    const chat_date_hr = document.createElement("hr");
+    const chat_date_div = document.createElement("div");
+
+    const chat_date_div_time = document.createElement("time");
+    chat_date_div_time.datetime = object.date;
+    chat_date_div_time.innerText = object.date;
+
+    chat_date_div.insertAdjacentElement("beforeend", chat_date_div_time);
+    chat_date.insertAdjacentElement("beforeend", chat_date_hr);
+    chat_date.insertAdjacentElement("beforeend", chat_date_div);
+    if (last_chat_message === null && object.date === datestamp())
+      chat_date.dataset.hidden = "";
+    chat_messages.insertAdjacentElement("beforeend", chat_date);
+  }
+
+  // message
   const chat_message = create_chat_message(object);
   chat_messages.insertAdjacentElement("beforeend", chat_message);
-  while (chat_messages.children.length > max_chat_scrollback) {
-    chat_messages.children[0].remove();
+  const first_chat_message = chat_messages.querySelector(".chat-message");
+  if (first_chat_message !== null) {
+    const first_chat_date = chat_messages.querySelector(".chat-date");
+    if (first_chat_date !== null && first_chat_date.hasAttribute("data-hidden") && (object.date !== first_chat_message.dataset.date || object.date !== datestamp()))
+      first_chat_date.removeAttribute("data-hidden");
   }
+  const string_seqs = new Set();
+  for (const this_chat_message of chat_messages.querySelectorAll(".chat-message")) {
+    if (chat_messages.querySelectorAll(".chat-message").length - string_seqs.size > max_chat_scrollback)
+      string_seqs.add(this_chat_message.dataset.seq);
+    else
+      break;
+  }
+  delete_chat_messages({string_seqs});
 }
-const delete_chat_messages = (seqs) => {
-  string_seqs = new Set(seqs.map(n => n.toString()));
-  to_delete = [];
-  for (const chat_message of chat_messages.children) {
-    if (string_seqs.has(chat_message.dataset.seq))
-      to_delete.push(chat_message);
+const delete_chat_messages = ({string_seqs, keep=false}) => {
+  const keep_dates = new Set();
+  for (const chat_message of chat_messages.querySelectorAll(".chat-message")) {
+    if (string_seqs.has(chat_message.dataset.seq) === keep)
+      keep_dates.add(chat_message.dataset.date);
   }
-  for (const chat_message of to_delete) {
-    chat_message.remove();
+  const to_delete = [];
+  for (const child of chat_messages.children) {
+    if (child.classList.contains("chat-date") && !keep_dates.has(child.dataset.date) || child.classList.contains("chat-message") && string_seqs.has(child.dataset.seq) !== keep)
+      to_delete.push(child);
   }
+  for (const element of to_delete)
+    element.remove();
 }
 
 let users = {};
@@ -632,17 +675,8 @@ const on_websocket_message = async (event) => {
       chat_form_submit.disabled = false;
 
       // remove messages the server isn't acknowledging the existence of
-      const seqs = new Set(receipt.messages.map((message) => {return message.seq;}));
-      const to_delete = [];
-      for (const chat_message of chat_messages.children) {
-        const chat_message_seq = parseInt(chat_message.dataset.seq);
-        if (!seqs.has(chat_message_seq)) {
-          to_delete.push(chat_message);
-        }
-      }
-      for (const chat_message of to_delete) {
-        chat_message.remove();
-      }
+      const string_seqs = new Set(receipt.messages.map(message => message.seq.toString()));
+      delete_chat_messages({string_seqs, keep: true});
 
       // settings
       default_name = receipt.default;
@@ -744,7 +778,7 @@ const on_websocket_message = async (event) => {
 
     case "delete":
       console.log("ws delete", receipt);
-      delete_chat_messages(receipt.seqs);
+      delete_chat_messages({string_seqs: new Set(receipt.seqs.map(n => n.toString()))});
       break;
 
     case "set-users":
@@ -968,6 +1002,14 @@ const chat_messages_unlock = document.getElementById("chat-messages-unlock");
 chat_messages_unlock.addEventListener("click", (event) => {
   chat_messages.scrollTop = chat_messages.scrollTopMax;
 });
+
+/* show initial chat date if a day has passed */
+const show_initial_date = () => {
+  const chat_date = chat_messages.querySelector(".chat-date:first-child");
+  if (chat_date !== null && chat_date.hasAttribute("data-hidden") && chat_date.dataset.date !== datestamp())
+    chat_date.removeAttribute("data-hidden");
+}
+setInterval(show_initial_date, 30000);
 
 /* close websocket after prolonged absence of pings */
 
