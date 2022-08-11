@@ -23,7 +23,12 @@ CAPTCHA_SIGNER = current_app.captcha_signer
 STATIC_DIRECTORY = current_app.root_path / 'static'
 
 @current_app.route('/')
-@with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
+@with_user_from(
+    request,
+    fallback_to_token=True,
+    ignore_allowedness=True,
+    redundant_token_redirect=True,
+)
 async def home(timestamp, user_or_token):
     match user_or_token:
         case str() | None as token:

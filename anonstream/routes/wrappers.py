@@ -8,7 +8,7 @@ import string
 from functools import wraps
 from urllib.parse import quote, unquote
 
-from quart import current_app, request, make_response, render_template, request, url_for, Markup
+from quart import current_app, request, make_response, render_template, redirect, url_for, Markup
 from werkzeug.exceptions import BadRequest, Unauthorized, Forbidden
 from werkzeug.security import check_password_hash
 
@@ -87,7 +87,12 @@ def generate_and_add_user(
     USERS_UPDATE_BUFFER.add(token)
     return user
 
-def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
+def with_user_from(
+    context,
+    fallback_to_token=False,
+    ignore_allowedness=False,
+    redundant_token_redirect=False,
+):
     def with_user_from_context(f):
         @wraps(f)
         async def wrapper(*args, **kwargs):
@@ -128,6 +133,18 @@ def with_user_from(context, fallback_to_token=False, ignore_allowedness=False):
                         f"and log in with the credentials printed in their "
                         f"terminal when they started anonstream."
                     ))
+
+            # If token from the client's cookie is same as the token in the URL
+            # query string, the client supports cookies.  If we want, we can
+            # redirect the client to this same URL path but with the token
+            # parameter removed, since we'll pick up their token from their
+            # cookie anyway.
+            if (
+                redundant_token_redirect
+                and token_from_context is not None
+                and token_from_args == token_from_cookie
+            ):
+                return redirect(context.path, 303)
 
             # Create response
             user = USERS_BY_TOKEN.get(token)
