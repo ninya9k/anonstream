@@ -3,6 +3,7 @@
 
 import math
 import re
+from urllib.parse import quote
 
 from quart import current_app, request, render_template, abort, make_response, redirect, url_for, send_from_directory
 from werkzeug.exceptions import Forbidden, NotFound, TooManyRequests
@@ -128,12 +129,13 @@ async def access(timestamp, user_or_token):
                     failure_id = None
                     user = generate_and_add_user(timestamp, token, verified=True)
             if failure_id is not None:
-                url = url_for('home', token=token, failure=failure_id)
-                raise abort(redirect(url, 303))
+                response = redirect(url_for('home', token=token, failure=failure_id), 303)
+            else:
+                response = redirect(url_for('home', token=user['token']), 303)
+                response.headers['Set-Cookie'] = f'token={quote(user["token"])}; path=/'
         case dict() as user:
-            pass
-    url = url_for('home', token=user['token'])
-    return redirect(url, 303)
+            response = redirect(url_for('home', token=user['token']), 303)
+    return response
 
 @current_app.route('/static/<path:filename>')
 @with_user_from(request)
