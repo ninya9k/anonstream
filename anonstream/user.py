@@ -8,6 +8,7 @@ from math import inf
 
 from quart import current_app
 
+from anonstream.events import notify_event_sockets
 from anonstream.wrappers import try_except_log, with_timestamp, get_timestamp
 from anonstream.helpers.user import get_default_name, get_presence, Presence
 from anonstream.helpers.captcha import check_captcha_digest, Answer
@@ -97,6 +98,21 @@ def try_change_appearance(user, name, color, password, want_tripcode):
 
         # Add to the users update buffer
         USERS_UPDATE_BUFFER.add(user['token'])
+
+        # Notify event sockets that a user's appearance was set
+        # NOTE: Changing appearance is currently NOT ratelimited.
+        #       Applications using the event socket API should buffer these
+        #       events or do something else to a prevent a potential denial of
+        #       service.
+        notify_event_sockets({
+            'type': 'appearance',
+            'event': {
+                'token': user['token'],
+                'name': user['name'],
+                'color': user['color'],
+                'tripcode': user['tripcode'],
+            }
+        })
 
     return errors
 
