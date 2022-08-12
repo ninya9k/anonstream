@@ -12,7 +12,7 @@ from anonstream.stream import get_stream_title, set_stream_title
 async def cmd_title_help():
     normal = ['title', 'help']
     response = (
-        'Usage: title [show | set TITLE]\n'
+        'Usage: title {show | set TITLE}\n'
         'Commands:\n'
         ' title [show].......show the stream title\n'
         ' title set TITLE....set the stream title to TITLE\n'

@@ -16,7 +16,7 @@ EMOTES = current_app.emotes
 async def cmd_emote_help():
     normal = ['emote', 'help']
     response = (
-        'Usage: emote [show | reload]\n'
+        'Usage: emote {show | reload}\n'
         'Commands:\n'
         ' emote show........show all current emotes\n'
         ' emote reload......try to reload the emote schema (existing messages are not modified)\n'

@@ -58,10 +58,8 @@ async def cmd_user_get(user, attr):
     except (TypeError, ValueError) as e:
         raise CommandFailed('value is not representable in json') from e
     normal = [
-        'user',
-        'get',
-        'token',
-        json_dumps_contiguous(user['token']),
+        'user', 'get',
+        'token', json_dumps_contiguous(user['token']),
         attr,
     ]
     response = value_json + '\n'
@@ -74,10 +72,8 @@ async def cmd_user_set(user, attr, value):
     if attr in USER_WEBSOCKET_ATTRS:
         USERS_UPDATE_BUFFER.add(user['token'])
     normal = [
-        'user',
-        'set',
-        'token',
-        json_dumps_contiguous(user['token']),
+        'user', 'set',
+        'token', json_dumps_contiguous(user['token']),
         attr,
         json_dumps_contiguous(value),
     ]
@@ -86,11 +82,9 @@ async def cmd_user_set(user, attr, value):
 
 async def cmd_user_eyes_show(user):
     normal = [
-        'user',
-        'eyes',
-        'token',
-        json_dumps_contiguous(user['token']),
-        'show'
+        'user', 'eyes',
+        'token', json_dumps_contiguous(user['token']),
+        'show',
     ]
     response = json.dumps(user['eyes']['current']) + '\n'
     return normal, response
@@ -101,12 +95,9 @@ async def cmd_user_eyes_delete(user, eyes_id):
     except KeyError:
         pass
     normal = [
-        'user',
-        'eyes',
-        'token',
-        json_dumps_contiguous(user['token']),
-        'delete',
-        str(eyes_id),
+        'user', 'eyes',
+        'token', json_dumps_contiguous(user['token']),
+        'delete', str(eyes_id),
     ]
     response = ''
     return normal, response

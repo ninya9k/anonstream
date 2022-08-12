@@ -15,7 +15,7 @@
       font-family: sans-serif;
       font-size: 14pt;
       display: grid;
-      grid-template-rows: calc(50% - 4rem) 1fr;
+      grid-template-rows: calc(50% - 10vh + 2rem) 1fr;
       height: 100vh;
       margin: 0;
       padding: 1rem;
@@ -37,20 +37,23 @@
       border-radius: 2px;
       color: #ddd;
       font-size: 14pt;
-      padding: 4px 5px;
+      padding: 5px 6px;
       width: 10ch;
-    }
-    input[name="answer"]:hover {
-      background-color: #37373a;
       transition: 0.25s;
-	}
-	input[type="submit"] {
+    }
+    input[name="answer"]:focus {
+      background-color: black;
+      border-color: #3584e4;
+    }
+    input[type="submit"] {
       font-size: 14pt;
-	}
-	p {
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+    p {
       grid-column: 1 / span 2;
       text-align: center;
-	}
+    }
   </style>
 </head>
 <body>

@@ -36,6 +36,11 @@ async def websocket_outbound(queue, user):
         'scrollback': CONFIG['MAX_CHAT_SCROLLBACK'],
         'digest': get_random_captcha_digest_for(user),
         'pingpong': CONFIG['TASK_BROADCAST_PING'],
+        'maxlength': {
+            'comment': CONFIG['CHAT_COMMENT_MAX_LENGTH'],
+            'name': CONFIG['CHAT_NAME_MAX_LENGTH'],
+            'password': CONFIG['CHAT_TRIPCODE_PASSWORD_MAX_LENGTH'],
+        },
     })
     while True:
         payload = await queue.get()

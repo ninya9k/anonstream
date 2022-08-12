@@ -665,6 +665,11 @@ const on_websocket_message = async (event) => {
         info_button.dataset.visible = "";
       }
 
+      // form input maxlengths
+      chat_form_comment.maxLength = receipt.maxlength.comment;
+      chat_appearance_form_name.maxLength = receipt.maxlength.name;
+      chat_appearance_form_password.maxLength = receipt.maxlength.password;
+
       // chat form nonce
       chat_form_nonce.value = receipt.nonce;
 

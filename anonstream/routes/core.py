@@ -3,6 +3,7 @@
 
 import math
 import re
+from urllib.parse import quote
 
 from quart import current_app, request, render_template, abort, make_response, redirect, url_for, send_from_directory
 from werkzeug.exceptions import Forbidden, NotFound, TooManyRequests
@@ -22,7 +23,12 @@ CAPTCHA_SIGNER = current_app.captcha_signer
 STATIC_DIRECTORY = current_app.root_path / 'static'
 
 @current_app.route('/')
-@with_user_from(request, fallback_to_token=True, ignore_allowedness=True)
+@with_user_from(
+    request,
+    fallback_to_token=True,
+    ignore_allowedness=True,
+    redundant_token_redirect=True,
+)
 async def home(timestamp, user_or_token):
     match user_or_token:
         case str() | None as token:
@@ -128,12 +134,13 @@ async def access(timestamp, user_or_token):
                     failure_id = None
                     user = generate_and_add_user(timestamp, token, verified=True)
             if failure_id is not None:
-                url = url_for('home', token=token, failure=failure_id)
-                raise abort(redirect(url, 303))
+                response = redirect(url_for('home', token=token, failure=failure_id), 303)
+            else:
+                response = redirect(url_for('home', token=user['token']), 303)
+                response.headers['Set-Cookie'] = f'token={quote(user["token"])}; path=/'
         case dict() as user:
-            pass
-    url = url_for('home', token=user['token'])
-    return redirect(url, 303)
+            response = redirect(url_for('home', token=user['token']), 303)
+    return response
 
 @current_app.route('/static/<path:filename>')
 @with_user_from(request)
