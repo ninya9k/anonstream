@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 import itertools
+import json
+
+from quart import current_app
 
 from anonstream.chat import delete_chat_messages
 from anonstream.control.exceptions import CommandFailed
@@ -9,6 +12,8 @@ from anonstream.control.spec import NoParse
 from anonstream.control.spec.common import Str, End, Args, ArgsJsonString, ArgsUser
 from anonstream.control.spec.utils import get_item, json_dumps_contiguous
 from anonstream.chat import add_chat_message, Rejected
+
+MESSAGES = current_app.messages
 
 class ArgsSeqs(Args):
     def consume(self, words, index):
@@ -33,13 +38,12 @@ class ArgsSeqs(Args):
 async def cmd_chat_help():
     normal = ['chat', 'help']
     response = (
-        'Usage: chat delete SEQS\n'
+        'Usage: chat {show | delete SEQS | add USER NONCE COMMENT}\n'
         'Commands:\n'
-        #' chat show [MESSAGES]...........show chat messages\n'
+        ' chat show......................show all chat messages\n'
         ' chat delete SEQS...............delete chat messages\n'
         ' chat add USER NONCE COMMENT....add chat message\n'
         'Definitions:\n'
-        #' MESSAGES...................undefined\n'
         ' SEQS.......................=SEQ [SEQ...]\n'
         ' SEQ........................a chat message\'s seq, base-10 integer\n'
         ' USER.......................={token TOKEN | hash HASH}\n'
@@ -48,6 +52,11 @@ async def cmd_chat_help():
         ' NONCE......................a chat message\'s nonce, json string\n'
         ' COMMENT....................json string\n'
     )
+    return normal, response
+
+async def cmd_chat_show():
+    normal = ['chat', 'show']
+    response = json.dumps(tuple(MESSAGES), separators=(',', ':')) + '\n'
     return normal, response
 
 async def cmd_chat_delete(*seqs):
@@ -74,6 +83,7 @@ async def cmd_chat_add(user, nonce, comment):
 SPEC = Str({
     None: End(cmd_chat_help),
     'help': End(cmd_chat_help),
+    'show': End(cmd_chat_show),
     'delete': ArgsSeqs(End(cmd_chat_delete)),
     'add': ArgsUser(ArgsJsonString(ArgsJsonString(End(cmd_chat_add)))),
 })
