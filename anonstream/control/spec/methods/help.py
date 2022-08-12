@@ -28,6 +28,7 @@ async def cmd_help():
         ' allowedness remove SET STRING..remove from the blacklist/whitelist\n'
         ' emote show.....................show all current emotes\n'
         ' emote reload...................try reloading the emote schema\n'
+        ' config show OPTION.............show app config option\n'
     )
     return normal, response
 
