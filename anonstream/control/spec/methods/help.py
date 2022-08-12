@@ -29,6 +29,7 @@ async def cmd_help():
         ' emote show.....................show all current emotes\n'
         ' emote reload...................try reloading the emote schema\n'
         ' config show OPTION.............show app config option\n'
+        ' tripcode generate PASSWORD.....show tripcode for given password\n'
     )
     return normal, response
 

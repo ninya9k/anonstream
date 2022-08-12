@@ -10,6 +10,7 @@ from anonstream.control.spec.methods.emote import SPEC as SPEC_EMOTE
 from anonstream.control.spec.methods.help import SPEC as SPEC_HELP
 from anonstream.control.spec.methods.quit import SPEC as SPEC_QUIT
 from anonstream.control.spec.methods.title import SPEC as SPEC_TITLE
+from anonstream.control.spec.methods.tripcode import SPEC as SPEC_TRIPCODE
 from anonstream.control.spec.methods.user import SPEC as SPEC_USER
 
 SPEC = Str({
@@ -21,6 +22,7 @@ SPEC = Str({
     'allowednesss': SPEC_ALLOWEDNESS,
     'emote': SPEC_EMOTE,
     'config': SPEC_CONFIG,
+    'tripcode': SPEC_TRIPCODE,
 })
 
 async def parse(request):
