@@ -941,7 +941,7 @@ info_button.addEventListener("click", (event) => {
   info_button.removeAttribute("data-visible");
 });
 video.addEventListener("error", (event) => {
-  if (video.error !== null && video.error.message === "404: Not Found") {
+  if (video.error !== null && video.networkState === video.NETWORK_NO_SOURCE) {
     show_offline_screen();
   }
   if (stats !== null) {
