@@ -5,7 +5,7 @@ Recipe for livestreaming over Tor
 ## Repo
 
 The canonical location of this repo is
-<https://git.076.ne.jp/ninya9k/anonstream>.
+<https://gitler.moe/ninya9k/anonstream>.
 
 These mirrors also exist:
 * <https://gitlab.com/ninya9k/anonstream>
@@ -18,7 +18,7 @@ Python with `python --version`.
 
 Clone the repo:
 ```sh
-git clone https://git.076.ne.jp/ninya9k/anonstream.git
+git clone https://gitler.moe/ninya9k/anonstream.git
 cd anonstream
 ```
 
@@ -136,8 +136,8 @@ anonstream is AGPL 3.0 or later, see
 * werkzeug <https://github.com/pallets/werkzeug>
   ([BSD 3-Clause][werkzeug])
 
-[licence]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/LICENSES/AGPL-3.0-or-later.md
-[settings.svg]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/anonstream/static/settings.svg
+[licence]: https://gitler.moe/ninya9k/anonstream/src/branch/master/LICENSES/AGPL-3.0-or-later.md
+[settings.svg]: https://gitler.moe/ninya9k/anonstream/src/branch/master/anonstream/static/settings.svg
 
 [aiofiles]: https://github.com/Tinche/aiofiles/blob/master/LICENSE
 [captcha]: https://github.com/lepture/captcha/blob/master/LICENSE

@@ -1,7 +1,7 @@
 # This file is pretty much entirely based on a snippet from asgi.py in
 # the Quart repository (MIT, see README.md). That means it takes on the
 # MIT licence I guess(???) If not then it's the same as every other file
-# by me: 2022 n9k <https://git.076.ne.jp/ninya9k>, AGPL 3.0 or any later
+# by me: 2022 n9k <https://gitler.moe/ninya9k>, AGPL 3.0 or any later
 # version.
 
 import asyncio

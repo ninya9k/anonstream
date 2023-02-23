@@ -91,4 +91,4 @@ stream/stream.m3u8
 ```
 
 [hwaccel]: https://trac.ffmpeg.org/wiki/HWAccelIntro
-[plaintext]: https://git.076.ne.jp/ninya9k/anonstream/raw/branch/master/doc/guide/OBS.md
+[plaintext]: https://gitler.moe/ninya9k/anonstream/raw/branch/master/doc/guide/OBS.md

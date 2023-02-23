@@ -128,6 +128,6 @@ systemd you can alternatively do `# systemctl reload tor`.  If
 everything went well, the directory will have been created and your
 onion address will be in `$HIDDEN_SERVICE_DIR/hostname`.
 
-[readme]: https://git.076.ne.jp/ninya9k/anonstream/src/branch/master/README.md#setup
+[readme]: https://gitler.moe/ninya9k/anonstream/src/branch/master/README.md#setup
 [tor]: https://gitlab.torproject.org/tpo/core/tor
 [torrc]: https://support.torproject.org/#tbb-editing-torrc
