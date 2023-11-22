@@ -20,7 +20,7 @@ from anonstream.utils.user import identifying_string
 from anonstream.wrappers import with_timestamp
 
 CAPTCHA_SIGNER = current_app.captcha_signer
-STATIC_DIRECTORY = current_app.root_path / 'static'
+STATIC_DIRECTORY = current_app.root_path + '/static'
 
 @current_app.route('/')
 @with_user_from(
